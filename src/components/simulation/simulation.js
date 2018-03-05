@@ -30,7 +30,7 @@ class AlgoTrader extends GenericTrader {
     }
 }
 
-const changeDemand(factor) => {
+const changeDemand = (factor) => {
     
 }
 
