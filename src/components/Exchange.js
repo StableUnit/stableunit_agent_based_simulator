@@ -1,19 +1,24 @@
+//@flow
+
 import React from 'react';
-import Chart from './Chart';
-import OrderBook from './OrderBook';
+import { connect } from 'react-redux';
 
-const Exchange = (props) => {
-    return (
-        <div>
-            <h1>Exchange</h1>
-            <Chart
-                title="Exhange history!"
-                history={props.history}/>
-            <OrderBook
-                title="OrderBook!"
-                orders={props.orders}/>
-        </div>
-    );
-}
+const Exchange = props => {
+  return (
+    <div>
+      <h1>Exchange</h1>
+      <button onClick={props.start}>Start</button>
+      {props.simulation}
+    </div>
+  );
+};
 
-export default Exchange;
+const mapState = state => ({
+  simulation: state.simulation
+})
+
+const mapDispatch = dispatch => ({
+  start: dispatch.simulation.start
+})
+
+export default connect(mapState, mapDispatch)(Exchange);

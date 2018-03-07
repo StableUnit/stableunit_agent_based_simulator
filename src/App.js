@@ -23,7 +23,7 @@ class App extends React.Component {
     return (
       <Wrap>
         <Panel>
-          {/* <Exchange /> */}
+          <Exchange />
         </Panel>
         <Panel>
           <ControlPanel />
