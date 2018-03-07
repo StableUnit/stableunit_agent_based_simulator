@@ -1,15 +1,26 @@
+//@flow
+
+import { SimulationState, FullState } from '../types';
+
+const TICK_INTERVAL = 1000;
+
+
+const initialState:SimulationState = {
+  tick: 0,
+}
+
 export default {
-  state: 0,
+  state: initialState,
   reducers: {
-    increment: state => state + 1
+    increment: (state: SimulationState) => ({ tick: state.tick + 1 })
   },
   effects: {
-    // handle state changes with impure functions.
-    // use async/await for async actions
-    async start(_, rootState) {
+    // The main update loop starts here:
+    async start(_: any, rootState: FullState) {
+      if (rootState.simulation.tick > 0) { return; }
       while (true) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
         this.increment();
+        await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));
       }
     }
   }
