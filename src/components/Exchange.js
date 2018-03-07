@@ -9,7 +9,7 @@ type Props = {
   simulation: SimulationState,
   start: () => void
 }
-
+ 
 const Exchange = (props: Props) => {
   return (
     <div>

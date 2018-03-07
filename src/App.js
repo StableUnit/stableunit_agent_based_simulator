@@ -18,7 +18,9 @@ const Panel = styled.div`
 const StableFund = styled.div``;
 const Traders = styled.div``;
 
-class App extends React.Component {
+type Props = {}
+
+class App extends React.Component<Props> {
   render() {
     return (
       <Wrap>
