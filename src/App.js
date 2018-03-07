@@ -8,6 +8,7 @@ import Exchange from './components/Exchange';
 
 const Wrap = styled.div`
   display: flex;
+  flex-wrap: wrap;
 `
 
 const Panel = styled.div`
