@@ -3,7 +3,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { SimulationState, FullState } from '../types';
+import type { SimulationState, FullState } from '../types';
 
 type Props = {
   simulation: SimulationState,
@@ -16,6 +16,9 @@ const Exchange = (props: Props) => {
       <h1>Exchange</h1>
       <button onClick={props.start}>Start</button>
       {props.simulation.tick}
+      {props.simulation.traders.map(
+        trader => <h2 key={trader.name}>{trader.name}</h2>
+      )}
     </div>
   );
 };
