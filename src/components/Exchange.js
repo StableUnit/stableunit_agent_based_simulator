@@ -7,9 +7,9 @@ const Exchange = (props) => {
         <div>
             <h1>Exchange</h1>
             <Chart
-                title="Exhange history!" 
+                title="Exhange history!"
                 history={props.history}/>
-            <OrderBook 
+            <OrderBook
                 title="OrderBook!"
                 orders={props.orders}/>
         </div>
