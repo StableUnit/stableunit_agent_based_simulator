@@ -11,6 +11,7 @@ import type {
   SimulationStateProps,
   ListOfTraders,
   Trader,
+  Portfolio,
 } from '../types';
 import type { RecordFactory, RecordOf } from 'immutable';
 
@@ -21,25 +22,21 @@ const initialState = makeSimulationState();
 export default {
   state: initialState,
   reducers: {
-    generateTraders: (state: SimulationState): SimulationState => {
-      // Create 10 traders with empty portfolios
-      const newTraders = List(Array(10).fill()).map((entry, index) => makeTrader({ name: `Trader ${index}`, portfolio: new Map() }))
-      return state.set('traders', newTraders);
-    },
     addTrader: (state: SimulationState, data: TraderProps): SimulationState =>
       state.update('traders', traders => traders.push(makeTrader(data))),
     updateTraders: (state: SimulationState): SimulationState =>
       state.update('traders', (traders: ListOfTraders) =>
-        traders.map((trader: Trader) => trader.updateTrader(trader))
+        traders.map((trader: Trader) =>
+          trader.updateTrader(trader, state.exchange)
+        )
       )
   },
   effects: {
     // The main update loop starts here:
-    async start(_: any, rootState: FullState) {
+    async start(payload: any, rootState: FullState) {
       if (rootState.simulation.tick > 0) {
         return;
       }
-      this.generateTraders();
       while (true) {
         // TODO: Update exchange
         // TODO: Update stable system
