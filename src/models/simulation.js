@@ -47,6 +47,7 @@ function makeRandomBuyOrders(traders: Traders): OrderList {
 
 
     return {
+      datetime: Date.now() - Math.floor(Math.random() * 10000),
       price: Math.random(),
       quantity: Math.random(),
       traderId: randomTraderId
@@ -63,6 +64,7 @@ function makeRandomSellOrders(traders: Traders): OrderList {
 
 
     return {
+      datetime: Date.now() - Math.floor(Math.random() * 10000),
       price: Math.random() + INITIAL_PRICE,
       quantity: Math.random(),
       traderId: randomTraderId
