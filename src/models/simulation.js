@@ -85,6 +85,8 @@ const makeTrader: RecordFactory<TraderShape> = Record({
     fear: 0,
     greed: 0
   },
+  // The decision making logic of a trader
+  // This function is default, you can override it for any new trader when calling makeTrader
   updateTrader: (trader: Trader, exchange: Exchange): Trader => {
     /*
     if (price_SU < 1.0 - DELTA) {
@@ -94,11 +96,7 @@ const makeTrader: RecordFactory<TraderShape> = Record({
         sell()
     }
      */
-    return trader.update('portfolio', portfolio =>
-      portfolio.map(amount =>
-        Math.max((amount += (Math.random() - 0.5) * 100), 0)
-      )
-    );
+    return trader;
   }
 });
 
