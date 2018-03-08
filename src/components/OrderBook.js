@@ -4,6 +4,8 @@ import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 import { connect } from 'react-redux';
 
+import { colors } from '../theme';
+
 import type { Exchange, FullState, Order, OrderList } from '../types';
 
 type Props = {
@@ -76,7 +78,7 @@ const OrderBook = (props: Props) => {
         fillAlphas: 0.1,
         lineAlpha: 1,
         lineThickness: 2,
-        lineColor: '#0f0',
+        lineColor: colors.green,
         type: 'step',
         valueField: 'bidsTotalQuantity'
       },
@@ -85,7 +87,7 @@ const OrderBook = (props: Props) => {
         fillAlphas: 0.1,
         lineAlpha: 1,
         lineThickness: 2,
-        lineColor: '#f00',
+        lineColor: colors.red,
         type: 'step',
         valueField: 'asksTotalQuantity'
       },

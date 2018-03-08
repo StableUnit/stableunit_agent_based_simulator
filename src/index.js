@@ -1,9 +1,17 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import { Provider } from "react-redux";
-import { init } from "@rematch/core";
-import App from "./App";
-import simulation from "./models/simulation";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { init } from '@rematch/core';
+import App from './App';
+import simulation from './models/simulation';
+
+import { injectGlobal } from 'styled-components';
+
+injectGlobal`
+  body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+  }
+`;
 
 const store = init({
   models: {
@@ -18,7 +26,7 @@ ReactDOM.render(
   <Provider store={store}>
     <App />
   </Provider>,
-  document.getElementById("root")
+  document.getElementById('root')
 );
 
 // No need for this one yet

@@ -1,6 +1,8 @@
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
+import { colors } from '../theme';
+
 const Hodlometer = () => {
   const style = {
     width: '300px',
@@ -18,17 +20,17 @@ const Hodlometer = () => {
         valueInterval: 20,
         bands: [
           {
-            color: '#84b761',
+            color: colors.green,
             endValue: 30,
             startValue: 0
           },
           {
-            color: '#fdd400',
+            color: colors.yellow,
             endValue: 70,
             startValue: 30
           },
           {
-            color: '#cc4748',
+            color: colors.red,
             endValue: 100,
             innerRadius: '95%',
             startValue: 70
