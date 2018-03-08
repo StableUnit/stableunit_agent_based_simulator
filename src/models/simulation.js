@@ -2,6 +2,7 @@
 
 import { List, Record, Map } from 'immutable';
 import type { RecordFactory } from 'immutable';
+import nanoid from 'nanoid';
 
 import type {
   FullState,
@@ -9,13 +10,13 @@ import type {
   SimulationStateShape,
   TraderShape,
   Trader,
-  ListOfTraders,
+  Traders,
   ExchangeShape,
   Exchange,
   HistoryEntryShape,
   Portfolio,
   StableSystemShape,
-  StableSystem,
+  StableSystem
 } from '../types';
 
 // Configuration constants. ALL_CAPS
@@ -39,6 +40,7 @@ const makeHistoryEntry: RecordFactory<HistoryEntryShape> = Record({
 });
 
 const makeTrader: RecordFactory<TraderShape> = Record({
+  id: nanoid(),
   name: 'Trader',
   portfolio: new Map(),
   dna: {
@@ -73,14 +75,26 @@ function makeRandomPortfolio(): Portfolio {
   });
 }
 
-function makeRandomTraders(): ListOfTraders {
-  return List(Array(10).fill()).map((entry, index) =>
-    makeTrader({ name: `Trader ${index}`, portfolio: makeRandomPortfolio() })
+function makeRandomTraders(): Traders {
+  return Map(
+    Array(10)
+      .fill()
+      .map((entry, index) => {
+        const id = nanoid();
+        return [
+          id,
+          makeTrader({
+            id,
+            name: `Trader ${index}`,
+            portfolio: makeRandomPortfolio()
+          })
+        ];
+      })
   );
 }
 
 const makeStableSystem: RecordFactory<StableSystemShape> = Record({
-  log: List(),
+  log: List()
 });
 
 // This record is the core of our redux state
@@ -101,11 +115,14 @@ export default {
   reducers: {
     // Add trader
     addTrader: (state: SimulationState, data: TraderShape): SimulationState =>
-      state.update('traders', traders => traders.push(makeTrader(data))),
+      state.update('traders', traders => {
+        const id = nanoid();
+        return traders.set(id, makeTrader({ id, ...data }));
+      }),
 
     // Run internal update logic of each trader
     updateTraders: (state: SimulationState): SimulationState =>
-      state.update('traders', (traders: ListOfTraders): ListOfTraders =>
+      state.update('traders', (traders: Traders): Traders =>
         traders.map((trader: Trader): Trader =>
           trader.updateTrader(trader, state.exchange)
         )
@@ -115,7 +132,10 @@ export default {
       state.update('exchange', (exchange: Exchange): Exchange => exchange),
 
     updateStableSystem: (state: SimulationState): SimulationState =>
-      state.update('stableSystem', (stableSystem: StableSystem): StableSystem => stableSystem),
+      state.update(
+        'stableSystem',
+        (stableSystem: StableSystem): StableSystem => stableSystem
+      )
   },
 
   // Effects are asynchronous functions that can receieve and update state

@@ -3,14 +3,10 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { init } from "@rematch/core";
 import App from "./App";
-import traders from "./models/traders";
-import currencies from "./models/currencies";
 import simulation from "./models/simulation";
 
 const store = init({
   models: {
-    traders,
-    currencies,
     simulation
   }
 });

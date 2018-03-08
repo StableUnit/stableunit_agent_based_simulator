@@ -16,7 +16,7 @@ const Exchange = (props: Props) => {
       <h1>Exchange</h1>
       <button onClick={props.start}>Start</button>
       {props.simulation.tick}
-      {props.simulation.traders.map(trader => (
+      {props.simulation.traders.toList().map(trader => (
         <div key={trader.name}>
           <h2>{trader.name}</h2>
           <p>{JSON.stringify(trader.portfolio)}</p>

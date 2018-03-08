@@ -17,6 +17,7 @@ type DNA = {
 // The Record types are broken down into three parts:
 // 1. shape of data definition. Useful to enforce a certan shape when initializing new data
 export type TraderShape = {
+  id: string,
   name: string,
   portfolio: Portfolio,
   dna: DNA,
@@ -40,7 +41,7 @@ const makeTrader: RecordFactory<TraderShape> = Record({
  */
 
 // Optionally create a ListOf type as it's widely used
-export type ListOfTraders = List<Trader>;
+export type Traders = Map<string, Trader>;
 
 // Order
 export type Order = {
@@ -94,7 +95,7 @@ export type SimulationStateShape = {
   tick: number,
   exchange: Exchange,
   stableSystem: StableSystem,
-  traders: ListOfTraders
+  traders: Traders
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;
