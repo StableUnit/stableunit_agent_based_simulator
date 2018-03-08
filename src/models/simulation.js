@@ -157,6 +157,16 @@ export default {
         return traders.set(id, makeTrader({ id, ...data }));
       }),
 
+    placeBuyOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+      // - remove (lock?) money from the trader
+      // - add the order to the buy order list on exchange
+      state,
+
+    placeSellOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+      // - remove (lock?) money from the trader
+      // - add the order to the buy order list on exchange
+      state,
+
     // Run internal update logic of each trader
     updateTraders: (state: SimulationState): SimulationState =>
       state.update('traders', (traders: Traders): Traders =>
