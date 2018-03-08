@@ -3,28 +3,14 @@
 import { Record, List, Map } from 'immutable';
 import type { RecordFactory, RecordOf } from 'immutable';
 
+// Portfolio
+export type Portfolio = Map<string, number>;
+
 // Trader
 type DNA = {
   risk: number,
   fear: number
-}
-export const makeTrader: RecordFactory<TraderProps> = Record({
-  name: 'Trader',
-  portfolio: new Map(),
-  dna: {
-    risk: 0,
-    fear: 0
-  },
-  updateTrader: (trader: Trader, exchange: Exchange): Trader => {
-    return trader.set('portfolio', Map({ usd: Math.random() * 1000 }))
-  }
-});
-
-function makeRandomTraders(): List<Trader> {
-  return List(Array(10).fill()).map((entry, index) =>
-    makeTrader({ name: `Trader ${index}`, portfolio: makeRandomPortfolio() })
-  )
-}
+};
 
 export type TraderProps = {
   name: string,
@@ -37,17 +23,6 @@ export type Trader = RecordOf<TraderProps>;
 
 export type ListOfTraders = List<Trader>;
 
-// Portfolio
-export type Portfolio = Map<string, number>;
-
-export function makeRandomPortfolio(): Portfolio {
-  // 70% chance for trader to have some of the coins
-  return Map({
-    usd: Math.random() > 0.3 ? Math.random() * 1000 : 0,
-    su: Math.random() > 0.3 ? Math.random() * 1000 : 0,
-  });
-}
-
 // Order
 export type Order = {
   price: number,
@@ -56,18 +31,25 @@ export type Order = {
   trader: RecordOf<TraderProps>
 };
 
+export type HistoryEntryProps = {
+  datetime: number,
+  price: number,
+  quantity: number
+};
+
+export type HistoryEntry = RecordOf<HistoryEntryProps>;
+
+export type History = List<HistoryEntry>;
+
 // Exchange
 export type ExchangeProps = {
+  name: string,
+  history: History,
   buyOrders: List<Order>,
-  sellOrders: List<Order>,
-}
+  sellOrders: List<Order>
+};
 
 export type Exchange = RecordOf<ExchangeProps>;
-
-const makeExchange: RecordFactory<ExchangeProps> = Record({
-  buyOrders: List(),
-  sellOrders: List()
-})
 
 // Type of the simulation state slice
 export type SimulationStateProps = {
@@ -77,12 +59,6 @@ export type SimulationStateProps = {
 };
 
 export type SimulationState = RecordOf<SimulationStateProps>;
-
-export const makeSimulationState: RecordFactory<SimulationStateProps> = Record({
-  tick: 0,
-  traders: makeRandomTraders(),
-  exchange: makeExchange(),
-});
 
 // Type of entire redux store
 export type FullState = {
