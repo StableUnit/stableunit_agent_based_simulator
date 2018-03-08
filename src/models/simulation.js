@@ -165,6 +165,7 @@ export default {
         )
       ),
 
+    // A separate reducer cause we depend on traders to exist in state when this happens
     initializeExchange: (state: SimulationState): SimulationState =>
       state.update('exchange', (exchange: Exchange): Exchange =>
         exchange
@@ -172,14 +173,18 @@ export default {
           .set('sellOrders', makeRandomSellOrders(state.traders))
       ),
 
+    // TODO: some internal logic to reconcile orderbook?
     updateExchange: (state: SimulationState): SimulationState =>
       state.update('exchange', (exchange: Exchange): Exchange => exchange),
 
+    // TODO: some logic to update stable system
     updateStableSystem: (state: SimulationState): SimulationState =>
       state.update(
         'stableSystem',
         (stableSystem: StableSystem): StableSystem => stableSystem
       ),
+
+    // Simple tick counter
     updateTick: (state: SimulationState): SimulationState =>
       state.update('tick', tick => tick + 1)
   },
