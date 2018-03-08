@@ -21,7 +21,7 @@ const initialState = makeSimulationState();
 export default {
   state: initialState,
   reducers: {
-    generateTraders: (state: SimulationState) => {
+    generateTraders: (state: SimulationState): SimulationState => {
       // Create 10 traders with empty portfolios
       const newTraders = List(Array(10).fill()).map((entry, index) => makeTrader({ name: `Trader ${index}`, portfolio: new Map() }))
       return state.set('traders', newTraders);
@@ -41,10 +41,13 @@ export default {
       }
       this.generateTraders();
       while (true) {
-        // Update exchange
-        // Update stable system
+        // TODO: Update exchange
+        // TODO: Update stable system
+
         // Update all traders
         this.updateTraders();
+
+        // Wait before next tick
         await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));
       }
     }
