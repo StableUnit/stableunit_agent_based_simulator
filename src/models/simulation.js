@@ -6,13 +6,13 @@ import type { RecordFactory } from 'immutable';
 import type {
   FullState,
   SimulationState,
-  SimulationStateProps,
-  TraderProps,
+  SimulationStateShape,
+  TraderShape,
   Trader,
   ListOfTraders,
-  ExchangeProps,
+  ExchangeShape,
   Exchange,
-  HistoryEntryProps,
+  HistoryEntryShape,
   Portfolio
 } from '../types';
 
@@ -23,20 +23,20 @@ const TICK_INTERVAL = 1000;
 // The object passed to `Record` is a default shape.
 // When creating a new record of this type the ommited keys will fallback
 // to the default values below
-const makeExchange: RecordFactory<ExchangeProps> = Record({
+const makeExchange: RecordFactory<ExchangeShape> = Record({
   name: 'Exchange',
   buyOrders: List(),
   sellOrders: List(),
   history: List()
 });
 
-const makeHistoryEntry: RecordFactory<HistoryEntryProps> = Record({
+const makeHistoryEntry: RecordFactory<HistoryEntryShape> = Record({
   datetime: Date.now(),
   price: 0,
   quantity: 0
 });
 
-const makeTrader: RecordFactory<TraderProps> = Record({
+const makeTrader: RecordFactory<TraderShape> = Record({
   name: 'Trader',
   portfolio: new Map(),
   dna: {
@@ -78,7 +78,7 @@ function makeRandomTraders(): ListOfTraders {
 }
 
 // This record is the core of our redux state
-const makeSimulationState: RecordFactory<SimulationStateProps> = Record({
+const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
   exchange: makeExchange()
@@ -93,7 +93,7 @@ export default {
   // They always receive the state as first argument and must return the state of the same type
   reducers: {
     // Add trader
-    addTrader: (state: SimulationState, data: TraderProps): SimulationState =>
+    addTrader: (state: SimulationState, data: TraderShape): SimulationState =>
       state.update('traders', traders => traders.push(makeTrader(data))),
 
     // Run internal update logic of each trader
