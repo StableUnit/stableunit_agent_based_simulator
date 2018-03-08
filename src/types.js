@@ -46,9 +46,8 @@ export type Traders = Map<string, Trader>;
 // Order
 export type Order = {
   price: number,
-  amountUsd: number,
-  amountCoins: number,
-  trader: Trader
+  quantity: number,
+  traderId: string
 };
 
 // History

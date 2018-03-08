@@ -5,6 +5,8 @@ import { connect } from 'react-redux';
 
 import type { SimulationState, FullState } from '../types';
 
+import OrderBook from './OrderBook';
+
 type Props = {
   simulation: SimulationState,
   start: () => void
@@ -14,8 +16,8 @@ const Exchange = (props: Props) => {
   return (
     <div>
       <h1>Exchange</h1>
-      <button onClick={props.start}>Start</button>
-      {props.simulation.tick}
+      <OrderBook />
+
       {props.simulation.traders.toList().map(trader => (
         <div key={trader.name}>
           <h2>{trader.name}</h2>

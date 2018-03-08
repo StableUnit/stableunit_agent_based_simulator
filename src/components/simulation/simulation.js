@@ -31,11 +31,11 @@ class AlgoTrader extends GenericTrader {
 }
 
 const changeDemand = (factor) => {
-    
+
 }
 
 class StockMarket {
-    
+
 }
 
 class Currency {

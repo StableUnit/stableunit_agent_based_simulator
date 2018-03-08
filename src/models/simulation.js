@@ -16,11 +16,15 @@ import type {
   HistoryEntryShape,
   Portfolio,
   StableSystemShape,
-  StableSystem
+  StableSystem,
+  Order
 } from '../types';
 
 // Configuration constants. ALL_CAPS
 const TICK_INTERVAL = 1000;
+const INITIAL_PRICE = 1;
+const MIN_PRICE_BOUNDARY = 0;
+const MAX_PRICE_BOUNDARY = 2;
 
 // Records enforce a certain shape of a Map-like object
 // The object passed to `Record` is a default shape.
@@ -33,7 +37,39 @@ const makeExchange: RecordFactory<ExchangeShape> = Record({
   history: List()
 });
 
-const makeHistoryEntry: RecordFactory<HistoryEntryShape> = Record({
+function makeRandomBuyOrders(traders: Traders): List<Order> {
+  const traderIds: List<string> = traders.keySeq().toList();
+  return List(Array(50).fill()).map((entry): Order => {
+    const randomTraderId = traderIds.get(
+      Math.floor(Math.random() * traderIds.size)
+    ) || nanoid();
+
+
+    return {
+      price: Math.random(),
+      quantity: Math.random(),
+      traderId: randomTraderId
+    };
+  });
+}
+
+function makeRandomSellOrders(traders: Traders): List<Order> {
+  const traderIds: List<string> = traders.keySeq().toList();
+  return List(Array(50).fill()).map((entry): Order => {
+    const randomTraderId = traderIds.get(
+      Math.floor(Math.random() * traderIds.size)
+    ) || nanoid();
+
+
+    return {
+      price: Math.random() + INITIAL_PRICE,
+      quantity: Math.random(),
+      traderId: randomTraderId
+    };
+  });
+}
+
+const historyEntry: RecordFactory<HistoryEntryShape> = Record({
   datetime: Date.now(),
   price: 0,
   quantity: 0
@@ -128,6 +164,13 @@ export default {
         )
       ),
 
+    initializeExchange: (state: SimulationState): SimulationState =>
+      state.update('exchange', (exchange: Exchange): Exchange =>
+        exchange
+          .set('buyOrders', makeRandomBuyOrders(state.traders))
+          .set('sellOrders', makeRandomSellOrders(state.traders))
+      ),
+
     updateExchange: (state: SimulationState): SimulationState =>
       state.update('exchange', (exchange: Exchange): Exchange => exchange),
 
@@ -135,7 +178,9 @@ export default {
       state.update(
         'stableSystem',
         (stableSystem: StableSystem): StableSystem => stableSystem
-      )
+      ),
+    updateTick: (state: SimulationState): SimulationState =>
+      state.update('tick', tick => tick + 1)
   },
 
   // Effects are asynchronous functions that can receieve and update state
@@ -146,12 +191,16 @@ export default {
       if (rootState.simulation.tick > 0) {
         return;
       }
+
+      this.initializeExchange();
+
       while (true) {
         // TODO: Update exchange
         // TODO: Update stable system
 
         // Update all traders
         this.updateTraders();
+        this.updateTick();
 
         // Wait before next tick
         await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));

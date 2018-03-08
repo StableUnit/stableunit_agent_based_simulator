@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import styled from 'styled-components';
+import { connect } from 'react-redux';
 
 import ControlPanel from './components/ControlPanel';
 import Exchange from './components/Exchange';
@@ -18,9 +19,14 @@ const Panel = styled.div`
 const StableFund = styled.div``;
 const Traders = styled.div``;
 
-type Props = {}
+type Props = {
+  start: () => void
+}
 
 class App extends React.Component<Props> {
+  componentDidMount() {
+    this.props.start();
+  }
   render() {
     return (
       <Wrap>
@@ -45,4 +51,8 @@ class App extends React.Component<Props> {
   }
 }
 
-export default App;
+const mapDispatch = dispatch => ({
+  start: dispatch.simulation.start
+});
+
+export default connect(null, mapDispatch)(App);
