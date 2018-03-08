@@ -20,7 +20,7 @@ export type TraderShape = {
   name: string,
   portfolio: Portfolio,
   dna: DNA,
-  updateTrader: (trader: Trader, exchange: Exchange) => RecordOf<TraderShape>
+  updateTrader: (trader: Trader, exchange: Exchange) => Trader
 };
 
 // 2. the actual type of the record. Useful to enforce the proper usage in functions etc.
