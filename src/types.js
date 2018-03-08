@@ -71,10 +71,29 @@ export type ExchangeShape = {
 
 export type Exchange = RecordOf<ExchangeShape>;
 
+// Stable system
+export type SULogEntryShape = {
+  datetime: number,
+  totalSupply: number,
+  stableFundSize: number,
+  bondsIssued: number
+}
+
+export type SULogEntry = RecordOf<SULogEntryShape>;
+
+export type SULog = List<SULogEntry>;
+
+export type StableSystemShape = {
+  log: SULog
+}
+
+export type StableSystem = RecordOf<StableSystemShape>;
+
 // Type of the simulation state slice
 export type SimulationStateShape = {
   tick: number,
   exchange: Exchange,
+  stableSystem: StableSystem,
   traders: ListOfTraders
 };
 

@@ -13,7 +13,9 @@ import type {
   ExchangeShape,
   Exchange,
   HistoryEntryShape,
-  Portfolio
+  Portfolio,
+  StableSystemShape,
+  StableSystem,
 } from '../types';
 
 // Configuration constants. ALL_CAPS
@@ -77,11 +79,16 @@ function makeRandomTraders(): ListOfTraders {
   );
 }
 
+const makeStableSystem: RecordFactory<StableSystemShape> = Record({
+  log: List(),
+});
+
 // This record is the core of our redux state
 const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
-  exchange: makeExchange()
+  exchange: makeExchange(),
+  stableSystem: makeStableSystem()
 });
 
 const initialState = makeSimulationState();
@@ -102,7 +109,13 @@ export default {
         traders.map((trader: Trader): Trader =>
           trader.updateTrader(trader, state.exchange)
         )
-      )
+      ),
+
+    updateExchange: (state: SimulationState): SimulationState =>
+      state.update('exchange', (exchange: Exchange): Exchange => exchange),
+
+    updateStableSystem: (state: SimulationState): SimulationState =>
+      state.update('stableSystem', (stableSystem: StableSystem): StableSystem => stableSystem),
   },
 
   // Effects are asynchronous functions that can receieve and update state
