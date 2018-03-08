@@ -17,7 +17,8 @@ import type {
   Portfolio,
   StableSystemShape,
   StableSystem,
-  Order
+  Order,
+  OrderList
 } from '../types';
 
 // Configuration constants. ALL_CAPS
@@ -37,7 +38,7 @@ const makeExchange: RecordFactory<ExchangeShape> = Record({
   history: List()
 });
 
-function makeRandomBuyOrders(traders: Traders): List<Order> {
+function makeRandomBuyOrders(traders: Traders): OrderList {
   const traderIds: List<string> = traders.keySeq().toList();
   return List(Array(50).fill()).map((entry): Order => {
     const randomTraderId = traderIds.get(
@@ -53,7 +54,7 @@ function makeRandomBuyOrders(traders: Traders): List<Order> {
   });
 }
 
-function makeRandomSellOrders(traders: Traders): List<Order> {
+function makeRandomSellOrders(traders: Traders): OrderList {
   const traderIds: List<string> = traders.keySeq().toList();
   return List(Array(50).fill()).map((entry): Order => {
     const randomTraderId = traderIds.get(

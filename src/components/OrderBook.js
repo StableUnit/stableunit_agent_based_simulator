@@ -4,20 +4,33 @@ import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 import { connect } from 'react-redux';
 
-import type { Exchange, FullState, Order } from '../types';
+import type { Exchange, FullState, Order, OrderList } from '../types';
 
 type Props = {
   exchange: Exchange
 };
 
-const OrderBook = (props: Props) => {
-  const { exchange } = props;
+type BidOrderEntry = {
+  price: number,
+  bidsQuantity: number,
+  bidsTotalQuantity: number
+}
 
-  // Convert data for orderbook
+type AskOrderEntry = {
+  price: number,
+  asksQuantity: number,
+  asksTotalQuantity: number
+}
+
+type OrderBookData = Array<BidOrderEntry|AskOrderEntry>;
+
+// We can actually create selectors instead of such functions
+// Though this function is only used here, so there's no point
+function convertDataForChart(buyOrders: OrderList, sellOrders: OrderList): OrderBookData {
   let bidsAccumulator = 0;
   let asksAccumulator = 0;
-  const data = [
-    ...exchange.buyOrders
+  return [
+    ...buyOrders
       .sort((a, b) => b.price - a.price)
       .map((order: Order) => {
         bidsAccumulator += order.quantity;
@@ -28,7 +41,7 @@ const OrderBook = (props: Props) => {
         })
       })
       .toArray(),
-    ...exchange.sellOrders
+    ...sellOrders
       .sort((a, b) => a.price - b.price)
       .map((order: Order) => {
         asksAccumulator += order.quantity;
@@ -40,6 +53,13 @@ const OrderBook = (props: Props) => {
       })
       .toArray()
   ].sort((a, b) => a.price - b.price);
+}
+
+const OrderBook = (props: Props) => {
+  const { exchange } = props;
+
+  // Convert data for orderbook
+  const data = convertDataForChart(exchange.buyOrders, exchange.sellOrders);
 
   const style = {
     width: '400px',

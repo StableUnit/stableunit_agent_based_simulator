@@ -50,6 +50,8 @@ export type Order = {
   traderId: string
 };
 
+export type OrderList = List<Order>;
+
 // History
 export type HistoryEntryShape = {
   datetime: number,
@@ -65,8 +67,8 @@ export type History = List<HistoryEntry>;
 export type ExchangeShape = {
   name: string,
   history: History,
-  buyOrders: List<Order>,
-  sellOrders: List<Order>
+  buyOrders: OrderList,
+  sellOrders: OrderList
 };
 
 export type Exchange = RecordOf<ExchangeShape>;
