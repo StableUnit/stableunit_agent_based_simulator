@@ -18,7 +18,7 @@ const arraysToArrayOfObjects = (arrays) => {
 
 const OrderBook = (props) => {
     const style = {
-        width: "100%",
+        width: "200px",
         height: "300px"
     }
 
