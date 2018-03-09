@@ -78,7 +78,7 @@ const historyEntry: RecordFactory<HistoryEntryShape> = Record({
   quantity: 0
 });
 
-const makeTrader: RecordFactory<TraderShape> = Record({
+export const makeTrader: RecordFactory<TraderShape> = Record({
   id: nanoid(),
   name: 'Trader',
   portfolio: new Map(),
@@ -135,7 +135,7 @@ const makeStableSystem: RecordFactory<StableSystemShape> = Record({
 });
 
 // This record is the core of our redux state
-const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
+export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
   exchange: makeExchange(),
@@ -151,9 +151,9 @@ export default {
   // They always receive the state as first argument and must return the state of the same type
   reducers: {
     // Add trader
-    addTrader: (state: SimulationState, data: TraderShape): SimulationState =>
+    addTrader: (state: SimulationState, data: any): SimulationState =>
       state.update('traders', traders => {
-        const id = nanoid();
+        const id = data.id || nanoid();
         return traders.set(id, makeTrader({ id, ...data }));
       }),
 
