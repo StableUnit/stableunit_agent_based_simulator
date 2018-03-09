@@ -2,9 +2,12 @@
 
 import * as React from 'react';
 import styled from 'styled-components';
+import { connect } from 'react-redux';
 
-import ControlPanel from './components/ControlPanel';
-import Exchange from './components/Exchange';
+import ControlPanelContainer from './components/ControlPanelContainer';
+import ExchangeContainer from './components/ExchangeContainer';
+import TradersContainer from './components/TradersContainer';
+import StableSystemContainer from './components/StableSystemContainer';
 
 const Wrap = styled.div`
   display: flex;
@@ -15,32 +18,36 @@ const Panel = styled.div`
   width: 50%;
 `
 
-const StableFund = styled.div``;
-const Traders = styled.div``;
+type Props = {
+  start: () => void
+}
 
-class App extends React.Component {
+class App extends React.Component<Props> {
+  componentDidMount() {
+    this.props.start();
+  }
   render() {
     return (
       <Wrap>
         <Panel>
-          <Exchange />
+          <ExchangeContainer />
         </Panel>
         <Panel>
-          <ControlPanel />
+          <ControlPanelContainer />
         </Panel>
         <Panel>
-          <StableFund>
-            Stable fund
-          </StableFund>
+          <StableSystemContainer />
         </Panel>
         <Panel>
-          <Traders>
-            Traders
-          </Traders>
+          <TradersContainer />
         </Panel>
       </Wrap>
     );
   }
 }
 
-export default App;
+const mapDispatch = dispatch => ({
+  start: dispatch.simulation.start
+});
+
+export default connect(null, mapDispatch)(App);

@@ -1,118 +1,139 @@
+//@flow
+
 import React from 'react';
-import AmCharts from "@amcharts/amcharts3-react";
+import AmCharts from '@amcharts/amcharts3-react';
+import { connect } from 'react-redux';
 
+import type { Exchange, FullState, Order, OrderList } from '../types';
 
-const arraysToArrayOfObjects = (arrays) => {
-    const result = [];
-    Object.keys(arrays).forEach((key) => {
-        const a = arrays[key];
-        for (let i = 0; i < a.length; i++) {
-            if (result.length <= i) {
-                result.push({});
-            }
-            result[i][key] = a[i];
-        }
-    });
-    return result;
-}
-
-const OrderBook = (props) => {
-    const style = {
-        width: "100%",
-        height: "300px"
-    }
-
-    const config = {
-        "type": "serial",
-        "theme": "light",
-        "dataProvider": props.orders.buy,
-        "graphs": [{
-            "id": "bids",
-            "fillAlphas": 0.1,
-            "lineAlpha": 1,
-            "lineThickness": 2,
-            "lineColor": "#0f0",
-            "type": "step",
-            "valueField": "price",
-            "balloonFunction": balloon
-        }, {
-            "id": "asks",
-            "fillAlphas": 0.1,
-            "lineAlpha": 1,
-            "lineThickness": 2,
-            "lineColor": "#f00",
-            "type": "step",
-            "valueField": "askstotalvolume",
-            "balloonFunction": balloon
-        }, {
-            "lineAlpha": 0,
-            "fillAlphas": 0.2,
-            "lineColor": "#000",
-            "type": "column",
-            "clustered": false,
-            "valueField": "volume",
-            "showBalloon": false
-        }, {
-            "lineAlpha": 0,
-            "fillAlphas": 0.2,
-            "lineColor": "#000",
-            "type": "column",
-            "clustered": false,
-            "valueField": "asksvolume",
-            "showBalloon": false
-        }],
-        "categoryField": "value",
-        "chartCursor": {},
-        "balloon": {
-            "textAlign": "left"
-        },
-        "valueAxes": [{
-            "title": "Volume"
-        }],
-        "categoryAxis": {
-            "title": props.title,
-            "minHorizontalGap": 100,
-            "startOnAxis": true,
-            "showFirstLabel": false,
-            "showLastLabel": false
-        },
-        "export": {
-            "enabled": true
-        }
-
-    }
-
-    function balloon(item, graph) {
-        let txt;
-        if (graph.id === "asks") {
-            txt = "Ask: <strong>" + formatNumber(item.dataContext.value, graph.chart, 4) + "</strong><br />"
-                + "Total volume: <strong>" + formatNumber(item.dataContext.askstotalvolume, graph.chart, 4) + "</strong><br />"
-                + "Volume: <strong>" + formatNumber(item.dataContext.asksvolume, graph.chart, 4) + "</strong>";
-        }
-        else {
-            txt = "Bid: <strong>" + formatNumber(item.dataContext.value, graph.chart, 4) + "</strong><br />"
-                + "Total volume: <strong>" + formatNumber(item.dataContext.bidstotalvolume, graph.chart, 4) + "</strong><br />"
-                + "Volume: <strong>" + formatNumber(item.dataContext.bidsvolume, graph.chart, 4) + "</strong>";
-        }
-        return txt;
-    }
-
-    function formatNumber(val, chart, precision) {
-        return AmCharts.formatNumber(
-            val,
-            {
-                precision: precision ? precision : chart.precision,
-                decimalSeparator: chart.decimalSeparator,
-                thousandsSeparator: chart.thousandsSeparator
-            }
-        );
-    }
-
-    return (
-        <div>
-            <AmCharts.React style={style} options={config} />
-        </div>
-    );
+type Props = {
+  exchange: Exchange
 };
 
-export default OrderBook;
+type BidOrderEntry = {
+  price: number,
+  bidsQuantity: number,
+  bidsTotalQuantity: number
+}
+
+type AskOrderEntry = {
+  price: number,
+  asksQuantity: number,
+  asksTotalQuantity: number
+}
+
+type OrderBookData = Array<BidOrderEntry|AskOrderEntry>;
+
+// We can actually create selectors instead of such functions
+// Though this function is only used here, so there's no point
+function convertDataForChart(buyOrders: OrderList, sellOrders: OrderList): OrderBookData {
+  let bidsAccumulator = 0;
+  let asksAccumulator = 0;
+  return [
+    ...buyOrders
+      .sort((a, b) => b.price - a.price)
+      .map((order: Order) => {
+        bidsAccumulator += order.quantity;
+        return ({
+          price: order.price,
+          bidsQuantity: order.quantity,
+          bidsTotalQuantity: bidsAccumulator
+        })
+      })
+      .toArray(),
+    ...sellOrders
+      .sort((a, b) => a.price - b.price)
+      .map((order: Order) => {
+        asksAccumulator += order.quantity;
+        return ({
+          price: order.price,
+          asksQuantity: order.quantity,
+          asksTotalQuantity: asksAccumulator
+        })
+      })
+      .toArray()
+  ].sort((a, b) => a.price - b.price);
+}
+
+const OrderBook = (props: Props) => {
+  const { exchange } = props;
+
+  // Convert data for orderbook
+  const data = convertDataForChart(exchange.buyOrders, exchange.sellOrders);
+
+  const style = {
+    width: '400px',
+    height: '300px'
+  };
+
+  const options = {
+    type: 'serial',
+    theme: 'light',
+    dataProvider: data,
+    graphs: [
+      {
+        id: 'bids',
+        fillAlphas: 0.1,
+        lineAlpha: 1,
+        lineThickness: 2,
+        lineColor: '#0f0',
+        type: 'step',
+        valueField: 'bidsTotalQuantity'
+      },
+      {
+        id: 'asks',
+        fillAlphas: 0.1,
+        lineAlpha: 1,
+        lineThickness: 2,
+        lineColor: '#f00',
+        type: 'step',
+        valueField: 'asksTotalQuantity'
+      },
+      {
+        lineAlpha: 0,
+        fillAlphas: 0.2,
+        lineColor: '#000',
+        type: 'column',
+        clustered: false,
+        valueField: 'bidsQuantity'
+      },
+      {
+        lineAlpha: 0,
+        fillAlphas: 0.2,
+        lineColor: '#000',
+        type: 'column',
+        clustered: false,
+        valueField: 'asksQuantity'
+      }
+    ],
+    categoryField: 'price',
+    chartCursor: {},
+    valueAxes: [
+      {
+        title: 'Volume'
+      }
+    ],
+    categoryAxis: {
+      title: 'Price (SU/ETH)',
+      minHorizontalGap: 100,
+      startOnAxis: true,
+      showFirstLabel: false,
+      showLastLabel: false
+    },
+    export: {
+      enabled: true
+    }
+  };
+
+  return (
+    <div>
+      <AmCharts.React style={style} options={options} />
+    </div>
+  );
+};
+
+const mapState = (state: FullState) => ({
+  exchange: state.simulation.exchange
+});
+
+export default connect(mapState)(OrderBook);
