@@ -47,6 +47,7 @@ function makeRandomBuyOrders(traders: Traders): OrderList {
 
 
     return {
+      datetime: Date.now() - Math.floor(Math.random() * 10000),
       price: Math.random(),
       quantity: Math.random(),
       traderId: randomTraderId
@@ -63,6 +64,7 @@ function makeRandomSellOrders(traders: Traders): OrderList {
 
 
     return {
+      datetime: Date.now() - Math.floor(Math.random() * 10000),
       price: Math.random() + INITIAL_PRICE,
       quantity: Math.random(),
       traderId: randomTraderId
@@ -76,7 +78,7 @@ const historyEntry: RecordFactory<HistoryEntryShape> = Record({
   quantity: 0
 });
 
-const makeTrader: RecordFactory<TraderShape> = Record({
+export const makeTrader: RecordFactory<TraderShape> = Record({
   id: nanoid(),
   name: 'Trader',
   portfolio: new Map(),
@@ -85,6 +87,8 @@ const makeTrader: RecordFactory<TraderShape> = Record({
     fear: 0,
     greed: 0
   },
+  // The decision making logic of a trader
+  // This function is default, you can override it for any new trader when calling makeTrader
   updateTrader: (trader: Trader, exchange: Exchange): Trader => {
     /*
     if (price_SU < 1.0 - DELTA) {
@@ -94,11 +98,7 @@ const makeTrader: RecordFactory<TraderShape> = Record({
         sell()
     }
      */
-    return trader.update('portfolio', portfolio =>
-      portfolio.map(amount =>
-        Math.max((amount += (Math.random() - 0.5) * 100), 0)
-      )
-    );
+    return trader;
   }
 });
 
@@ -135,7 +135,7 @@ const makeStableSystem: RecordFactory<StableSystemShape> = Record({
 });
 
 // This record is the core of our redux state
-const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
+export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
   exchange: makeExchange(),
@@ -151,11 +151,21 @@ export default {
   // They always receive the state as first argument and must return the state of the same type
   reducers: {
     // Add trader
-    addTrader: (state: SimulationState, data: TraderShape): SimulationState =>
+    addTrader: (state: SimulationState, data: any): SimulationState =>
       state.update('traders', traders => {
-        const id = nanoid();
+        const id = data.id || nanoid();
         return traders.set(id, makeTrader({ id, ...data }));
       }),
+
+    placeBuyOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+      // - remove (lock?) money from the trader
+      // - add the order to the buy order list on exchange
+      state,
+
+    placeSellOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+      // - remove (lock?) money from the trader
+      // - add the order to the buy order list on exchange
+      state,
 
     // Run internal update logic of each trader
     updateTraders: (state: SimulationState): SimulationState =>

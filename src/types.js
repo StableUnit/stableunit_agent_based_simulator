@@ -45,6 +45,7 @@ export type Traders = Map<string, Trader>;
 
 // Order
 export type Order = {
+  datetime: number, // for correct order matching algorithm
   price: number,
   quantity: number,
   traderId: string

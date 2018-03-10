@@ -1,1 +1,4 @@
 [ignore]
+
+[libs]
+./flow-typed
