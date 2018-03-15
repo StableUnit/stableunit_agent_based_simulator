@@ -5,7 +5,12 @@ import type { RecordFactory, RecordOf } from 'immutable';
 
 // Simple type
 // Portfolio
-export type Portfolio = Map<string, number>;
+export type PortfolioShape = {
+  eth: number,
+  su: number
+}
+
+export type Portfolio = RecordOf<PortfolioShape>;
 
 // Internal types don't have to be exposed with `export`
 // Trader

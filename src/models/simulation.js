@@ -15,6 +15,7 @@ import type {
   Market,
   Markets,
   HistoryEntryShape,
+  PortfolioShape,
   Portfolio,
   StableSystemShape,
   StableSystem,
@@ -73,10 +74,15 @@ const historyEntry: RecordFactory<HistoryEntryShape> = Record({
   quantity: 0
 });
 
+export const makePortfolio: RecordFactory<PortfolioShape> = Record({
+  eth: 0,
+  su: 0
+});
+
 export const makeTrader: RecordFactory<TraderShape> = Record({
   id: nanoid(),
   name: 'Trader',
-  portfolio: new Map(),
+  portfolio: makePortfolio(),
   dna: {
     risk: 0,
     fear: 0,
@@ -98,11 +104,12 @@ export const makeTrader: RecordFactory<TraderShape> = Record({
   }
 });
 
+
+
 // These helper functions allow to create data parammetrically
 function makeRandomPortfolio(): Portfolio {
   // 70% chance for trader to have some of the coins
-  return Map({
-    usd: Math.random() > 0.3 ? Math.random() * 1000 : 0,
+  return makePortfolio({
     su: Math.random() > 0.3 ? Math.random() * 1000 : 0,
     eth: Math.random() > 0.3 ? Math.random() * 1000 : 0
   });
