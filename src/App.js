@@ -13,6 +13,7 @@ import StableSystemContainer from './components/StableSystemContainer';
 const Wrap = styled.div`
   display: flex;
   flex-wrap: wrap;
+  min-width: 1300px;
 `;
 
 const Panel = styled.div`

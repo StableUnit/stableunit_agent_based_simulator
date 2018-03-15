@@ -10,13 +10,7 @@ type Props = {
 };
 
 const StableSystemContainer = (props: Props) => {
-  return (
-    <div>
-      <h1>Stable Unit</h1>
-
-      Stable unit status
-    </div>
-  );
+  return <div />;
 };
 
 const mapState = (state: FullState) => ({
