@@ -6,10 +6,10 @@ import { connect } from 'react-redux';
 
 import { colors } from '../theme';
 
-import type { Exchange, FullState, Order, OrderList } from '../types';
+import type { Market, FullState, Order, OrderList } from '../types';
 
 type Props = {
-  exchange: Exchange
+  market: Market
 };
 
 type BidOrderEntry = {
@@ -58,10 +58,10 @@ function convertDataForChart(buyOrders: OrderList, sellOrders: OrderList): Order
 }
 
 const OrderBook = (props: Props) => {
-  const { exchange } = props;
+  const { market } = props;
 
   // Convert data for orderbook
-  const data = convertDataForChart(exchange.buyOrders, exchange.sellOrders);
+  const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
   const style = {
     width: '400px',
@@ -134,8 +134,5 @@ const OrderBook = (props: Props) => {
   );
 };
 
-const mapState = (state: FullState) => ({
-  exchange: state.simulation.exchange
-});
 
-export default connect(mapState)(OrderBook);
+export default OrderBook;

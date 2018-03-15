@@ -21,7 +21,7 @@ export type TraderShape = {
   name: string,
   portfolio: Portfolio,
   dna: DNA,
-  updateTrader: (trader: Trader, exchange: Exchange) => Trader
+  updateTrader: (trader: Trader, markets: Markets) => Trader
 };
 
 // 2. the actual type of the record. Useful to enforce the proper usage in functions etc.
@@ -64,15 +64,17 @@ export type HistoryEntry = RecordOf<HistoryEntryShape>;
 
 export type History = List<HistoryEntry>;
 
-// Exchange
-export type ExchangeShape = {
+// Market
+export type MarketShape = {
   name: string,
   history: History,
   buyOrders: OrderList,
   sellOrders: OrderList
 };
 
-export type Exchange = RecordOf<ExchangeShape>;
+export type Market = RecordOf<MarketShape>;
+
+export type Markets = List<Market>;
 
 // Stable system
 export type SULogEntryShape = {
@@ -95,7 +97,7 @@ export type StableSystem = RecordOf<StableSystemShape>;
 // Type of the simulation state slice
 export type SimulationStateShape = {
   tick: number,
-  exchange: Exchange,
+  markets: Markets,
   stableSystem: StableSystem,
   traders: Traders
 };

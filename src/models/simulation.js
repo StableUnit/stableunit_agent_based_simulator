@@ -11,8 +11,9 @@ import type {
   TraderShape,
   Trader,
   Traders,
-  ExchangeShape,
-  Exchange,
+  MarketShape,
+  Market,
+  Markets,
   HistoryEntryShape,
   Portfolio,
   StableSystemShape,
@@ -31,8 +32,8 @@ const MAX_PRICE_BOUNDARY = 2;
 // The object passed to `Record` is a default shape.
 // When creating a new record of this type the ommited keys will fallback
 // to the default values below
-const makeExchange: RecordFactory<ExchangeShape> = Record({
-  name: 'Exchange',
+const makeMarket: RecordFactory<MarketShape> = Record({
+  name: 'Market',
   buyOrders: List(),
   sellOrders: List(),
   history: List()
@@ -41,10 +42,7 @@ const makeExchange: RecordFactory<ExchangeShape> = Record({
 function makeRandomBuyOrders(traders: Traders): OrderList {
   const traderIds: List<string> = traders.keySeq().toList();
   return List(Array(50).fill()).map((entry): Order => {
-    const randomTraderId = traderIds.get(
-      Math.floor(Math.random() * traderIds.size)
-    ) || nanoid();
-
+    const randomTraderId = traderIds.get(Math.floor(Math.random() * traderIds.size)) || nanoid();
 
     return {
       datetime: Date.now() - Math.floor(Math.random() * 10000),
@@ -58,10 +56,7 @@ function makeRandomBuyOrders(traders: Traders): OrderList {
 function makeRandomSellOrders(traders: Traders): OrderList {
   const traderIds: List<string> = traders.keySeq().toList();
   return List(Array(50).fill()).map((entry): Order => {
-    const randomTraderId = traderIds.get(
-      Math.floor(Math.random() * traderIds.size)
-    ) || nanoid();
-
+    const randomTraderId = traderIds.get(Math.floor(Math.random() * traderIds.size)) || nanoid();
 
     return {
       datetime: Date.now() - Math.floor(Math.random() * 10000),
@@ -89,7 +84,7 @@ export const makeTrader: RecordFactory<TraderShape> = Record({
   },
   // The decision making logic of a trader
   // This function is default, you can override it for any new trader when calling makeTrader
-  updateTrader: (trader: Trader, exchange: Exchange): Trader => {
+  updateTrader: (trader: Trader, markets: Markets): Trader => {
     /*
     if (price_SU < 1.0 - DELTA) {
         buy()
@@ -98,6 +93,7 @@ export const makeTrader: RecordFactory<TraderShape> = Record({
         sell()
     }
      */
+    // Cycle through all markets and update the trader's status
     return trader;
   }
 });
@@ -138,7 +134,7 @@ const makeStableSystem: RecordFactory<StableSystemShape> = Record({
 export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
-  exchange: makeExchange(),
+  markets: List([makeMarket({ name: 'ETH-USD' }), makeMarket({ name: 'SU-ETH' })]),
   stableSystem: makeStableSystem()
 });
 
@@ -157,46 +153,47 @@ export default {
         return traders.set(id, makeTrader({ id, ...data }));
       }),
 
-    placeBuyOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+    placeBuyOrder: (
+      state: SimulationState,
+      { trader, order }: { trader: Trader, order: Order }
+    ): SimulationState =>
       // - remove (lock?) money from the trader
-      // - add the order to the buy order list on exchange
+      // - add the order to the buy order list on market
       state,
 
-    placeSellOrder: (state: SimulationState, { trader, order }: { trader: Trader, order: Order }): SimulationState =>
+    placeSellOrder: (
+      state: SimulationState,
+      { trader, order }: { trader: Trader, order: Order }
+    ): SimulationState =>
       // - remove (lock?) money from the trader
-      // - add the order to the buy order list on exchange
+      // - add the order to the buy order list on market
       state,
 
     // Run internal update logic of each trader
     updateTraders: (state: SimulationState): SimulationState =>
       state.update('traders', (traders: Traders): Traders =>
-        traders.map((trader: Trader): Trader =>
-          trader.updateTrader(trader, state.exchange)
-        )
+        traders.map((trader: Trader): Trader => trader.updateTrader(trader, state.markets))
       ),
 
     // A separate reducer cause we depend on traders to exist in state when this happens
-    initializeExchange: (state: SimulationState): SimulationState =>
-      state.update('exchange', (exchange: Exchange): Exchange =>
-        exchange
-          .set('buyOrders', makeRandomBuyOrders(state.traders))
-          .set('sellOrders', makeRandomSellOrders(state.traders))
+    initializeMarket: (state: SimulationState): SimulationState =>
+      state.update(
+        'markets',
+        (markets: Markets): Markets => markets
+        // .set('buyOrders', makeRandomBuyOrders(state.traders))
+        // .set('sellOrders', makeRandomSellOrders(state.traders))
       ),
 
     // TODO: some internal logic to reconcile orderbook?
-    updateExchange: (state: SimulationState): SimulationState =>
-      state.update('exchange', (exchange: Exchange): Exchange => exchange),
+    updateMarket: (state: SimulationState): SimulationState =>
+      state.update('markets', (markets: Markets): Markets => markets),
 
     // TODO: some logic to update stable system
     updateStableSystem: (state: SimulationState): SimulationState =>
-      state.update(
-        'stableSystem',
-        (stableSystem: StableSystem): StableSystem => stableSystem
-      ),
+      state.update('stableSystem', (stableSystem: StableSystem): StableSystem => stableSystem),
 
     // Simple tick counter
-    updateTick: (state: SimulationState): SimulationState =>
-      state.update('tick', tick => tick + 1)
+    updateTick: (state: SimulationState): SimulationState => state.update('tick', tick => tick + 1)
   },
 
   // Effects are asynchronous functions that can receieve and update state
@@ -208,10 +205,10 @@ export default {
         return;
       }
 
-      this.initializeExchange();
+      this.initializeMarket();
 
       while (true) {
-        // TODO: Update exchange
+        // TODO: Update market
         // TODO: Update stable system
 
         // Update all traders
