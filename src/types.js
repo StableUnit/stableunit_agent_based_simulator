@@ -1,6 +1,6 @@
 //@flow
 
-import { Record, List, Map } from 'immutable';
+import { Record, List, OrderedMap } from 'immutable';
 import type { RecordFactory, RecordOf } from 'immutable';
 
 // Simple type
@@ -8,7 +8,7 @@ import type { RecordFactory, RecordOf } from 'immutable';
 export type PortfolioShape = {
   eth: number,
   su: number
-}
+};
 
 export type Portfolio = RecordOf<PortfolioShape>;
 
@@ -26,6 +26,7 @@ export type TraderShape = {
   name: string,
   portfolio: Portfolio,
   dna: DNA,
+  emoji: string,
   updateTrader: (trader: Trader, markets: Markets) => Trader
 };
 
@@ -46,7 +47,7 @@ const makeTrader: RecordFactory<TraderShape> = Record({
  */
 
 // Optionally create a ListOf type as it's widely used
-export type Traders = Map<string, Trader>;
+export type Traders = OrderedMap<string, Trader>;
 
 // Order
 export type Order = {
@@ -87,7 +88,7 @@ export type SULogEntryShape = {
   totalSupply: number,
   stableFundSize: number,
   bondsIssued: number
-}
+};
 
 export type SULogEntry = RecordOf<SULogEntryShape>;
 
@@ -95,7 +96,7 @@ export type SULog = List<SULogEntry>;
 
 export type StableSystemShape = {
   log: SULog
-}
+};
 
 export type StableSystem = RecordOf<StableSystemShape>;
 

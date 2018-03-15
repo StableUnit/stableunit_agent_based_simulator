@@ -10,6 +10,7 @@
     "carbon-components": "^8.16.8",
     "carbon-components-react": "^5.29.4",
     "carbon-icons": "^6.3.2",
+    "faker": "^4.1.0",
     "immutable": "4.0.0-rc.9",
     "nanoid": "^1.0.2",
     "react": "^16.2.0",

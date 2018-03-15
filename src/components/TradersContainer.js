@@ -3,10 +3,23 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { DataTable } from 'carbon-components-react';
+import styled from 'styled-components';
 
 import type { Traders, FullState } from '../types';
 
-const { TableContainer, Table, TableHead, TableHeader, TableRow, TableBody, TableCell } = DataTable;
+const {
+  TableContainer,
+  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableBody,
+  TableCell
+} = DataTable;
+
+const EmojiCell = styled(TableCell)`
+  font-size: 200%;
+`;
 
 type Props = {
   traders: Traders
@@ -14,10 +27,11 @@ type Props = {
 
 type Row = {
   id: string,
+  emoji: string,
   name: string,
-  eth: number,
-  su: number,
-  percentDiff: number
+  eth: string,
+  su: string,
+  percentDiff: string
 };
 
 type Header = {
@@ -30,16 +44,21 @@ function makeDatatableRows(traders: Traders): Array<Row> {
     .toList()
     .map(trader => ({
       id: trader.id,
+      emoji: trader.emoji,
       name: trader.name,
-      eth: trader.portfolio.eth,
-      su: trader.portfolio.su,
-      percentDiff: Math.random()
+      eth: trader.portfolio.eth.toFixed(2),
+      su: trader.portfolio.su.toFixed(2),
+      percentDiff: Math.random().toFixed(1)
     }))
     .toArray();
 }
 
 function makeDatatableHeaders(): Array<Header> {
   return [
+    {
+      key: 'emoji',
+      header: ''
+    },
     {
       key: 'name',
       header: 'Name'
@@ -75,14 +94,22 @@ const TradersContainer = (props: Props) => {
               <TableHead>
                 <TableRow>
                   {headers.map(header => (
-                    <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+                    <TableHeader {...getHeaderProps({ header })}>
+                      {header.header}
+                    </TableHeader>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.map(row => (
                   <TableRow key={row.id}>
-                    {row.cells.map(cell => <TableCell key={cell.id}>{cell.value}</TableCell>)}
+                    {row.cells.map((cell, index) => {
+                      return index === 0 ? (
+                        <EmojiCell key={cell.id}>{cell.value}</EmojiCell>
+                      ) : (
+                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
