@@ -106,7 +106,15 @@ export const makeTrader: RecordFactory<TraderShape> = Record({
     }
      */
     // Cycle through all markets and update the trader's status
-    return trader;
+    return trader.update('portfolio', (portfolio: Portfolio): Portfolio => {
+      return portfolio
+        .update('su', amount => amount + amount * (Math.random() - 0.5) * 0.02)
+        .update(
+          'eth',
+          amount => amount + amount * (Math.random() - 0.5) * 0.02
+        );
+    });
+    // return trader;
   }
 });
 
@@ -293,7 +301,7 @@ export default {
         // TODO: Update stable system
 
         // Update all traders
-        // this.updateTraders();
+        this.updateTraders();
         // this.updateTick();
 
         // Wait before next tick
