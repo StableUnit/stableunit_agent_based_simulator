@@ -49,8 +49,8 @@ const CandleSticks = (props: Props) => {
   const data = convertDataForChart(market.history);
 
   const style = {
-    width: '400px',
-    height: '300px'
+    width: '300px',
+    height: '200px'
   };
 
   const options = {
@@ -64,8 +64,8 @@ const CandleSticks = (props: Props) => {
     graphs: [
       {
         id: 'g1',
-        balloonText:
-          'Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>',
+        // balloonText:
+        //   'Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>',
         closeField: 'close',
         fillColors: colors.green,
         highField: 'high',

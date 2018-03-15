@@ -66,8 +66,8 @@ const OrderBook = (props: Props) => {
   const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
   const style = {
-    width: '400px',
-    height: '300px'
+    width: '300px',
+    height: '226px'
   };
 
   const options = {
