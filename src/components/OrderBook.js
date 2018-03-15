@@ -122,7 +122,8 @@ const OrderBook = (props: Props) => {
       minHorizontalGap: 100,
       startOnAxis: true,
       showFirstLabel: false,
-      showLastLabel: false
+      showLastLabel: false,
+      labelsEnabled: false
     },
     export: {
       enabled: true

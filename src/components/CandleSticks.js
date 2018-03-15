@@ -78,9 +78,13 @@ const CandleSticks = (props: Props) => {
         openField: 'open',
         title: 'Price:',
         type: 'candlestick',
-        valueField: 'close'
+        valueField: 'close',
+        labelsEnabled: false
       }
     ],
+    categoryAxis: {
+      labelsEnabled: false
+    },
     chartCursor: {
       valueLineEnabled: true,
       valueLineBalloonEnabled: true
