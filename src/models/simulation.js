@@ -123,6 +123,7 @@ function randomIdentity(): { name: string, emoji: string } {
   const firstName = faker.name.firstName();
   const lastName = faker.name.lastName();
   const identities = [
+    { emoji: '🤖', name: `${firstName} Bot` },
     { emoji: '😎', name: `${firstName} Cool` },
     { emoji: '🤓', name: `${firstName} Nerd` },
     { emoji: '😠', name: `Angry ${firstName}` },
