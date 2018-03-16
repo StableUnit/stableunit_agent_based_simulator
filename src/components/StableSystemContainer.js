@@ -3,13 +3,27 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
-
 import { formatNumber } from 'accounting';
+
+import { colors } from '../theme';
 
 import type { StableSystem, FullState } from '../types';
 
+import StableSystemChart from './StableSystemChart';
+
+const Wrap = styled.div`
+  display: flex;
+  width: 100%;
+`;
+
+const ChartPanel = styled.div`
+  width: 330px;
+  margin-left: -16px;
+`;
+
 const StatItem = styled.div`
   margin-bottom: 1em;
+  color: ${({ color }) => color};
 `;
 
 const Title = styled.div``;
@@ -29,24 +43,27 @@ const StableSystemContainer = (props: Props) => {
   const lastEntry = log.last();
 
   return (
-    <div>
+    <Wrap>
+      <ChartPanel>
+        <StableSystemChart log={stableSystem.log} />
+      </ChartPanel>
       {lastEntry && (
         <div>
-          <StatItem>
+          <StatItem color={colors.green}>
             <Title>Total SU issued</Title>
             <StatNumber>{formatNumber(lastEntry.totalSupply)}</StatNumber>
           </StatItem>
-          <StatItem>
-            <Title>Piggy bank $</Title>
+          <StatItem color={colors.red}>
+            <Title>Piggy bank USD</Title>
             <StatNumber>{formatNumber(lastEntry.piggyBankUSD)}</StatNumber>
           </StatItem>
-          <StatItem>
+          <StatItem color={colors.yellow}>
             <Title>Piggy bank ETH</Title>
             <StatNumber>{formatNumber(lastEntry.piggyBankETH)}</StatNumber>
           </StatItem>
         </div>
       )}
-    </div>
+    </Wrap>
   );
 };
 
