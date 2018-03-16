@@ -1,9 +1,11 @@
 //@flow
 
 import React from 'react';
+import type { Node, Element } from 'react';
 import { connect } from 'react-redux';
 import { DataTable } from 'carbon-components-react';
 import styled from 'styled-components';
+import { colors } from '../theme';
 
 import type { Traders, FullState } from '../types';
 
@@ -17,10 +19,6 @@ const {
   TableCell
 } = DataTable;
 
-const EmojiCell = styled(TableCell)`
-  font-size: 200%;
-`;
-
 type Props = {
   traders: Traders
 };
@@ -31,13 +29,37 @@ type Row = {
   name: string,
   eth: string,
   su: string,
-  percentDiff: string
+  percentDiff: Node
 };
 
 type Header = {
   key: string,
   header: string
 };
+
+const EmojiCell = styled(TableCell)`
+  font-size: 200%;
+`;
+const NumberCell = styled(TableCell)`
+  text-align: right !important;
+`;
+const NumberHeader = styled(TableHeader)`
+  text-align: right !important;
+`;
+const Positive = styled.div`
+  color: ${colors.green};
+`;
+const Negative = styled.div`
+  color: ${colors.red};
+`;
+
+function renderGains(value) {
+  return value > 0 ? (
+    <Positive>+{value.toFixed(1)}%</Positive>
+  ) : (
+    <Negative>{value.toFixed(1)}%</Negative>
+  );
+}
 
 function makeDatatableRows(traders: Traders): Array<Row> {
   return traders
@@ -48,7 +70,7 @@ function makeDatatableRows(traders: Traders): Array<Row> {
       name: trader.name,
       eth: trader.portfolio.eth.toFixed(2),
       su: trader.portfolio.su.toFixed(2),
-      percentDiff: Math.random().toFixed(1)
+      percentDiff: renderGains(Math.random() - 0.5)
     }))
     .toArray();
 }
@@ -78,6 +100,26 @@ function makeDatatableHeaders(): Array<Header> {
   ];
 }
 
+function getHeaderComponent(index: number) {
+  if (index > 1) {
+    return NumberHeader;
+  }
+
+  return TableHeader;
+}
+
+function getCellComponent(index: number) {
+  if (index === 0) {
+    return EmojiCell;
+  }
+
+  if (index > 1) {
+    return NumberCell;
+  }
+
+  return TableCell;
+}
+
 const TradersContainer = (props: Props) => {
   const { traders } = props;
   const rows = makeDatatableRows(traders);
@@ -93,19 +135,25 @@ const TradersContainer = (props: Props) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  {headers.map(header => (
-                    <TableHeader>{header.header}</TableHeader>
-                  ))}
+                  {headers.map((header, index) => {
+                    const HeaderComponent = getHeaderComponent(index);
+                    return (
+                      <HeaderComponent key={header.key}>
+                        {header.header}
+                      </HeaderComponent>
+                    );
+                  })}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.map(row => (
                   <TableRow key={row.id}>
                     {row.cells.map((cell, index) => {
-                      return index === 0 ? (
-                        <EmojiCell key={cell.id}>{cell.value}</EmojiCell>
-                      ) : (
-                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                      const CellComponent = getCellComponent(index);
+                      return (
+                        <CellComponent key={cell.id}>
+                          {cell.value}
+                        </CellComponent>
                       );
                     })}
                   </TableRow>
