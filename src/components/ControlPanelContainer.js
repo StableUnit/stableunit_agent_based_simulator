@@ -1,8 +1,12 @@
+//@flow
+
 import React from 'react';
 import styled from 'styled-components';
 import { Button } from 'carbon-components-react';
+import { connect } from 'react-redux';
 
 import Hodlometer from './Hodlometer';
+import NewsScroller from './NewsScroller';
 
 const Wrap = styled.div`
   display: flex;
@@ -19,21 +23,38 @@ const NewsButton = styled(Button)`
   margin-bottom: 0.4em;
 `;
 
-const ControlPanelContainer = () => {
+type Props = {
+  spreadNews: (-2 | 2 | -1 | 1) => {}
+};
+
+const ControlPanelContainer = (props: Props) => {
+  const { spreadNews } = props;
   return (
     <div>
       <Wrap>
         <HodlometerContainer>
           <Hodlometer />
-          <NewsButton kind="secondary">Spread good news</NewsButton>
-          <NewsButton kind="danger">Spread bad news</NewsButton>
-          <NewsButton>Positive Black Swan</NewsButton>
-          <NewsButton kind="danger--primary">Negative Black Swan</NewsButton>
+          <NewsButton onClick={() => spreadNews(1)} kind="secondary">
+            Spread good news
+          </NewsButton>
+          <NewsButton onClick={() => spreadNews(-1)} kind="danger">
+            Spread bad news
+          </NewsButton>
+          <NewsButton onClick={() => spreadNews(2)}>
+            Positive Black Swan
+          </NewsButton>
+          <NewsButton onClick={() => spreadNews(-2)} kind="danger--primary">
+            Negative Black Swan
+          </NewsButton>
         </HodlometerContainer>
-        <div>Scrolling list of news</div>
+        <NewsScroller />
       </Wrap>
     </div>
   );
 };
 
-export default ControlPanelContainer;
+const mapDispatch = dispatch => ({
+  spreadNews: dispatch.simulation.spreadNews
+});
+
+export default connect(null, mapDispatch)(ControlPanelContainer);

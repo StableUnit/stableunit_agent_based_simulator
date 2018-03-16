@@ -100,12 +100,24 @@ export type StableSystemShape = {
 
 export type StableSystem = RecordOf<StableSystemShape>;
 
+export type MediaItemShape = {
+  id: string,
+  datetime: number,
+  headline: string,
+  impressions: number
+};
+
+export type MediaItem = RecordOf<MediaItemShape>;
+
+export type MediaFeed = List<MediaItem>;
+
 // Type of the simulation state slice
 export type SimulationStateShape = {
   tick: number,
   markets: Markets,
   stableSystem: StableSystem,
-  traders: Traders
+  traders: Traders,
+  mediaFeed: MediaFeed
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;

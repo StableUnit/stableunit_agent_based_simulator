@@ -2,7 +2,6 @@
 
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
-import { connect } from 'react-redux';
 
 import { colors } from '../theme';
 

@@ -26,7 +26,10 @@ import type {
   OrderList,
   SULogEntry,
   SULogEntryShape,
-  SULog
+  SULog,
+  MediaItem,
+  MediaItemShape,
+  MediaFeed
 } from '../types';
 
 // Configuration constants. ALL_CAPS
@@ -207,15 +210,37 @@ const makeStableSystem: RecordFactory<StableSystemShape> = Record({
   log: List([makeSULogEntry()])
 });
 
+const makeMediaItem: RecordFactory<MediaItemShape> = Record({
+  id: nanoid(),
+  datetime: Date.now(),
+  headline: 'Default headline',
+  impressions: 0
+});
+
+function generateMediaItem(impact: -2 | -1 | 1 | 2): MediaItem {
+  const headline = 'Bitcoin breaks all time highs';
+  return makeMediaItem({
+    id: nanoid(),
+    datetime: Date.now(),
+    headline
+  });
+}
+
 // This record is the core of our redux state
 export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   tick: 0,
   traders: makeRandomTraders(),
   markets: List([
-    makeMarket({ name: 'ETH-USD' }),
-    makeMarket({ name: 'SU-ETH' })
+    makeMarket({ name: 'SU-ETH' }),
+    makeMarket({ name: 'ETH-USD' })
   ]),
-  stableSystem: makeStableSystem()
+  stableSystem: makeStableSystem(),
+  mediaFeed: List([
+    generateMediaItem(1),
+    generateMediaItem(-1),
+    generateMediaItem(1),
+    generateMediaItem(-1)
+  ])
 });
 
 const initialState = makeSimulationState();
@@ -296,6 +321,14 @@ export default {
             })
           );
         })
+      ),
+
+    spreadNews: (
+      state: SimulationState,
+      impact: -2 | -1 | 1 | 2
+    ): SimulationState =>
+      state.update('mediaFeed', (mediaFeed: MediaFeed): MediaFeed =>
+        mediaFeed.push(generateMediaItem(impact))
       ),
 
     // Simple tick counter
