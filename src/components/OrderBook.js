@@ -118,7 +118,7 @@ const OrderBook = (props: Props) => {
       }
     ],
     categoryAxis: {
-      title: 'Price (SU/ETH)',
+      title: `Price (${market.name})`,
       minHorizontalGap: 100,
       startOnAxis: true,
       showFirstLabel: false,
