@@ -311,7 +311,7 @@ export default {
       if (rootState.simulation.tick > 0) {
         return;
       }
-      for (var i = 0; i < 30; i++) {
+      for (var i = 0; i < 60; i++) {
         this.updateExchange();
         this.updateStableSystem();
       }

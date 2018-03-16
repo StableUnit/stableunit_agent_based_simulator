@@ -8,6 +8,8 @@ import { colors } from '../theme';
 
 import type { Market, History, HistoryEntry } from '../types';
 
+const CANDLESTICK_COUNT = 50;
+
 type Props = {
   market: Market
 };
@@ -29,7 +31,7 @@ function randomizeByDeviation(value: number, deviation: number): number {
 // We can actually create selectors instead of such functions
 // Though this function is only used here, so there's no point
 function convertDataForChart(history: History): CandleSticksData {
-  const lastItems = history.takeLast(30);
+  const lastItems = history.takeLast(CANDLESTICK_COUNT);
   return lastItems
     .map((entry: HistoryEntry, index: number): CandleStickEntry => ({
       datetime: entry.datetime,

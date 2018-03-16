@@ -70,7 +70,7 @@ function makeDatatableRows(traders: Traders): Array<Row> {
       name: trader.name,
       eth: trader.portfolio.eth.toFixed(2),
       su: trader.portfolio.su.toFixed(2),
-      percentDiff: renderGains(Math.random() - 0.5)
+      percentDiff: renderGains((Math.random() - 0.5) * 10)
     }))
     .toArray();
 }

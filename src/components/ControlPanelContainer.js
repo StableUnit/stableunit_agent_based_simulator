@@ -25,10 +25,10 @@ const ControlPanelContainer = () => {
       <Wrap>
         <HodlometerContainer>
           <Hodlometer />
-          <NewsButton kind="secondary">Spread bad news</NewsButton>
           <NewsButton kind="secondary">Spread good news</NewsButton>
-          <NewsButton kind="secondary">Positive Black Swan</NewsButton>
-          <NewsButton kind="secondary">Negative Black Swan</NewsButton>
+          <NewsButton kind="danger">Spread bad news</NewsButton>
+          <NewsButton>Positive Black Swan</NewsButton>
+          <NewsButton kind="danger--primary">Negative Black Swan</NewsButton>
         </HodlometerContainer>
         <div>Scrolling list of news</div>
       </Wrap>
