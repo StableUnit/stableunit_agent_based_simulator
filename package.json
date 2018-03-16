@@ -5,6 +5,7 @@
   "dependencies": {
     "@amcharts/amcharts3-react": "^3.0.0",
     "@rematch/core": "^0.5.2",
+    "accounting": "^0.4.1",
     "amstock3": "^3.21.12",
     "babel-plugin-react-css-modules": "^3.3.3",
     "carbon-components": "^8.16.8",

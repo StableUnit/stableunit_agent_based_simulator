@@ -23,7 +23,10 @@ import type {
   StableSystemShape,
   StableSystem,
   Order,
-  OrderList
+  OrderList,
+  SULogEntry,
+  SULogEntryShape,
+  SULog
 } from '../types';
 
 // Configuration constants. ALL_CAPS
@@ -173,6 +176,10 @@ function randomizeByDeviation(value: number, deviation: number): number {
   return value + value * (Math.random() * 2 - 1) * deviation;
 }
 
+function accumulateRandomly(value: number, deviation: number): number {
+  return value + value * Math.random() * deviation;
+}
+
 function randomizeLastHistoryEntry(history: History): HistoryEntry {
   const deviation = 0.05;
   const randomFallback = makeHistoryEntry({
@@ -189,8 +196,15 @@ function randomizeLastHistoryEntry(history: History): HistoryEntry {
   return newHistoryItem;
 }
 
+const makeSULogEntry: RecordFactory<SULogEntryShape> = Record({
+  datetime: Date.now(),
+  totalSupply: 10000000,
+  piggyBankUSD: 24000000,
+  piggyBankETH: 25000
+});
+
 const makeStableSystem: RecordFactory<StableSystemShape> = Record({
-  log: List()
+  log: List([makeSULogEntry()])
 });
 
 // This record is the core of our redux state
@@ -270,9 +284,18 @@ export default {
 
     // TODO: some logic to update stable system
     updateStableSystem: (state: SimulationState): SimulationState =>
-      state.update(
-        'stableSystem',
-        (stableSystem: StableSystem): StableSystem => stableSystem
+      state.update('stableSystem', (stableSystem: StableSystem): StableSystem =>
+        stableSystem.update('log', (log: SULog): SULog => {
+          const lastEntry = log.last() || makeSULogEntry();
+          return log.push(
+            makeSULogEntry({
+              datetime: Date.now(),
+              totalSupply: accumulateRandomly(lastEntry.totalSupply, 0.01),
+              piggyBankETH: randomizeByDeviation(lastEntry.piggyBankETH, 0.01),
+              piggyBankUSD: randomizeByDeviation(lastEntry.piggyBankUSD, 0.01)
+            })
+          );
+        })
       ),
 
     // Simple tick counter
@@ -290,6 +313,7 @@ export default {
       }
       for (var i = 0; i < 30; i++) {
         this.updateExchange();
+        this.updateStableSystem();
       }
 
       this.initializeMarket();
@@ -297,6 +321,7 @@ export default {
       while (true) {
         // TODO: Update market
         this.updateExchange();
+        this.updateStableSystem();
 
         // TODO: Update stable system
 

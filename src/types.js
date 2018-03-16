@@ -86,8 +86,8 @@ export type Markets = List<Market>;
 export type SULogEntryShape = {
   datetime: number,
   totalSupply: number,
-  stableFundSize: number,
-  bondsIssued: number
+  piggyBankUSD: number,
+  piggyBankETH: number
 };
 
 export type SULogEntry = RecordOf<SULogEntryShape>;
