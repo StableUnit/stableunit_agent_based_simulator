@@ -50,7 +50,6 @@ const StableSystemChart = (props: Props) => {
   const options = {
     type: 'serial',
     categoryField: 'category',
-    startDuration: 1,
     fontSize: 13,
     theme: 'default',
     categoryAxis: {

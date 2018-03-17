@@ -14,8 +14,6 @@ const Wrap = styled.div`
   display: flex;
 `;
 
-const NewsContainer = styled.div``;
-
 const HodlometerContainer = styled.div`
   width: 300px;
 `;

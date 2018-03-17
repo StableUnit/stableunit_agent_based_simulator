@@ -21,8 +21,6 @@ function headline(arr: Array<string>): string {
   return capitalize(arr.join(' '));
 }
 
-const patterns = [];
-
 const cryptoProjectTypes = ['ICOs', 'exchanges', 'mining'];
 const countries = [
   'Russia',
@@ -136,19 +134,22 @@ const badNews: NewsGenerators = [
   countryBansProject,
   valleyBan,
   walletsCompromised,
-  negativeSpecialists
+  negativeSpecialists,
+  cryptoCompanyGetsHacked
 ];
 
 const goodNews: NewsGenerators = [
   valleyInvestsInCrypto,
   countryLegalize,
-  positiveSpecialists
+  positiveSpecialists,
+  countryElection
 ];
 
 const badBlackSwans: NewsGenerators = [
   warDeclaration,
   cryptoCompanyGoesBankrupt,
-  majorCryptoCrash
+  majorCryptoCrash,
+  badRidiculous
 ];
 
 const goodBlackSwans: NewsGenerators = [

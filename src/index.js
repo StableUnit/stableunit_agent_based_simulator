@@ -5,13 +5,13 @@ import { init } from '@rematch/core';
 import App from './App';
 import simulation from './models/simulation';
 
-import { injectGlobal } from 'styled-components';
+// import { injectGlobal } from 'styled-components';
 
-injectGlobal`
-  body {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
-  }
-`;
+// injectGlobal`
+//   body {
+//     font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+//   }
+// `;
 
 const store = init({
   models: {

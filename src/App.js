@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { Module, ModuleHeader, ModuleBody } from 'carbon-components-react';
 
 import ControlPanelContainer from './components/ControlPanelContainer';
+import Header from './components/Header';
 import ExchangeContainer from './components/ExchangeContainer';
 import TradersContainer from './components/TradersContainer';
 import StableSystemContainer from './components/StableSystemContainer';
@@ -30,31 +31,34 @@ class App extends React.Component<Props> {
   }
   render() {
     return (
-      <Wrap>
-        <Panel>
-          <Module>
-            <ModuleHeader>Exchange Simulation</ModuleHeader>
-            <ModuleBody>
-              <ExchangeContainer />
-              <TradersContainer />
-            </ModuleBody>
-          </Module>
-        </Panel>
-        <Panel>
-          <Module>
-            <ModuleHeader>Media Impact Simulation</ModuleHeader>
-            <ModuleBody>
-              <ControlPanelContainer />
-            </ModuleBody>
-          </Module>
-          <Module>
-            <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
-            <ModuleBody>
-              <StableSystemContainer />
-            </ModuleBody>
-          </Module>
-        </Panel>
-      </Wrap>
+      <div>
+        <Header />
+        <Wrap>
+          <Panel>
+            <Module>
+              <ModuleHeader>Exchange Simulation</ModuleHeader>
+              <ModuleBody>
+                <ExchangeContainer />
+                <TradersContainer />
+              </ModuleBody>
+            </Module>
+          </Panel>
+          <Panel>
+            <Module>
+              <ModuleHeader>Media Impact Simulation</ModuleHeader>
+              <ModuleBody>
+                <ControlPanelContainer />
+              </ModuleBody>
+            </Module>
+            <Module>
+              <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
+              <ModuleBody>
+                <StableSystemContainer />
+              </ModuleBody>
+            </Module>
+          </Panel>
+        </Wrap>
+      </div>
     );
   }
 }

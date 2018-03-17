@@ -84,7 +84,7 @@ function makeRandomSellOrders(traders: Traders): OrderList {
 }
 
 const makeHistoryEntry: RecordFactory<HistoryEntryShape> = Record({
-  datetime: Date.now(),
+  datetime: (() => Date.now())(),
   price: 0,
   quantity: 0
 });
