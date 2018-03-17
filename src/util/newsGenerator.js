@@ -98,7 +98,7 @@ function warDeclaration(): string {
 function valleyInvestsInCrypto(): string {
   return headline([
     random(valleyGiants),
-    'is launching ICO to develop their own blockchain'
+    'is launching an ICO to develop their own blockchain'
   ]);
 }
 function valleyBan(): string {
@@ -116,15 +116,34 @@ function countryElection(): string {
     'next election is going to be on blockchain'
   ]);
 }
+function badRidiculous(): string {
+  return headline([
+    random(['Satoshi Nakamoto is found smoking crack on streets of Vancouver'])
+  ]);
+}
+function positiveSpecialists(): string {
+  return headline([
+    'Technical analysis predicts the new highs for',
+    random(majorCryptos)
+  ]);
+}
+function negativeSpecialists(): string {
+  return headline(['Skepticism around', random(majorCryptos), 'is rising']);
+}
 
 const badNews: NewsGenerators = [
   cryptoCompanyDDoS,
   countryBansProject,
   valleyBan,
-  walletsCompromised
+  walletsCompromised,
+  negativeSpecialists
 ];
 
-const goodNews: NewsGenerators = [valleyInvestsInCrypto, countryLegalize];
+const goodNews: NewsGenerators = [
+  valleyInvestsInCrypto,
+  countryLegalize,
+  positiveSpecialists
+];
 
 const badBlackSwans: NewsGenerators = [
   warDeclaration,
