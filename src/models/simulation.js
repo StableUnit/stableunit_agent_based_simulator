@@ -29,10 +29,12 @@ import type {
   SULog,
   MediaItem,
   MediaItemShape,
-  MediaFeed
+  MediaFeed,
+  MediaImpact
 } from '../types';
 
 import generateHeadline from '../util/newsGenerator';
+import { startNewsCycle } from '../util/newsImpressionsCounter';
 
 // Configuration constants. ALL_CAPS
 const TICK_INTERVAL = 1000;
@@ -216,13 +218,14 @@ const makeMediaItem: RecordFactory<MediaItemShape> = Record({
   id: nanoid(),
   datetime: Date.now(),
   headline: 'Default headline',
-  impressions: 0
+  impressions: 0,
+  impact: 1
 });
 
-function generateMediaItem(impact: -2 | -1 | 1 | 2): MediaItem {
+function generateMediaItem(id: string, impact: MediaImpact): MediaItem {
   const headline = generateHeadline(impact);
   return makeMediaItem({
-    id: nanoid(),
+    id,
     datetime: Date.now(),
     headline
   });
@@ -237,12 +240,12 @@ export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
     makeMarket({ name: 'ETH-USD' })
   ]),
   stableSystem: makeStableSystem(),
-  mediaFeed: List([
-    generateMediaItem(1),
-    generateMediaItem(-1),
-    generateMediaItem(1),
-    generateMediaItem(-1)
-  ])
+  mediaFeed: OrderedMap({
+    '1': generateMediaItem('1', 1),
+    '2': generateMediaItem('2', -1),
+    '3': generateMediaItem('3', 1),
+    '4': generateMediaItem('4', -1)
+  })
 });
 
 const initialState = makeSimulationState();
@@ -327,11 +330,25 @@ export default {
 
     spreadNews: (
       state: SimulationState,
-      impact: -2 | -1 | 1 | 2
+      impact: MediaImpact
     ): SimulationState =>
-      state.update('mediaFeed', (mediaFeed: MediaFeed): MediaFeed =>
-        mediaFeed.push(generateMediaItem(impact))
-      ),
+      state.update('mediaFeed', (mediaFeed: MediaFeed): MediaFeed => {
+        const id = nanoid();
+        return mediaFeed.set(id, generateMediaItem(id, impact));
+      }),
+
+    updateMediaItemViews: (
+      state: SimulationState,
+      mediaId: string,
+      newViews: number
+    ): SimulationState => {
+      // debugger;
+      return state.updateIn(
+        ['mediaFeed', mediaId],
+        (mediaItem: MediaItem): MediaItem =>
+          mediaItem.update('impressions', impressions => impressions + newViews)
+      );
+    },
 
     // Simple tick counter
     updateTick: (state: SimulationState): SimulationState =>
@@ -367,6 +384,8 @@ export default {
         // Wait before next tick
         await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));
       }
-    }
+    },
+
+    startNewsCycle
   }
 };

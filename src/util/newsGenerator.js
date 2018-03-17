@@ -5,6 +5,7 @@
 // - Major wallet is hacked
 // - War start
 // -
+import type { MediaImpact } from '../types';
 
 type NewsGenerators = Array<() => string>;
 
@@ -137,7 +138,7 @@ const goodBlackSwans: NewsGenerators = [
   leadersHodling
 ];
 
-export default function generateHeadline(impact: -2 | -1 | 1 | 2): string {
+export default function generateHeadline(impact: MediaImpact): string {
   switch (impact) {
     case -2:
       return random(badBlackSwans)();

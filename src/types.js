@@ -100,16 +100,19 @@ export type StableSystemShape = {
 
 export type StableSystem = RecordOf<StableSystemShape>;
 
+export type MediaImpact = -2 | -1 | 1 | 2;
+
 export type MediaItemShape = {
   id: string,
   datetime: number,
   headline: string,
-  impressions: number
+  impressions: number,
+  impact: MediaImpact
 };
 
 export type MediaItem = RecordOf<MediaItemShape>;
 
-export type MediaFeed = List<MediaItem>;
+export type MediaFeed = OrderedMap<string, MediaItem>;
 
 // Type of the simulation state slice
 export type SimulationStateShape = {

@@ -8,6 +8,8 @@ import { connect } from 'react-redux';
 import Hodlometer from './Hodlometer';
 import NewsScroller from './NewsScroller';
 
+import type { MediaImpact } from '../types';
+
 const Wrap = styled.div`
   display: flex;
 `;
@@ -24,7 +26,7 @@ const NewsButton = styled(Button)`
 `;
 
 type Props = {
-  spreadNews: (-2 | 2 | -1 | 1) => {}
+  spreadNews: (impact: MediaImpact) => {}
 };
 
 const ControlPanelContainer = (props: Props) => {
