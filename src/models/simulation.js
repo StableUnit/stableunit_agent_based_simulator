@@ -32,6 +32,8 @@ import type {
   MediaFeed
 } from '../types';
 
+import generateHeadline from '../util/newsGenerator';
+
 // Configuration constants. ALL_CAPS
 const TICK_INTERVAL = 1000;
 const INITIAL_PRICE = 1;
@@ -218,7 +220,7 @@ const makeMediaItem: RecordFactory<MediaItemShape> = Record({
 });
 
 function generateMediaItem(impact: -2 | -1 | 1 | 2): MediaItem {
-  const headline = 'Bitcoin breaks all time highs';
+  const headline = generateHeadline(impact);
   return makeMediaItem({
     id: nanoid(),
     datetime: Date.now(),

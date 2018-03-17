@@ -50,8 +50,8 @@ class NewsScroller extends Component<Props> {
     }
     return (
       <Wrap>
-        {mediaFeed.reverse().map(mediaItem => (
-          <Item key={mediaItem.id}>
+        {mediaFeed.reverse().map((mediaItem, index) => (
+          <Item style={{ opacity: 1 - index / 7 }} key={mediaItem.id}>
             {mediaItem.headline}
             <ViewCounter>
               {eyeIcon} {mediaItem.impressions}
