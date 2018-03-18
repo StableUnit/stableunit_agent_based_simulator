@@ -25,6 +25,8 @@ class Subscribe extends Component<Props> {
         <Label>Subscribe to keep in touch</Label>
         <Wrap>
           <Input
+            id="subscribe-email"
+            labelText=""
             onChange={() => {}}
             placeholder="Please enter an email"
             type="email"

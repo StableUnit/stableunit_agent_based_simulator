@@ -41,6 +41,7 @@ const TICK_INTERVAL = 1000;
 const INITIAL_PRICE = 1;
 const MIN_PRICE_BOUNDARY = 0;
 const MAX_PRICE_BOUNDARY = 2;
+const INITIAL_TIME_MULTIPLIER = TICK_INTERVAL * 60 * 5; // 1 second - 5 minutes
 
 // Records enforce a certain shape of a Map-like object
 // The object passed to `Record` is a default shape.
@@ -84,7 +85,7 @@ function makeRandomSellOrders(traders: Traders): OrderList {
 }
 
 const makeHistoryEntry: RecordFactory<HistoryEntryShape> = Record({
-  datetime: (() => Date.now())(),
+  datetime: Date.now(),
   price: 0,
   quantity: 0
 });
@@ -187,16 +188,19 @@ function accumulateRandomly(value: number, deviation: number): number {
   return value + value * Math.random() * deviation;
 }
 
-function randomizeLastHistoryEntry(history: History): HistoryEntry {
+function randomizeLastHistoryEntry(
+  history: History,
+  datetime: number
+): HistoryEntry {
   const deviation = 0.05;
   const randomFallback = makeHistoryEntry({
-    datetime: Date.now(),
+    datetime: datetime,
     price: 0.5 + Math.random(),
     quantity: Math.random()
   });
   const lastHistoryItem = history.last() || randomFallback;
   const newHistoryItem = makeHistoryEntry({
-    datetime: Date.now(),
+    datetime: datetime,
     price: randomizeByDeviation(lastHistoryItem.price, deviation),
     quantity: Math.random()
   });
@@ -233,6 +237,8 @@ function generateMediaItem(id: string, impact: MediaImpact): MediaItem {
 
 // This record is the core of our redux state
 export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
+  currentTime: Date.now(),
+  timeMultiplier: INITIAL_TIME_MULTIPLIER,
   tick: 0,
   traders: makeRandomTraders(),
   markets: List([
@@ -256,6 +262,12 @@ export default {
   // Reducer are synchronous updater functions
   // They always receive the state as first argument and must return the state of the same type
   reducers: {
+    updateTime: (state: SimulationState): SimulationState =>
+      state.update(
+        'currentTime',
+        currentTime =>
+          currentTime ? currentTime + state.timeMultiplier : Date.now()
+      ),
     // Add trader
     addTrader: (state: SimulationState, data: any): SimulationState =>
       state.update('traders', traders => {
@@ -305,7 +317,9 @@ export default {
           // Update order books
           return market
             .update('history', (history: History): History =>
-              history.push(randomizeLastHistoryEntry(history))
+              history.push(
+                randomizeLastHistoryEntry(history, state.currentTime)
+              )
             )
             .set('buyOrders', makeRandomBuyOrders(state.traders))
             .set('sellOrders', makeRandomSellOrders(state.traders));
@@ -319,7 +333,7 @@ export default {
           const lastEntry = log.last() || makeSULogEntry();
           return log.push(
             makeSULogEntry({
-              datetime: Date.now(),
+              datetime: state.currentTime,
               totalSupply: accumulateRandomly(lastEntry.totalSupply, 0.01),
               piggyBankETH: randomizeByDeviation(lastEntry.piggyBankETH, 0.01),
               piggyBankUSD: randomizeByDeviation(lastEntry.piggyBankUSD, 0.01)
@@ -364,6 +378,7 @@ export default {
         return;
       }
       for (var i = 0; i < 60; i++) {
+        this.updateTime();
         this.updateExchange();
         this.updateStableSystem();
       }
@@ -371,6 +386,7 @@ export default {
       this.initializeMarket();
 
       while (true) {
+        this.updateTime();
         // TODO: Update market
         this.updateExchange();
         this.updateStableSystem();

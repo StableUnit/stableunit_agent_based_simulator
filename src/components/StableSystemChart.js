@@ -49,14 +49,15 @@ const StableSystemChart = (props: Props) => {
 
   const options = {
     type: 'serial',
-    categoryField: 'category',
+    categoryField: 'datetime',
     fontSize: 13,
     theme: 'default',
     categoryAxis: {
       gridPosition: 'start',
       axisThickness: 0,
       gridThickness: 0,
-      labelsEnabled: false
+      parseDates: true,
+      minPeriod: 'mm'
     },
     trendLines: [],
     graphs: [

@@ -120,7 +120,9 @@ export type SimulationStateShape = {
   markets: Markets,
   stableSystem: StableSystem,
   traders: Traders,
-  mediaFeed: MediaFeed
+  mediaFeed: MediaFeed,
+  currentTime: number,
+  timeMultiplier: number
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;

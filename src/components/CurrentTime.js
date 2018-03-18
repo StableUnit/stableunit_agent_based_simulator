@@ -2,23 +2,26 @@
 
 import React, { Component } from 'react';
 import moment from 'moment';
-import { getSimulatedTime } from '../util/date';
+// import { getSimulatedTime } from '../util/date';
+import { connect } from 'react-redux';
 
-type Props = {};
+type Props = {
+  currentTime: number
+};
 
 class CurrentTime extends Component<Props> {
-  componentDidMount() {
-    setInterval(() => this.forceUpdate(), 200);
-  }
   render() {
+    const { currentTime } = this.props;
     return (
       <div>
         Simulated date and time:
-        <div>{moment(getSimulatedTime()).format('dddd, MMMM Do YYYY')}</div>
-        <div>{moment(getSimulatedTime()).format('h:mm a')}</div>
+        <div>{moment(currentTime).format('dddd, MMMM Do YYYY')}</div>
+        <div>{moment(currentTime).format('h:mm a')}</div>
       </div>
     );
   }
 }
 
-export default CurrentTime;
+const mapState = state => ({ currentTime: state.simulation.currentTime });
+
+export default connect(mapState)(CurrentTime);

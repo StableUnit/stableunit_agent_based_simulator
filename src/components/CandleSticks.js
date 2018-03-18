@@ -52,7 +52,7 @@ const CandleSticks = (props: Props) => {
 
   const style = {
     width: '300px',
-    height: '200px'
+    height: '226px'
   };
 
   const options = {
@@ -85,7 +85,9 @@ const CandleSticks = (props: Props) => {
       }
     ],
     categoryAxis: {
-      labelsEnabled: false
+      // labelsEnabled: false,
+      parseDates: true,
+      minPeriod: 'ss'
     },
     chartCursor: {
       valueLineEnabled: true,
