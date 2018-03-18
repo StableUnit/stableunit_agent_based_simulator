@@ -6,32 +6,9 @@ import type { RecordFactory } from 'immutable';
 import type {
   FullState,
   SimulationState,
-  SimulationStateShape,
-  TraderShape,
-  Trader,
-  Traders,
-  MarketShape,
-  Market,
-  Markets,
-  HistoryEntryShape,
-  HistoryEntry,
-  History,
-  PortfolioShape,
-  Portfolio,
-  StableSystemShape,
-  StableSystem,
-  Order,
-  OrderList,
-  SULogEntry,
-  SULogEntryShape,
-  SULog,
-  MediaItem,
-  MediaItemShape,
-  MediaFeed,
-  MediaImpact
+  SimulationStateShape
 } from '../types';
 
-import generateHeadline from '../util/newsGenerator';
 import { startNewsCycle } from '../util/newsImpressionsCounter';
 import { makeRandomTraders } from '../util/randomizers';
 import {
@@ -47,8 +24,6 @@ import { addTrader, updateTraders } from './traders';
 
 // Configuration constants. ALL_CAPS
 const TICK_INTERVAL = 1000;
-const MIN_PRICE_BOUNDARY = 0;
-const MAX_PRICE_BOUNDARY = 2;
 const INITIAL_TIME_MULTIPLIER = TICK_INTERVAL * 60 * 5; // 1 second - 5 minutes
 
 // This record is the core of our redux state

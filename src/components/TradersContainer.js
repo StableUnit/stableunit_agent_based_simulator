@@ -1,7 +1,7 @@
 //@flow
 
 import React from 'react';
-import type { Node, Element } from 'react';
+import type { Node } from 'react';
 import { connect } from 'react-redux';
 import { DataTable } from 'carbon-components-react';
 import styled from 'styled-components';

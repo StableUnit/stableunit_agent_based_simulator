@@ -1,13 +1,9 @@
 //@flow
 
 import React from 'react';
-import AmCharts from '@amcharts/amcharts3-react';
-import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { colors } from '../theme';
-
-import type { Market, FullState, Order, OrderList } from '../types';
+import type { Market } from '../types';
 
 import OrderBook from './OrderBook';
 import CandleSticks from './CandleSticks';

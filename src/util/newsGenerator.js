@@ -35,7 +35,7 @@ const countries = [
 
 const worldLeaders = ['Trump', 'Putin', 'Merkel'];
 
-const actors = ['investors', 'traders'];
+// const actors = ['investors', 'traders'];
 
 const majorCryptos = ['Bitcoin', 'Ethereum', 'Ripple'];
 

@@ -44,7 +44,7 @@ class Header extends Component<Props> {
     return (
       <Wrap>
         <LogoContainer>
-          <img src={logo} style={{ width: 36 }} />
+          <img alt="" src={logo} style={{ width: 36 }} />
           <LogoType>StableUnit</LogoType>
         </LogoContainer>
         <DescriptionContainer>

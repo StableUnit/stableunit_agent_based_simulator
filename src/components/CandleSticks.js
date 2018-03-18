@@ -2,7 +2,6 @@
 
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
-import { connect } from 'react-redux';
 
 import { colors } from '../theme';
 
@@ -23,10 +22,6 @@ type CandleStickEntry = {
 };
 
 type CandleSticksData = Array<CandleStickEntry>;
-
-function randomizeByDeviation(value: number, deviation: number): number {
-  return value + value * (Math.random() * 2 - 1) * deviation;
-}
 
 // We can actually create selectors instead of such functions
 // Though this function is only used here, so there's no point
