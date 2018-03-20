@@ -20,7 +20,7 @@ const Wrap = styled.div`
 `;
 
 const HodlometerContainer = styled.div`
-  width: 300px;
+  width: 250px;
 `;
 
 const NewsButton = styled(Button)`
