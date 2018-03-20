@@ -5,8 +5,8 @@ import { colors } from '../theme';
 
 const Hodlometer = () => {
   const style = {
-    width: '300px',
-    height: '300px'
+    width: '250px',
+    height: '250px'
   };
 
   const options = {
@@ -46,8 +46,8 @@ const Hodlometer = () => {
       enabled: true
     },
     allLabels: [
-      { x: 0, y: 230, text: 'HODL', bold: true },
-      { x: '!0', y: 230, text: 'SELL', bold: true, align: 'right' }
+      { x: 0, y: 180, text: 'HODL', bold: true },
+      { x: '!0', y: 180, text: 'SELL', bold: true, align: 'right' }
     ]
   };
   return (

@@ -2,33 +2,35 @@
 
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
-import { connect } from 'react-redux';
 
 import { colors } from '../theme';
 
-import type { Exchange, FullState, Order, OrderList } from '../types';
+import type { Market, Order, OrderList } from '../types';
 
 type Props = {
-  exchange: Exchange
+  market: Market
 };
 
 type BidOrderEntry = {
   price: number,
   bidsQuantity: number,
   bidsTotalQuantity: number
-}
+};
 
 type AskOrderEntry = {
   price: number,
   asksQuantity: number,
   asksTotalQuantity: number
-}
+};
 
-type OrderBookData = Array<BidOrderEntry|AskOrderEntry>;
+type OrderBookData = Array<BidOrderEntry | AskOrderEntry>;
 
 // We can actually create selectors instead of such functions
 // Though this function is only used here, so there's no point
-function convertDataForChart(buyOrders: OrderList, sellOrders: OrderList): OrderBookData {
+function convertDataForChart(
+  buyOrders: OrderList,
+  sellOrders: OrderList
+): OrderBookData {
   let bidsAccumulator = 0;
   let asksAccumulator = 0;
   return [
@@ -36,36 +38,36 @@ function convertDataForChart(buyOrders: OrderList, sellOrders: OrderList): Order
       .sort((a, b) => b.price - a.price)
       .map((order: Order) => {
         bidsAccumulator += order.quantity;
-        return ({
+        return {
           price: order.price,
           bidsQuantity: order.quantity,
           bidsTotalQuantity: bidsAccumulator
-        })
+        };
       })
       .toArray(),
     ...sellOrders
       .sort((a, b) => a.price - b.price)
       .map((order: Order) => {
         asksAccumulator += order.quantity;
-        return ({
+        return {
           price: order.price,
           asksQuantity: order.quantity,
           asksTotalQuantity: asksAccumulator
-        })
+        };
       })
       .toArray()
   ].sort((a, b) => a.price - b.price);
 }
 
 const OrderBook = (props: Props) => {
-  const { exchange } = props;
+  const { market } = props;
 
   // Convert data for orderbook
-  const data = convertDataForChart(exchange.buyOrders, exchange.sellOrders);
+  const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
   const style = {
-    width: '400px',
-    height: '300px'
+    width: '300px',
+    height: '226px'
   };
 
   const options = {
@@ -116,11 +118,12 @@ const OrderBook = (props: Props) => {
       }
     ],
     categoryAxis: {
-      title: 'Price (SU/ETH)',
+      title: `Price (${market.name})`,
       minHorizontalGap: 100,
       startOnAxis: true,
       showFirstLabel: false,
-      showLastLabel: false
+      showLastLabel: false,
+      labelsEnabled: false
     },
     export: {
       enabled: true
@@ -134,8 +137,4 @@ const OrderBook = (props: Props) => {
   );
 };
 
-const mapState = (state: FullState) => ({
-  exchange: state.simulation.exchange
-});
-
-export default connect(mapState)(OrderBook);
+export default OrderBook;

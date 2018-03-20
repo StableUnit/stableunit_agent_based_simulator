@@ -1,6 +1,8 @@
 //@flow
 
-import simulation, { makeSimulationState, makeTrader } from './simulation';
+import simulation, { makeSimulationState } from './simulation';
+
+import { makeTrader } from './traders';
 
 import type { SimulationState, Trader } from '../types';
 
@@ -21,8 +23,11 @@ it('should handle adding a trader', () => {
       greed: 3
     }
   };
-  const referenceTrader:Trader = makeTrader(newTraderData);
-  const updatedState = simulation.reducers.addTrader(initialState, newTraderData);
+  const referenceTrader: Trader = makeTrader(newTraderData);
+  const updatedState = simulation.reducers.addTrader(
+    initialState,
+    newTraderData
+  );
   expect(referenceTrader);
   expect(referenceTrader.name).toBe('Test trader');
 

@@ -1,11 +1,16 @@
 //@flow
 
-import { Record, List, Map } from 'immutable';
-import type { RecordFactory, RecordOf } from 'immutable';
+import { List, OrderedMap } from 'immutable';
+import type { RecordOf } from 'immutable';
 
 // Simple type
 // Portfolio
-export type Portfolio = Map<string, number>;
+export type PortfolioShape = {
+  eth: number,
+  su: number
+};
+
+export type Portfolio = RecordOf<PortfolioShape>;
 
 // Internal types don't have to be exposed with `export`
 // Trader
@@ -21,7 +26,8 @@ export type TraderShape = {
   name: string,
   portfolio: Portfolio,
   dna: DNA,
-  updateTrader: (trader: Trader, exchange: Exchange) => Trader
+  emoji: string,
+  updateTrader: (trader: Trader, markets: Markets) => Trader
 };
 
 // 2. the actual type of the record. Useful to enforce the proper usage in functions etc.
@@ -41,7 +47,7 @@ const makeTrader: RecordFactory<TraderShape> = Record({
  */
 
 // Optionally create a ListOf type as it's widely used
-export type Traders = Map<string, Trader>;
+export type Traders = OrderedMap<string, Trader>;
 
 // Order
 export type Order = {
@@ -64,23 +70,25 @@ export type HistoryEntry = RecordOf<HistoryEntryShape>;
 
 export type History = List<HistoryEntry>;
 
-// Exchange
-export type ExchangeShape = {
+// Market
+export type MarketShape = {
   name: string,
   history: History,
   buyOrders: OrderList,
   sellOrders: OrderList
 };
 
-export type Exchange = RecordOf<ExchangeShape>;
+export type Market = RecordOf<MarketShape>;
+
+export type Markets = List<Market>;
 
 // Stable system
 export type SULogEntryShape = {
   datetime: number,
   totalSupply: number,
-  stableFundSize: number,
-  bondsIssued: number
-}
+  piggyBankUSD: number,
+  piggyBankETH: number
+};
 
 export type SULogEntry = RecordOf<SULogEntryShape>;
 
@@ -88,16 +96,33 @@ export type SULog = List<SULogEntry>;
 
 export type StableSystemShape = {
   log: SULog
-}
+};
 
 export type StableSystem = RecordOf<StableSystemShape>;
+
+export type MediaImpact = -2 | -1 | 1 | 2;
+
+export type MediaItemShape = {
+  id: string,
+  datetime: number,
+  headline: string,
+  impressions: number,
+  impact: MediaImpact
+};
+
+export type MediaItem = RecordOf<MediaItemShape>;
+
+export type MediaFeed = OrderedMap<string, MediaItem>;
 
 // Type of the simulation state slice
 export type SimulationStateShape = {
   tick: number,
-  exchange: Exchange,
+  markets: Markets,
   stableSystem: StableSystem,
-  traders: Traders
+  traders: Traders,
+  mediaFeed: MediaFeed,
+  currentTime: number,
+  timeMultiplier: number
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;
