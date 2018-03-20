@@ -1,7 +1,7 @@
 //@flow
 
-import { Record, List, OrderedMap } from 'immutable';
-import type { RecordFactory, RecordOf } from 'immutable';
+import { List, OrderedMap } from 'immutable';
+import type { RecordOf } from 'immutable';
 
 // Simple type
 // Portfolio

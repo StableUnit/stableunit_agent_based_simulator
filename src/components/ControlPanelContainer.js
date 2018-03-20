@@ -4,11 +4,16 @@ import React from 'react';
 import styled from 'styled-components';
 import { Button } from 'carbon-components-react';
 import { connect } from 'react-redux';
+import Responsive from 'react-responsive';
 
 import Hodlometer from './Hodlometer';
 import NewsScroller from './NewsScroller';
 
 import type { MediaImpact } from '../types';
+
+type Props = {
+  spreadNews: (impact: MediaImpact) => {}
+};
 
 const Wrap = styled.div`
   display: flex;
@@ -23,32 +28,44 @@ const NewsButton = styled(Button)`
   margin-bottom: 0.4em;
 `;
 
-type Props = {
-  spreadNews: (impact: MediaImpact) => {}
-};
+const Desktop = props => <Responsive {...props} minWidth={992} />;
+const Mobile = props => <Responsive {...props} maxWidth={991} />;
 
 const ControlPanelContainer = (props: Props) => {
   const { spreadNews } = props;
+
+  const buttons = (
+    <div>
+      <NewsButton onClick={() => spreadNews(1)} kind="secondary">
+        Spread good news
+      </NewsButton>
+      <NewsButton onClick={() => spreadNews(-1)} kind="danger">
+        Spread bad news
+      </NewsButton>
+      <NewsButton onClick={() => spreadNews(2)}>Positive Black Swan</NewsButton>
+      <NewsButton onClick={() => spreadNews(-2)} kind="danger--primary">
+        Negative Black Swan
+      </NewsButton>
+    </div>
+  );
   return (
     <div>
-      <Wrap>
-        <HodlometerContainer>
+      <Desktop>
+        <Wrap>
+          <HodlometerContainer>
+            <Hodlometer />
+            {buttons}
+          </HodlometerContainer>
+          <NewsScroller />
+        </Wrap>
+      </Desktop>
+      <Mobile>
+        <Wrap>
           <Hodlometer />
-          <NewsButton onClick={() => spreadNews(1)} kind="secondary">
-            Spread good news
-          </NewsButton>
-          <NewsButton onClick={() => spreadNews(-1)} kind="danger">
-            Spread bad news
-          </NewsButton>
-          <NewsButton onClick={() => spreadNews(2)}>
-            Positive Black Swan
-          </NewsButton>
-          <NewsButton onClick={() => spreadNews(-2)} kind="danger--primary">
-            Negative Black Swan
-          </NewsButton>
-        </HodlometerContainer>
+          {buttons}
+        </Wrap>
         <NewsScroller />
-      </Wrap>
+      </Mobile>
     </div>
   );
 };

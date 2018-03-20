@@ -59,30 +59,23 @@ export default {
         currentTime =>
           currentTime ? currentTime + state.timeMultiplier : Date.now()
       ),
-    // Add trader
+
+    // Traders reducers
     addTrader,
-
-    placeBuyOrder,
-
-    placeSellOrder,
-
-    // Run internal update logic of each trader
     updateTraders,
 
-    // A separate reducer cause we depend on traders to exist in state when this happens
+    // Exchange reducers
     initializeMarket,
-
     updateExchange,
+    placeBuyOrder,
+    placeSellOrder,
 
+    // Stable system reducers
     updateStableSystem,
 
+    // Media impact reducers
     spreadNews,
-
-    updateMediaItemViews,
-
-    // Simple tick counter
-    updateTick: (state: SimulationState): SimulationState =>
-      state.update('tick', tick => tick + 1)
+    updateMediaItemViews
   },
 
   // Effects are asynchronous functions that can receieve and update state
@@ -103,15 +96,11 @@ export default {
 
       while (true) {
         this.updateTime();
-        // TODO: Update market
         this.updateExchange();
         this.updateStableSystem();
 
-        // TODO: Update stable system
-
         // Update all traders
         this.updateTraders();
-        // this.updateTick();
 
         // Wait before next tick
         await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));
