@@ -6,7 +6,9 @@ import { colors } from '../theme';
 const Hodlometer = () => {
   const style = {
     width: '250px',
-    height: '250px'
+    height: '250px',
+    marginLeft: 'auto',
+    marginRight: 'auto'
   };
 
   const options = {
@@ -50,11 +52,7 @@ const Hodlometer = () => {
       { x: '!0', y: 180, text: 'SELL', bold: true, align: 'right' }
     ]
   };
-  return (
-    <div>
-      <AmCharts.React style={style} options={options} />
-    </div>
-  );
+  return <AmCharts.React style={style} options={options} />;
 };
 
 export default Hodlometer;

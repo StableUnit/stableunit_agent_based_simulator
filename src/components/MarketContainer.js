@@ -14,6 +14,10 @@ const Wrap = styled.div`
   width: 100%;
 `;
 
+const Half = styled.div`
+  width: 50%;
+`;
+
 type Props = {
   market: Market
 };
@@ -24,8 +28,12 @@ const MarketContainer = (props: Props) => {
   return (
     <div>
       <Wrap>
-        <OrderBook market={market} />
-        <CandleSticks market={market} />
+        <Half>
+          <CandleSticks market={market} />
+        </Half>
+        <Half>
+          <OrderBook market={market} />
+        </Half>
       </Wrap>
     </div>
   );

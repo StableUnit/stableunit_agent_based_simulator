@@ -3,13 +3,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
-import {
-  Module,
-  ModuleHeader,
-  ModuleBody,
-  Tabs,
-  Tab
-} from 'carbon-components-react';
+import { Module, ModuleHeader, ModuleBody } from 'carbon-components-react';
 import Responsive from 'react-responsive';
 
 import ControlPanelContainer from './components/ControlPanelContainer';
@@ -28,12 +22,20 @@ const Wrap = styled.div`
   min-width: 1300px;
 `;
 
+const MobileWrap = styled.div`
+  display: flex;
+`;
+
 const Panel = styled.div`
   width: 50%;
 `;
 
 const Spacing = styled.div`
   padding: 0.625rem;
+`;
+
+const Half = styled.div`
+  width: 50%;
 `;
 
 const Desktop = props => <Responsive {...props} minWidth={992} />;
@@ -77,28 +79,15 @@ class App extends React.Component<Props> {
         </Desktop>
 
         <Mobile>
-          <Tabs>
-            <Tab label="Exchange">
-              <Spacing>
-                <ExchangeContainer />
-              </Spacing>
-            </Tab>
-            <Tab label="Media">
-              <Spacing>
-                <ControlPanelContainer />
-              </Spacing>
-            </Tab>
-            <Tab label="StableUnit">
-              <Spacing>
-                <StableSystemContainer />
-              </Spacing>
-            </Tab>
-            <Tab label="Traders">
-              <Spacing>
-                <TradersContainer />
-              </Spacing>
-            </Tab>
-          </Tabs>
+          <ExchangeContainer />
+          <MobileWrap>
+            <Half>
+              <StableSystemContainer />
+            </Half>
+            <Half>
+              <ControlPanelContainer />
+            </Half>
+          </MobileWrap>
         </Mobile>
       </div>
     );

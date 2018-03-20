@@ -46,7 +46,7 @@ const CandleSticks = (props: Props) => {
   const data = convertDataForChart(market.history);
 
   const style = {
-    width: '300px',
+    width: '100%',
     height: '226px'
   };
 
