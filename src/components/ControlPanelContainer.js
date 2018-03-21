@@ -77,7 +77,7 @@ const ControlPanelContainer = (props: Props) => {
       </Desktop>
       <Mobile>
         <MobileContainer>
-          <Hodlometer />
+          <Hodlometer mobile />
           {mobileButtons}
         </MobileContainer>
       </Mobile>

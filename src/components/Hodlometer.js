@@ -1,12 +1,18 @@
+//@flow
+
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
 import { colors } from '../theme';
 
-const Hodlometer = () => {
+type Props = {
+  mobile: boolean
+};
+
+const Hodlometer = ({ mobile }: Props) => {
   const style = {
-    width: '250px',
-    height: '250px',
+    width: mobile ? 150 : 250,
+    height: mobile ? 150 : 250,
     marginLeft: 'auto',
     marginRight: 'auto'
   };
@@ -53,6 +59,10 @@ const Hodlometer = () => {
     ]
   };
   return <AmCharts.React style={style} options={options} />;
+};
+
+Hodlometer.defaultProps = {
+  mobile: false
 };
 
 export default Hodlometer;

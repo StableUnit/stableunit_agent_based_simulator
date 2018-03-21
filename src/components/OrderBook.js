@@ -8,7 +8,8 @@ import { colors } from '../theme';
 import type { Market, Order, OrderList } from '../types';
 
 type Props = {
-  market: Market
+  market: Market,
+  mobile: boolean
 };
 
 type BidOrderEntry = {
@@ -60,14 +61,14 @@ function convertDataForChart(
 }
 
 const OrderBook = (props: Props) => {
-  const { market } = props;
+  const { market, mobile } = props;
 
   // Convert data for orderbook
   const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
   const style = {
     width: '100%',
-    height: '226px'
+    height: mobile ? 150 : 220
   };
 
   const options = {
@@ -135,6 +136,10 @@ const OrderBook = (props: Props) => {
       <AmCharts.React style={style} options={options} />
     </div>
   );
+};
+
+OrderBook.defaultProps = {
+  mobile: false
 };
 
 export default OrderBook;
