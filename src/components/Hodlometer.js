@@ -6,10 +6,11 @@ import AmCharts from '@amcharts/amcharts3-react';
 import { colors } from '../theme';
 
 type Props = {
-  mobile: boolean
+  mobile: boolean,
+  fearLevel: number
 };
 
-const Hodlometer = ({ mobile }: Props) => {
+const Hodlometer = ({ mobile, fearLevel }: Props) => {
   const style = {
     width: mobile ? 150 : 250,
     height: mobile ? 150 : 250,
@@ -49,7 +50,12 @@ const Hodlometer = ({ mobile }: Props) => {
         endValue: 100
       }
     ],
-    arrows: [{}],
+    arrows: [
+      {
+        id: 'fear-level',
+        value: fearLevel
+      }
+    ],
     export: {
       enabled: true
     },

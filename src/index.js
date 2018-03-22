@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { init } from '@rematch/core';
+import selectorsPlugin from '@rematch/select';
 import App from './App';
 import simulation from './models/simulation';
 
@@ -13,10 +14,13 @@ import simulation from './models/simulation';
 //   }
 // `;
 
-const store = init({
+const select = selectorsPlugin();
+
+export const store = init({
   models: {
     simulation
-  }
+  },
+  plugins: [select]
 });
 
 // import registerServiceWorker from './registerServiceWorker';

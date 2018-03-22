@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import { Button } from 'carbon-components-react';
 import { connect } from 'react-redux';
 import Responsive from 'react-responsive';
+import { select } from '@rematch/select';
+import nanoid from 'nanoid';
 
 import Hodlometer from './Hodlometer';
 import NewsScroller from './NewsScroller';
@@ -12,7 +14,9 @@ import NewsScroller from './NewsScroller';
 import type { MediaImpact } from '../types';
 
 type Props = {
-  spreadNews: (impact: MediaImpact) => {}
+  addNewsItem: (id: string, impact: MediaImpact) => {},
+  startNewsCycle: (id: string, impact: MediaImpact) => {},
+  fearLevel: number
 };
 
 const Wrap = styled.div`
@@ -39,18 +43,28 @@ const Desktop = props => <Responsive {...props} minWidth={992} />;
 const Mobile = props => <Responsive {...props} maxWidth={991} />;
 
 const ControlPanelContainer = (props: Props) => {
-  const { spreadNews } = props;
+  const { addNewsItem, startNewsCycle, fearLevel } = props;
+
+  console.log('fearLevel', fearLevel);
+
+  function spreadNewsItem(impact) {
+    const id = nanoid();
+    addNewsItem(id, impact);
+    startNewsCycle(id, impact);
+  }
 
   const buttons = (
     <div>
-      <NewsButton onClick={() => spreadNews(1)} kind="secondary">
+      <NewsButton onClick={() => spreadNewsItem(1)} kind="secondary">
         Spread good news
       </NewsButton>
-      <NewsButton onClick={() => spreadNews(-1)} kind="danger">
+      <NewsButton onClick={() => spreadNewsItem(-1)} kind="danger">
         Spread bad news
       </NewsButton>
-      <NewsButton onClick={() => spreadNews(2)}>Positive Black Swan</NewsButton>
-      <NewsButton onClick={() => spreadNews(-2)} kind="danger--primary">
+      <NewsButton onClick={() => spreadNewsItem(2)}>
+        Positive Black Swan
+      </NewsButton>
+      <NewsButton onClick={() => spreadNewsItem(-2)} kind="danger--primary">
         Negative Black Swan
       </NewsButton>
     </div>
@@ -58,8 +72,10 @@ const ControlPanelContainer = (props: Props) => {
 
   const mobileButtons = (
     <div>
-      <NewsButton onClick={() => spreadNews(2)}>Positive Black Swan</NewsButton>
-      <NewsButton onClick={() => spreadNews(-2)} kind="danger--primary">
+      <NewsButton onClick={() => spreadNewsItem(2)}>
+        Positive Black Swan
+      </NewsButton>
+      <NewsButton onClick={() => spreadNewsItem(-2)} kind="danger--primary">
         Negative Black Swan
       </NewsButton>
     </div>
@@ -69,7 +85,7 @@ const ControlPanelContainer = (props: Props) => {
       <Desktop>
         <Wrap>
           <HodlometerContainer>
-            <Hodlometer />
+            <Hodlometer fearLevel={fearLevel} />
             {buttons}
           </HodlometerContainer>
           <NewsScroller />
@@ -77,7 +93,7 @@ const ControlPanelContainer = (props: Props) => {
       </Desktop>
       <Mobile>
         <MobileContainer>
-          <Hodlometer mobile />
+          <Hodlometer fearLevel={fearLevel} mobile />
           {mobileButtons}
         </MobileContainer>
       </Mobile>
@@ -85,8 +101,13 @@ const ControlPanelContainer = (props: Props) => {
   );
 };
 
-const mapDispatch = dispatch => ({
-  spreadNews: dispatch.simulation.spreadNews
+const mapState = state => ({
+  fearLevel: select.simulation.getFearLevel(state)
 });
 
-export default connect(null, mapDispatch)(ControlPanelContainer);
+const mapDispatch = dispatch => ({
+  addNewsItem: dispatch.simulation.addNewsItem,
+  startNewsCycle: dispatch.simulation.startNewsCycle
+});
+
+export default connect(mapState, mapDispatch)(ControlPanelContainer);

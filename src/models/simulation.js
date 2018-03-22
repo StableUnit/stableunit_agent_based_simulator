@@ -2,6 +2,9 @@
 
 import { List, Record, OrderedMap } from 'immutable';
 import type { RecordFactory } from 'immutable';
+import { select } from '@rematch/select';
+import { store } from '../index';
+import nanoid from 'nanoid';
 
 import type {
   FullState,
@@ -18,7 +21,12 @@ import {
   placeBuyOrder,
   placeSellOrder
 } from './exchange';
-import { generateMediaItem, spreadNews, updateMediaItemViews } from './media';
+import {
+  generateMediaItem,
+  addNewsItem,
+  updateMediaItemViews,
+  getFearLevel
+} from './media';
 import { makeStableSystem, updateStableSystem } from './stableSystem';
 import { addTrader, updateTraders } from './traders';
 
@@ -37,12 +45,7 @@ export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
     makeMarket({ name: 'ETH-USD' })
   ]),
   stableSystem: makeStableSystem(),
-  mediaFeed: OrderedMap({
-    '1': generateMediaItem('1', 1),
-    '2': generateMediaItem('2', -1),
-    '3': generateMediaItem('3', 1),
-    '4': generateMediaItem('4', -1)
-  })
+  mediaFeed: OrderedMap()
 });
 
 const initialState = makeSimulationState();
@@ -74,26 +77,49 @@ export default {
     updateStableSystem,
 
     // Media impact reducers
-    spreadNews,
-    updateMediaItemViews
+    addNewsItem,
+    updateMediaItemViews,
+
+    // Simple tick counter
+    updateTick: (state: SimulationState): SimulationState =>
+      state.update('tick', tick => tick + 1)
+  },
+
+  selectors: {
+    getTick(state: SimulationState) {
+      return state.tick;
+    },
+    getFearLevel
   },
 
   // Effects are asynchronous functions that can receieve and update state
   // Great for api calls or timed functions
   effects: {
-    // The main update loop starts here:
+    // The MAIN LOOP starts here:
     async start(payload: any, rootState: FullState) {
       if (rootState.simulation.tick > 0) {
         return;
       }
+
+      // Quckly create historical data so we don't start with empty state
       for (var i = 0; i < 60; i++) {
         this.updateTime();
         this.updateExchange();
         this.updateStableSystem();
+        this.updateTick();
+
+        // Spread roughly 4 news
+        if (i % 20 === 0) {
+          const impact = (i / 20) % 2 === 0 ? 1 : -1;
+          const id = nanoid();
+          this.addNewsItem(id, impact);
+          this.startNewsCycle(id, impact);
+        }
       }
 
       this.initializeMarket();
 
+      // Main loop
       while (true) {
         this.updateTime();
         this.updateExchange();
@@ -101,6 +127,13 @@ export default {
 
         // Update all traders
         this.updateTraders();
+        this.updateTick();
+
+        // Select full current state
+        // console.log(store.getState());
+
+        // Select partial state or derived data
+        // console.log(select.simulation.getTick(store.getState()));
 
         // Wait before next tick
         await new Promise(resolve => setTimeout(resolve, TICK_INTERVAL));
