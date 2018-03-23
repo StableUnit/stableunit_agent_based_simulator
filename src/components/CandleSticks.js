@@ -10,7 +10,8 @@ import type { Market, History, HistoryEntry } from '../types';
 const CANDLESTICK_COUNT = 50;
 
 type Props = {
-  market: Market
+  market: Market,
+  mobile: boolean
 };
 
 type CandleStickEntry = {
@@ -40,14 +41,14 @@ function convertDataForChart(history: History): CandleSticksData {
 }
 
 const CandleSticks = (props: Props) => {
-  const { market } = props;
+  const { market, mobile } = props;
 
   // Convert data for orderbook
   const data = convertDataForChart(market.history);
 
   const style = {
-    width: '300px',
-    height: '226px'
+    width: '100%',
+    height: mobile ? 150 : 220
   };
 
   const options = {
@@ -102,6 +103,10 @@ const CandleSticks = (props: Props) => {
       <AmCharts.React style={style} options={options} />
     </div>
   );
+};
+
+CandleSticks.defaultProps = {
+  mobile: false
 };
 
 export default CandleSticks;

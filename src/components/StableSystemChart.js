@@ -7,6 +7,8 @@ import { colors } from '../theme';
 
 import type { SULog } from '../types';
 
+const POINT_COUNT = 50;
+
 type Props = {
   log: SULog
 };
@@ -25,6 +27,7 @@ type StableSystemData = Array<Entry>;
 function convertDataForChart(log: SULog): StableSystemData {
   return log
     .toList()
+    .takeLast(POINT_COUNT)
     .map(entry => {
       return {
         datetime: entry.datetime,
@@ -43,7 +46,7 @@ const StableSystemChart = (props: Props) => {
   const data = convertDataForChart(log);
 
   const style = {
-    width: '330px',
+    width: '100%',
     height: '200px'
   };
 

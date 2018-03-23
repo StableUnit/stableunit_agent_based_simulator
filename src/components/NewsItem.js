@@ -37,10 +37,6 @@ const eyeIcon = (
 );
 
 class NewsItem extends Component<Props> {
-  componentDidMount() {
-    const { id, impact } = this.props.mediaItem;
-    this.props.startNewsCycle({ mediaId: id, impact });
-  }
   render() {
     const { style, mediaItem } = this.props;
     return (

@@ -20,8 +20,11 @@ const Wrap = styled.div`
 `;
 
 const ChartPanel = styled.div`
-  width: 330px;
+  min-width: 50%;
   margin-left: -16px;
+  @media (max-width: 991px) {
+    margin-left: 0;
+  }
 `;
 
 const StatItem = styled.div`
@@ -33,6 +36,13 @@ const Title = styled.div``;
 
 const StatNumber = styled.div`
   font-size: 200%;
+`;
+
+const Stats = styled.div`
+  @media (max-width: 991px) {
+    padding-left: 20px;
+    padding-top: 20px;
+  }
 `;
 
 type Props = {
@@ -51,7 +61,7 @@ const StableSystemContainer = (props: Props) => {
         <StableSystemChart log={stableSystem.log} />
       </ChartPanel>
       {lastEntry && (
-        <div>
+        <Stats>
           <StatItem color={colors.green}>
             <Title>Total SU issued</Title>
             <StatNumber>{formatNumber(lastEntry.totalSupply)}</StatNumber>
@@ -64,7 +74,7 @@ const StableSystemContainer = (props: Props) => {
             <Title>Piggy bank ETH</Title>
             <StatNumber>{formatNumber(lastEntry.piggyBankETH)}</StatNumber>
           </StatItem>
-        </div>
+        </Stats>
       )}
     </Wrap>
   );

@@ -1,12 +1,21 @@
+//@flow
+
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
 import { colors } from '../theme';
 
-const Hodlometer = () => {
+type Props = {
+  mobile: boolean,
+  fearLevel: number
+};
+
+const Hodlometer = ({ mobile, fearLevel }: Props) => {
   const style = {
-    width: '250px',
-    height: '250px'
+    width: mobile ? 150 : 250,
+    height: mobile ? 150 : 250,
+    marginLeft: 'auto',
+    marginRight: 'auto'
   };
 
   const options = {
@@ -41,7 +50,12 @@ const Hodlometer = () => {
         endValue: 100
       }
     ],
-    arrows: [{}],
+    arrows: [
+      {
+        id: 'fear-level',
+        value: fearLevel
+      }
+    ],
     export: {
       enabled: true
     },
@@ -50,11 +64,11 @@ const Hodlometer = () => {
       { x: '!0', y: 180, text: 'SELL', bold: true, align: 'right' }
     ]
   };
-  return (
-    <div>
-      <AmCharts.React style={style} options={options} />
-    </div>
-  );
+  return <AmCharts.React style={style} options={options} />;
+};
+
+Hodlometer.defaultProps = {
+  mobile: false
 };
 
 export default Hodlometer;
