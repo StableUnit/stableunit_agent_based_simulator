@@ -3,7 +3,7 @@
 import React from 'react';
 import type { Node } from 'react';
 import { connect } from 'react-redux';
-import { DataTable } from 'carbon-components-react';
+import { DataTable, Button } from 'carbon-components-react';
 import styled from 'styled-components';
 import { colors } from '../theme';
 
@@ -51,6 +51,13 @@ const Positive = styled.div`
 `;
 const Negative = styled.div`
   color: ${colors.red};
+`;
+const ManualControl = styled.span`
+  margin-left: 1em;
+  white-space: nowrap;
+  button {
+    margin-left: 0.5em;
+  }
 `;
 
 function renderGains(value) {
@@ -131,7 +138,7 @@ const TradersContainer = (props: Props) => {
         rows={rows}
         headers={headers}
         render={({ rows, headers, getHeaderProps }) => (
-          <TableContainer title="Traders">
+          <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
@@ -146,13 +153,22 @@ const TradersContainer = (props: Props) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.map(row => (
+                {rows.map((row, rowIndex) => (
                   <TableRow key={row.id}>
-                    {row.cells.map((cell, index) => {
-                      const CellComponent = getCellComponent(index);
+                    {row.cells.map((cell, cellIndex) => {
+                      const CellComponent = getCellComponent(cellIndex);
                       return (
                         <CellComponent key={cell.id}>
                           {cell.value}
+                          {rowIndex === 0 &&
+                            cellIndex === 1 && (
+                              <ManualControl>
+                                <Button small>Buy ETH</Button>
+                                <Button small disabled>
+                                  Sell ETH
+                                </Button>
+                              </ManualControl>
+                            )}
                         </CellComponent>
                       );
                     })}

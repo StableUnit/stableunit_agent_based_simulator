@@ -122,7 +122,8 @@ export type SimulationStateShape = {
   traders: Traders,
   mediaFeed: MediaFeed,
   currentTime: number,
-  timeMultiplier: number
+  timeMultiplier: number,
+  fearLevel: number
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;

@@ -13,7 +13,7 @@ type Props = {
 const Hodlometer = ({ mobile, fearLevel }: Props) => {
   const style = {
     width: mobile ? 150 : 250,
-    height: mobile ? 150 : 250,
+    height: mobile ? 150 : 220,
     marginLeft: 'auto',
     marginRight: 'auto'
   };
@@ -48,7 +48,7 @@ const Hodlometer = ({ mobile, fearLevel }: Props) => {
           }
         ],
         bottomText: 'HODLOMETER',
-        bottomTextFontSize: 18,
+        bottomTextFontSize: mobile ? 12 : 20,
         bottomTextYOffset: -20,
         endValue: 100
       }

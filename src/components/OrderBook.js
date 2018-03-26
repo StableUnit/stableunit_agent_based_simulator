@@ -100,6 +100,7 @@ const OrderBook = (props: Props) => {
         lineColor: '#000',
         type: 'column',
         clustered: false,
+        valueAxis: 'volume',
         valueField: 'bidsQuantity'
       },
       {
@@ -108,6 +109,7 @@ const OrderBook = (props: Props) => {
         lineColor: '#000',
         type: 'column',
         clustered: false,
+        valueAxis: 'volume',
         valueField: 'asksQuantity'
       }
     ],
@@ -115,7 +117,16 @@ const OrderBook = (props: Props) => {
     chartCursor: {},
     valueAxes: [
       {
-        title: 'Volume'
+        id: 'cumulativeVolume',
+        title: 'Total Volume'
+      },
+      {
+        id: 'volume',
+        title: '',
+        autoGridCount: false,
+        axisThickness: 0,
+        gridCount: 0,
+        gridThickness: 0
       }
     ],
     categoryAxis: {

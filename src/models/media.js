@@ -87,3 +87,9 @@ export const updateMediaItemViews = (
       mediaItem.update('impressions', impressions => impressions + newViews)
   );
 };
+
+export const increaseFearLevel = (state: SimulationState): SimulationState =>
+  state.update('fearLevel', fearLevel => Math.min(fearLevel + 10, 100));
+
+export const decreaseFearLevel = (state: SimulationState): SimulationState =>
+  state.update('fearLevel', fearLevel => Math.max(fearLevel - 10, 0));

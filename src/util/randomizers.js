@@ -91,17 +91,22 @@ export function makeRandomTraders(): Traders {
       .fill()
       .map((entry, index) => {
         const id: string = nanoid();
-        const identity =
-          index === 0
-            ? { emoji: '🤖', name: 'Stable Unit Piggy' }
-            : randomIdentity();
-        const traderId = index === 0 ? '0' : id;
+
+        let identity = randomIdentity();
+
+        if (index === 0) {
+          identity = { emoji: '😎', name: 'You' };
+        } else if (index === 1) {
+          identity = { emoji: '🤖', name: 'Stable Unit Piggy' };
+        }
+
+        const traderId = index <= 1 ? String(index) : id;
         return [
           traderId,
           makeTrader({
             id: traderId,
             name: identity.name,
-            portfolio: makeRandomPortfolio(),
+            portfolio: makeRandomPortfolio(index),
             emoji: identity.emoji
           })
         ];
@@ -110,7 +115,8 @@ export function makeRandomTraders(): Traders {
 }
 
 // These helper functions allow to create data parammetrically
-export function makeRandomPortfolio(): Portfolio {
+export function makeRandomPortfolio(index: number): Portfolio {
+  // TODO: Add custom portfolio sizes for you and SU piggy
   // 70% chance for trader to have some of the coins
   return makePortfolio({
     su: Math.random() > 0.3 ? Math.random() * 1000 : 0,
