@@ -23,10 +23,13 @@ const Hodlometer = ({ mobile, fearLevel }: Props) => {
     theme: 'light',
     axes: [
       {
-        axisThickness: 1,
+        axisThickness: 0,
         axisAlpha: 0.2,
-        tickAlpha: 0.2,
+        tickAlpha: 0,
         valueInterval: 20,
+        labelFrequency: 100,
+        showFirstLabel: false,
+        showLastLabel: false,
         bands: [
           {
             color: colors.green,
@@ -41,11 +44,11 @@ const Hodlometer = ({ mobile, fearLevel }: Props) => {
           {
             color: colors.red,
             endValue: 100,
-            innerRadius: '95%',
             startValue: 70
           }
         ],
-        bottomText: 'Hodlometer',
+        bottomText: 'HODLOMETER',
+        bottomTextFontSize: 18,
         bottomTextYOffset: -20,
         endValue: 100
       }
