@@ -14,7 +14,7 @@ type Props = {
 const Wrap = styled.div`
   margin-left: 22px;
   flex-grow: 1;
-  max-height: 480px;
+  max-height: 260px;
   overflow: hidden;
 `;
 
@@ -33,7 +33,7 @@ class NewsScroller extends Component<Props> {
           .map((mediaItem, index) => (
             <NewsItem
               key={mediaItem.id}
-              style={{ opacity: 1 - index / 7 }}
+              style={{ opacity: 1 - index / 4 }}
               mediaItem={mediaItem}
             />
           ))}

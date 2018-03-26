@@ -57,7 +57,12 @@ class App extends React.Component<Props> {
                 <ModuleHeader>Exchange Simulation</ModuleHeader>
                 <ModuleBody>
                   <ExchangeContainer />
-                  <TradersContainer />
+                </ModuleBody>
+              </Module>
+              <Module>
+                <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
+                <ModuleBody>
+                  <StableSystemContainer />
                 </ModuleBody>
               </Module>
             </Panel>
@@ -69,9 +74,9 @@ class App extends React.Component<Props> {
                 </ModuleBody>
               </Module>
               <Module>
-                <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
+                <ModuleHeader>Traders</ModuleHeader>
                 <ModuleBody>
-                  <StableSystemContainer />
+                  <TradersContainer />
                 </ModuleBody>
               </Module>
             </Panel>

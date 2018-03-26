@@ -3,11 +3,14 @@
 import React from 'react';
 import type { Node } from 'react';
 import { connect } from 'react-redux';
-import { DataTable } from 'carbon-components-react';
+import { DataTable, Button } from 'carbon-components-react';
 import styled from 'styled-components';
 import { colors } from '../theme';
+import accounting from 'accounting';
 
-import type { Traders, FullState } from '../types';
+import type { Traders, FullState, Trader } from '../types';
+
+const HARDCODED_ETH_PRICE_CHANGE_LATER = 600;
 
 const {
   TableContainer,
@@ -27,6 +30,7 @@ type Row = {
   id: string,
   emoji: string,
   name: string,
+  portfolioWorth: number,
   eth: string,
   su: string,
   percentDiff: Node
@@ -52,12 +56,26 @@ const Positive = styled.div`
 const Negative = styled.div`
   color: ${colors.red};
 `;
+const ManualControl = styled.span`
+  margin-left: 1em;
+  white-space: nowrap;
+  button {
+    margin-left: 0.5em;
+  }
+`;
 
 function renderGains(value) {
   return value > 0 ? (
     <Positive>+{value.toFixed(1)}%</Positive>
   ) : (
     <Negative>{value.toFixed(1)}%</Negative>
+  );
+}
+
+function getPortfolioWorth(trader: Trader): number {
+  return (
+    trader.portfolio.su +
+    trader.portfolio.eth * HARDCODED_ETH_PRICE_CHANGE_LATER
   );
 }
 
@@ -68,10 +86,18 @@ function makeDatatableRows(traders: Traders): Array<Row> {
       id: trader.id,
       emoji: trader.emoji,
       name: trader.name,
+      portfolioWorth: getPortfolioWorth(trader),
+      portfolioWorthDisplay: accounting.formatNumber(getPortfolioWorth(trader)),
       eth: trader.portfolio.eth.toFixed(2),
       su: trader.portfolio.su.toFixed(2),
       percentDiff: renderGains((Math.random() - 0.5) * 10)
     }))
+    .sort((a, b) => {
+      if (a.id === '0' || a.id === '1') {
+        return -1;
+      }
+      return b.portfolioWorth - a.portfolioWorth;
+    })
     .toArray();
 }
 
@@ -86,8 +112,12 @@ function makeDatatableHeaders(): Array<Header> {
       header: 'Name'
     },
     {
+      key: 'portfolioWorthDisplay',
+      header: 'Portfolio ($)'
+    },
+    {
       key: 'eth',
-      header: 'Portfolio (ETH)'
+      header: '(ETH)'
     },
     {
       key: 'su',
@@ -131,7 +161,7 @@ const TradersContainer = (props: Props) => {
         rows={rows}
         headers={headers}
         render={({ rows, headers, getHeaderProps }) => (
-          <TableContainer title="Traders">
+          <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
@@ -146,13 +176,22 @@ const TradersContainer = (props: Props) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.map(row => (
+                {rows.map((row, rowIndex) => (
                   <TableRow key={row.id}>
-                    {row.cells.map((cell, index) => {
-                      const CellComponent = getCellComponent(index);
+                    {row.cells.map((cell, cellIndex) => {
+                      const CellComponent = getCellComponent(cellIndex);
                       return (
                         <CellComponent key={cell.id}>
                           {cell.value}
+                          {rowIndex === 0 &&
+                            cellIndex === 1 && (
+                              <ManualControl>
+                                <Button small>Buy ETH</Button>
+                                <Button small disabled>
+                                  Sell ETH
+                                </Button>
+                              </ManualControl>
+                            )}
                         </CellComponent>
                       );
                     })}

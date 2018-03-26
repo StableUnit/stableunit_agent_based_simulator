@@ -25,7 +25,9 @@ import {
   generateMediaItem,
   addNewsItem,
   updateMediaItemViews,
-  getFearLevel
+  getFearLevel,
+  increaseFearLevel,
+  decreaseFearLevel
 } from './media';
 import { makeStableSystem, updateStableSystem } from './stableSystem';
 import { addTrader, updateTraders } from './traders';
@@ -45,7 +47,8 @@ export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
     makeMarket({ name: 'ETH-USD' })
   ]),
   stableSystem: makeStableSystem(),
-  mediaFeed: OrderedMap()
+  mediaFeed: OrderedMap(),
+  fearLevel: 50
 });
 
 const initialState = makeSimulationState();
@@ -79,6 +82,8 @@ export default {
     // Media impact reducers
     addNewsItem,
     updateMediaItemViews,
+    increaseFearLevel,
+    decreaseFearLevel,
 
     // Simple tick counter
     updateTick: (state: SimulationState): SimulationState =>
