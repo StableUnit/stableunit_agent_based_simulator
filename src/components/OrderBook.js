@@ -93,24 +93,6 @@ const OrderBook = (props: Props) => {
         lineColor: colors.red,
         type: 'step',
         valueField: 'asksTotalQuantity'
-      },
-      {
-        lineAlpha: 0,
-        fillAlphas: 0.2,
-        lineColor: '#000',
-        type: 'column',
-        clustered: false,
-        valueAxis: 'volume',
-        valueField: 'bidsQuantity'
-      },
-      {
-        lineAlpha: 0,
-        fillAlphas: 0.2,
-        lineColor: '#000',
-        type: 'column',
-        clustered: false,
-        valueAxis: 'volume',
-        valueField: 'asksQuantity'
       }
     ],
     categoryField: 'price',
@@ -118,15 +100,7 @@ const OrderBook = (props: Props) => {
     valueAxes: [
       {
         id: 'cumulativeVolume',
-        title: 'Total Volume'
-      },
-      {
-        id: 'volume',
-        title: '',
-        autoGridCount: false,
-        axisThickness: 0,
-        gridCount: 0,
-        gridThickness: 0
+        title: 'Volume'
       }
     ],
     categoryAxis: {
