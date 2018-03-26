@@ -6,8 +6,11 @@ import { connect } from 'react-redux';
 import { DataTable, Button } from 'carbon-components-react';
 import styled from 'styled-components';
 import { colors } from '../theme';
+import accounting from 'accounting';
 
-import type { Traders, FullState } from '../types';
+import type { Traders, FullState, Trader } from '../types';
+
+const HARDCODED_ETH_PRICE_CHANGE_LATER = 600;
 
 const {
   TableContainer,
@@ -27,6 +30,7 @@ type Row = {
   id: string,
   emoji: string,
   name: string,
+  portfolioWorth: number,
   eth: string,
   su: string,
   percentDiff: Node
@@ -68,6 +72,13 @@ function renderGains(value) {
   );
 }
 
+function getPortfolioWorth(trader: Trader): number {
+  return (
+    trader.portfolio.su +
+    trader.portfolio.eth * HARDCODED_ETH_PRICE_CHANGE_LATER
+  );
+}
+
 function makeDatatableRows(traders: Traders): Array<Row> {
   return traders
     .toList()
@@ -75,10 +86,18 @@ function makeDatatableRows(traders: Traders): Array<Row> {
       id: trader.id,
       emoji: trader.emoji,
       name: trader.name,
+      portfolioWorth: getPortfolioWorth(trader),
+      portfolioWorthDisplay: accounting.formatNumber(getPortfolioWorth(trader)),
       eth: trader.portfolio.eth.toFixed(2),
       su: trader.portfolio.su.toFixed(2),
       percentDiff: renderGains((Math.random() - 0.5) * 10)
     }))
+    .sort((a, b) => {
+      if (a.id === '0' || a.id === '1') {
+        return -1;
+      }
+      return b.portfolioWorth - a.portfolioWorth;
+    })
     .toArray();
 }
 
@@ -93,8 +112,12 @@ function makeDatatableHeaders(): Array<Header> {
       header: 'Name'
     },
     {
+      key: 'portfolioWorthDisplay',
+      header: 'Portfolio ($)'
+    },
+    {
       key: 'eth',
-      header: 'Portfolio (ETH)'
+      header: '(ETH)'
     },
     {
       key: 'su',
