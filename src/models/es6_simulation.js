@@ -42,7 +42,15 @@ class Ethereum {
         return false;
     }
 
-    createERC20
+    // instead of implementing full https://theethereum.wiki/w/index.php/ERC20_Token_Standard, let's do 
+    // simple reduction of it for simulation needs
+    createERC20(token_name, addr_sender, amount_supply, tnx_sign) {
+
+    }
+
+    sendToken(token_name, addr_sender, amount, addr_recipient, tnx_sign) {
+
+    }
 }
 const ethereum = new Ethereum();
 
