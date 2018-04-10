@@ -52,7 +52,6 @@ class Ethereum {
 
     }
 }
-const ethereum = new Ethereum();
 
 class StableUnit extends Ethereum {
     PEG = 1.0;
@@ -135,6 +134,22 @@ class StableUnit extends Ethereum {
         }
     }
 
+}
+
+
+class SimulationLoop {
+    // takes callBack funtions for visualisation
+    constructor() {
+        // init all instances of the simulation:
+        // blokchains,
+        // exchanges,
+        // traders
+        const ethereum = new Ethereum();
+    }
+    // execute one tick of the simulation
+    update() {
+        
+    }
 }
 
 
