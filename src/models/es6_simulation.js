@@ -72,7 +72,8 @@ class StableUnit extends Ethereum {
         // create DAO
 
         // init stabilisation fund
-        this.Reserve = ethereum.createWallet(0);        
+        // Commented out as `ethereum` is not declared
+        // this.Reserve = ethereum.createWallet(0);        
     }
 
     oracle(SUETH_price, ETHUSD_price) {
@@ -137,7 +138,7 @@ class StableUnit extends Ethereum {
 }
 
 
-class SimulationLoop {
+export class SimulationLoop {
     // takes callBack funtions for visualisation
     constructor() {
         // init all instances of the simulation:
@@ -148,10 +149,8 @@ class SimulationLoop {
     }
     // execute one tick of the simulation
     update() {
-        
+        console.log('tick');
     }
 }
-
-
 
 
