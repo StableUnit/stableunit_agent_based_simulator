@@ -4,7 +4,7 @@ import { List, Record, OrderedMap } from 'immutable';
 import type { RecordFactory } from 'immutable';
 import { select } from '@rematch/select';
 import { store } from '../index';
-import { SimulationLoop } from './es6_simulation';
+import { Simulation } from './es6_simulation';
 import nanoid from 'nanoid';
 
 import type {
@@ -103,7 +103,7 @@ export default {
   effects: {
     // The MAIN LOOP starts here:
     async start(payload: any, rootState: FullState) {
-      const simulationLoop = new SimulationLoop();
+      const simulationLoop = new Simulation();
 
 
       if (rootState.simulation.tick > 0) {

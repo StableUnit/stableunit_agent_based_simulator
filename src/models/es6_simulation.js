@@ -11,11 +11,7 @@ class Ethereum {
   // blockchain accounts are [addr,private_key]
   createWallet(initial_amount) {
     // some random string which looks like eth address 0xF032eF6D2Bc2dBAF66371cFEC4B1B49F4786A250
-    const addr =
-      '0x' +
-      Math.random()
-        .toString(39)
-        .replace(/[^a-z]+/g, '');
+    const addr = '0x' + Math.random().toString(39).replace(/[^a-z]+/g, '');
     // we don't simulate security but only general concept of workflow
     const prkey = addr;
     // set inititil funds
