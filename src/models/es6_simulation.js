@@ -5,7 +5,6 @@ const Utility = {
     EPS: 1e-6
 };
 
-
 // it's very simplified version Ethereum blockhain
 class Ethereum {
     // let's define blockchain as [address->value] dictionary
@@ -152,6 +151,7 @@ class StableUnit extends Ethereum {
     }
 }
 
+// simple interface of communication with blockchain networks
 class Web4 {
     eth: Ethereum;
     su: StableUnit;
@@ -161,7 +161,6 @@ class Web4 {
     }
 }
 const web4 = new Web4();
-
 
 class Trader {
     //portfolio = {};
@@ -185,12 +184,14 @@ class Trader {
     test() {}
 }
 
+// market of two particular asserts, i.e. ETH/USD, in this case prices are in USD
 class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
 
-    constructor(name: string = 'no_name') {
+    constructor(initial_price: number, name: string = 'no_name') {
         this.name = name;
+        this.setNewPrice(initial_price);
     }
 
     setNewPrice(new_price) {
@@ -201,14 +202,15 @@ class Market {
         return this.history[this.history.length-1].price;
     }
 }
+const market_ETHUSD = new Market(500 /*USD per ETH */, "ETH/USD");
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
 class Market_SUETH extends Market {
     buyOrders: Array<{trader: Trader, su_amount: number, eth_amount: number, price: number}> = [];
     sellOrders: Array<{trader: Trader, su_amount: number, eth_amount: number, price: number}> = [];
 
-    constructor() {
-        super("SUETH");
+    constructor(initial_price) {
+        super(initial_price, "SUETH");
     }
 
     getCurrentBuyPrice() { 
@@ -387,21 +389,15 @@ class Market_SUETH extends Market {
         assert.equal(trader_3.eth_balance, 2.5);
     }
 }
-const market_ETHUSD = new Market("ETH/USD");
-const market_SUETH = new Market_SUETH();
+const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
-class InfoBot {
-    update() {
-        web4.su.callOracleSM(market_SUETH.getCurrentPrice(), market_ETHUSD.getCurrentPrice());
-    }
-}
-const infoBot = new InfoBot();
 
 
 export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
     market_SUETH: Market_SUETH;
+    traders: Map<string, Object> = new Map();
 
     // takes callBack funtions for visualisation
     constructor() {
@@ -410,17 +406,16 @@ export class Simulation {
         this.web4 = web4;
         // exchanges,
         this.market_ETHUSD = market_ETHUSD;
-        market_ETHUSD.setNewPrice(500);
         this.market_SUETH = market_SUETH;
-        market_SUETH.setNewPrice(0.002);
         // traders
-
+        this.traders.set("human_1", new Trader({su_balance: 1000, eth_balance: 2}));
+        this.traders.set("human_2", new Trader({su_balance: 1000, eth_balance: 2}));
         // tests
-        market_SUETH.test();
+        //market_SUETH.test();
     }
     // execute one tick of the simulation
     update() {
         console.log('tick');
-        infoBot.update();
+        //this.traders.forEach()
     }
 }

@@ -2,8 +2,8 @@
 
 import { List, Record, OrderedMap } from 'immutable';
 import type { RecordFactory } from 'immutable';
-import { select } from '@rematch/select';
-import { store } from '../index';
+//import { select } from '@rematch/select';
+//import { store } from '../index';
 import { Simulation } from './es6_simulation';
 import nanoid from 'nanoid';
 
@@ -23,7 +23,7 @@ import {
   placeSellOrder
 } from './exchange';
 import {
-  generateMediaItem,
+  //generateMediaItem,
   addNewsItem,
   updateMediaItemViews,
   getFearLevel,

@@ -30,9 +30,9 @@ const Panel = styled.div`
   width: 50%;
 `;
 
-const Spacing = styled.div`
-  padding: 0.625rem;
-`;
+// const Spacing = styled.div`
+//   padding: 0.625rem;
+// `;
 
 const Half = styled.div`
   width: 50%;
