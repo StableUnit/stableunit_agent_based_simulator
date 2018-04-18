@@ -81,15 +81,19 @@ class StableUnit extends Ethereum {
     SUETH_price: number;
     ETHUSD_price: number;
     SU_price: number;
+    SU_circulation: number;
 
     reserve_account = {};
     fundation_account = {};
+    reserve_eth: number;
+    reserve_ratio: number;
     FrosenRatio = 0.0;
 
     constructor(ethereum: Ethereum) {
         super();
-        // init stabilisation fund with already 
+        // init stabilisation fund with some existing funds (after ICO for example)
         this.reserve_account = ethereum.createWallet(1000);
+        this.reserve_eth = 1000;
         // create DAO
         this.fundation_account = this.createWallet(1);
         this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
@@ -105,6 +109,7 @@ class StableUnit extends Ethereum {
         this.ETHUSD_price = ETHUSD_price;
         const SU_price = SUETH_price * ETHUSD_price;
         this.SU_price = SU_price;
+        this.reserve_ratio = this.reserve_eth*ETHUSD_price / this.SU_circulation;
 
         // expand supply via stablization fund + repaing bonds
         if (this.PEG + this.D1 <= SU_price) {
@@ -126,9 +131,19 @@ class StableUnit extends Ethereum {
         }
     }
 
-    buySUfromReserveSM(eth_addr, amount_eth, txn_sign, su_addr) {
+    //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
+    buySUfromReserveSM(buyer: Trader, amount_eth) {    
         // check that sender is owed that money
-        // check that SF able to sell SU
+        if (buyer.eth_balance >= amount_eth) {
+            // check that SF able to sell SU (always is able)
+            // price of SU is 1+delta_S
+            let deal_su = amount_eth * (this.ETHUSD_price*(1 + this.D1));
+            buyer.eth_balance -= amount_eth;
+            buyer.su_balance += deal_su;
+            this.SU_circulation += deal_su;
+            return true;
+        }
+        return false;
     }
 
     sellSUtoReserveSM(su_addr, amount_su, txn_sign, eth_addr) {}
@@ -172,6 +187,8 @@ class Trader {
         this.su_balance = portfolio.su_balance;
         this.eth_balance = portfolio.eth_balance;
     }
+    buyOrders: Array<Order>;
+    sellOrders: Array<Order>;
     
     // getEthBalance() {
     //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
@@ -182,6 +199,13 @@ class Trader {
     // }
 
     test() {}
+}
+
+type Order = {
+    trader: Trader;
+    su_amount: number;
+    eth_amount: number;
+    price: number;
 }
 
 // market of two particular asserts, i.e. ETH/USD, in this case prices are in USD
@@ -249,7 +273,9 @@ class Market_SUETH extends Market {
     newLimitBuyOrder(trader: Trader, su_amount, eth_amount) {
         // check that the trader can afford that
         if (trader.eth_balance >= eth_amount) {
-            this.buyOrders.push({trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount});
+            const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
+            this.buyOrders.push(order);
+            trader.buyOrders.push(order);
             // the last item has the highest price
             this.buyOrders.sort((a,b) => b.price - a.price);
             return "Added limited buy order";
@@ -260,7 +286,9 @@ class Market_SUETH extends Market {
     
     newLimitSellOrder(trader: Trader, su_amount, eth_amount) {
         if (trader.su_balance >= su_amount) {
-            this.sellOrders.push({trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount});
+            const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
+            this.sellOrders.push(order);
+            trader.sellOrders.push(order);
             // the last item has the smallest price
             this.buyOrders.sort((a,b) => a.price - b.price);
             return "Added limited sell order";
