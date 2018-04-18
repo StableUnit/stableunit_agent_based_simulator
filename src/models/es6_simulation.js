@@ -181,6 +181,7 @@ class Trader {
     //portfolio = {};
     su_balance: number;
     eth_balance: number;
+
     constructor(portfolio: {su_balance: number, eth_balance: number}) {
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.su_balance);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.eth_balance);
@@ -298,7 +299,25 @@ class Market_SUETH extends Market {
     }
 
     deleteLimitBuyOrder(order:Order) {
-        
+        // remove the order from the market queue
+        for (let i = 0; i < this.buyOrders.length; i++) {
+            if (this.buyOrders[i] === order) {
+                this.buyOrders.splice(i, 1);
+            }
+        }
+        // remove order from trader refference
+        order.trader.buyOrders.delete(order);
+    }
+
+    deleteLimitSellOrder(order:Order) {
+        // remove the order from the market queue
+        for (let i = 0; i < this.sellOrders.length; i++) {
+            if (this.sellOrders[i] === order) {
+                this.sellOrders.splice(i, 1);
+            }
+        }
+        // remove order from trader refference
+        order.trader.sellOrders.delete(order);
     }
 
     // This method is trying to complete all possible deals if any available 
@@ -309,7 +328,8 @@ class Market_SUETH extends Market {
             buyOrder.trader.buyOrders.delete(buyOrder);
             let sellOrder = this.sellOrders.pop();
             sellOrder.trader.sellOrders.delete(sellOrder);
-            // fair exchange doesn't try to earn on this kind of deals
+            // TODO: make fair exchange 
+            // temp solution: market doesn't try to earn on this kind of deals
             let deal_price = (buyOrder.price + sellOrder.price) / 2;
             let deal_su = Math.min(buyOrder.su_amount, sellOrder.su_amount);
             let deal_eth = deal_su * deal_price;
@@ -420,6 +440,9 @@ class Market_SUETH extends Market {
         this.newLimitSellOrder(trader_1, 500, 1.5);
         this.newLimitSellOrder(trader_1, 500, 2);
         this.newLimitSellOrder(trader_1, 500, 3);
+        this.newLimitBuyOrder(trader_1, 500, 4);
+        this.newLimitBuyOrder(trader_3, 2001, 1);
+        this.deleteLimitBuyOrder([...trader_3.buyOrders].pop());
         this.newMarketBuyOrder(trader_3, 2001);
         assert.equal(trader_3.eth_balance, 2.5);
     }
