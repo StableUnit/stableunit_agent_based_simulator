@@ -9,7 +9,7 @@ import Responsive from 'react-responsive';
 import ControlPanelContainer from './components/ControlPanelContainer';
 import Header from './components/Header';
 import ExchangeContainer from './components/ExchangeContainer';
-import TradersContainer from './components/TradersContainer';
+import EsTradersContainer from './components/EsTradersContainer';
 import StableSystemContainer from './components/StableSystemContainer';
 
 type Props = {
@@ -76,7 +76,7 @@ class App extends React.Component<Props> {
               <Module>
                 <ModuleHeader>Traders</ModuleHeader>
                 <ModuleBody>
-                  <TradersContainer />
+                  <EsTradersContainer />
                 </ModuleBody>
               </Module>
             </Panel>

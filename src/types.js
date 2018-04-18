@@ -1,9 +1,5 @@
 //@flow
 
-import { List, OrderedMap } from 'immutable';
-import type { RecordOf } from 'immutable';
-
-// Simple type
 // Portfolio
 export type PortfolioShape = {
   eth: number,
@@ -119,7 +115,7 @@ export type SimulationStateShape = {
   tick: number,
   markets: Markets,
   stableSystem: StableSystem,
-  traders: Traders,
+  traders: any,
   mediaFeed: MediaFeed,
   currentTime: number,
   timeMultiplier: number,

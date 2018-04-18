@@ -43,6 +43,7 @@ export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   timeMultiplier: INITIAL_TIME_MULTIPLIER,
   tick: 0,
   traders: makeRandomTraders(),
+  newTraders: new Map(),
   markets: List([
     makeMarket({ name: 'SU-ETH' }),
     makeMarket({ name: 'ETH-USD' })
@@ -86,6 +87,12 @@ export default {
     increaseFearLevel,
     decreaseFearLevel,
 
+    // Global ES6 simulation persistance
+    updateSimulationState: (state, data) => {
+      console.log('updating', data);
+      return state.set('newTraders', data.traders);
+    },
+
     // Simple tick counter
     updateTick: (state: SimulationState): SimulationState =>
       state.update('tick', tick => tick + 1)
@@ -103,8 +110,7 @@ export default {
   effects: {
     // The MAIN LOOP starts here:
     async start(payload: any, rootState: FullState) {
-      const simulationLoop = new Simulation();
-
+      const simulation = new Simulation();
 
       if (rootState.simulation.tick > 0) {
         return;
@@ -130,7 +136,8 @@ export default {
 
       // Main loop
       while (true) {
-        simulationLoop.update();
+        simulation.update();
+        this.updateSimulationState(simulation);
         this.updateTime();
         this.updateExchange();
         this.updateStableSystem();
