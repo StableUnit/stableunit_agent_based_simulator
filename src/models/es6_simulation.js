@@ -187,8 +187,8 @@ class Trader {
         this.su_balance = portfolio.su_balance;
         this.eth_balance = portfolio.eth_balance;
     }
-    buyOrders: Array<Order>;
-    sellOrders: Array<Order>;
+    buyOrders: Set<Order> = new Set();
+    sellOrders: Set<Order> = new Set();
     
     // getEthBalance() {
     //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
@@ -200,7 +200,6 @@ class Trader {
 
     test() {}
 }
-
 type Order = {
     trader: Trader;
     su_amount: number;
@@ -230,8 +229,8 @@ const market_ETHUSD = new Market(500 /*USD per ETH */, "ETH/USD");
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
 class Market_SUETH extends Market {
-    buyOrders: Array<{trader: Trader, su_amount: number, eth_amount: number, price: number}> = [];
-    sellOrders: Array<{trader: Trader, su_amount: number, eth_amount: number, price: number}> = [];
+    buyOrders: Array<Order> = [];
+    sellOrders: Array<Order> = [];
 
     constructor(initial_price) {
         super(initial_price, "SUETH");
@@ -275,7 +274,7 @@ class Market_SUETH extends Market {
         if (trader.eth_balance >= eth_amount) {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
             this.buyOrders.push(order);
-            trader.buyOrders.push(order);
+            trader.buyOrders.add(order);
             // the last item has the highest price
             this.buyOrders.sort((a,b) => b.price - a.price);
             return "Added limited buy order";
@@ -288,7 +287,7 @@ class Market_SUETH extends Market {
         if (trader.su_balance >= su_amount) {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
             this.sellOrders.push(order);
-            trader.sellOrders.push(order);
+            trader.sellOrders.add(order);
             // the last item has the smallest price
             this.buyOrders.sort((a,b) => a.price - b.price);
             return "Added limited sell order";
@@ -298,12 +297,18 @@ class Market_SUETH extends Market {
         
     }
 
+    deleteLimitBuyOrder(order:Order) {
+        
+    }
+
     // This method is trying to complete all possible deals if any available 
     update() {
         // check is any limit orders are possible to complete
         while (this.getCurrentBuyPrice() >= this.getCurrentSellPrice()) {
             let buyOrder = this.buyOrders.pop();
+            buyOrder.trader.buyOrders.delete(buyOrder);
             let sellOrder = this.sellOrders.pop();
+            sellOrder.trader.sellOrders.delete(sellOrder);
             // fair exchange doesn't try to earn on this kind of deals
             let deal_price = (buyOrder.price + sellOrder.price) / 2;
             let deal_su = Math.min(buyOrder.su_amount, sellOrder.su_amount);
@@ -318,9 +323,11 @@ class Market_SUETH extends Market {
             // if the one of the orders is only partially completed - add reminder back
             if (sellOrder.su_amount > Utility.EPS) {
                 this.sellOrders.push(sellOrder);
+                sellOrder.trader.sellOrders.add(sellOrder);
             }
             if (buyOrder.su_amount > Utility.EPS) {
                 this.buyOrders.push(buyOrder);
+                buyOrder.trader.buyOrders.add(buyOrder);
             }
         }
     }
@@ -439,7 +446,7 @@ export class Simulation {
         this.traders.set("human_1", new Trader({su_balance: 1000, eth_balance: 2}));
         this.traders.set("human_2", new Trader({su_balance: 1000, eth_balance: 2}));
         // tests
-        //market_SUETH.test();
+        market_SUETH.test();
     }
     // execute one tick of the simulation
     update() {
