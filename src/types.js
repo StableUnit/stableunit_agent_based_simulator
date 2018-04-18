@@ -1,5 +1,9 @@
 //@flow
 
+import { List, OrderedMap } from 'immutable';
+import type { RecordOf } from 'immutable';
+
+// Simple type
 // Portfolio
 export type PortfolioShape = {
   eth: number,

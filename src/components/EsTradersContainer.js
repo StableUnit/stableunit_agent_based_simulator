@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import { colors } from '../theme';
 import accounting from 'accounting';
 
+import type { Traders } from '../models/es6_simulation';
 import { Trader } from '../models/es6_simulation';
 
 const HARDCODED_ETH_PRICE_CHANGE_LATER = 600;
@@ -75,7 +76,7 @@ function renderGains(value) {
 
 function makeDatatableRows(traders: Traders): Array<Row> {
   return Array.from(traders.values()).map((trader, index) => ({
-    id: index,
+    id: String(index),
     name: `Trader ${index}`,
     eth: trader.eth_balance.toFixed(2),
     su: trader.su_balance.toFixed(2)
