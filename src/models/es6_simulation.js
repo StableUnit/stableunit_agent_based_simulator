@@ -177,7 +177,7 @@ class Web4 {
 }
 const web4 = new Web4();
 
-class Trader {
+export class Trader {
     //portfolio = {};
     su_balance: number;
     eth_balance: number;
@@ -201,7 +201,7 @@ class Trader {
 
     test() {}
 }
-type Order = {
+export type Order = {
     trader: Trader;
     su_amount: number;
     eth_amount: number;
@@ -209,7 +209,7 @@ type Order = {
 }
 
 // market of two particular asserts, i.e. ETH/USD, in this case prices are in USD
-class Market {
+export class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
 
@@ -218,7 +218,7 @@ class Market {
         this.setNewPrice(initial_price);
     }
 
-    setNewPrice(new_price) {
+    setNewPrice(new_price: number) {
         this.history.push({datetime: this.history.length, price: new_price});
     }
 
@@ -229,11 +229,11 @@ class Market {
 const market_ETHUSD = new Market(500 /*USD per ETH */, "ETH/USD");
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
-class Market_SUETH extends Market {
+export class Market_SUETH extends Market {
     buyOrders: Array<Order> = [];
     sellOrders: Array<Order> = [];
 
-    constructor(initial_price) {
+    constructor(initial_price: number) {
         super(initial_price, "SUETH");
     }
 
@@ -250,7 +250,7 @@ class Market_SUETH extends Market {
             return NaN;
     }
     
-    makeTrade(buyer: Trader, seller: Trader, deal_su, deal_eth) {
+    makeTrade(buyer: Trader, seller: Trader, deal_su: number, deal_eth: number) {
         // check that buyer has enougth eth to pay and seller enoguth su to sell
         if (buyer.eth_balance >= deal_eth && seller.su_balance >= deal_su) {
             buyer.eth_balance -= deal_eth;
@@ -270,7 +270,7 @@ class Market_SUETH extends Market {
         return false;
     }
 
-    newLimitBuyOrder(trader: Trader, su_amount, eth_amount) {
+    newLimitBuyOrder(trader: Trader, su_amount: number, eth_amount: number) {
         // check that the trader can afford that
         if (trader.eth_balance >= eth_amount) {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
@@ -284,7 +284,7 @@ class Market_SUETH extends Market {
         }
     }
     
-    newLimitSellOrder(trader: Trader, su_amount, eth_amount) {
+    newLimitSellOrder(trader: Trader, su_amount: number, eth_amount: number) {
         if (trader.su_balance >= su_amount) {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
             this.sellOrders.push(order);
@@ -354,7 +354,7 @@ class Market_SUETH extends Market {
 
     // A market order is a buy or sell order to be executed immediately at current market prices.
     // Like pacman it eats all avalibile sell order until reach su_amount
-    newMarketBuyOrder(buyer: Trader, su_amount) {
+    newMarketBuyOrder(buyer: Trader, su_amount: number) {
         let status_prefix = "Order was not completed. ";
         // if orderbook has sell orders and buyer is still wants to buy
         while (this.sellOrders.length > 0 && su_amount > Utility.EPS) {
@@ -387,7 +387,7 @@ class Market_SUETH extends Market {
         }
     }
 
-    newMarketSellOrder(seller, su_amount) {
+    newMarketSellOrder(seller: Trader, su_amount: number) {
         let status_prefix = "Order was not completed. ";
         if (seller.su_balance < su_amount) {
             return status_prefix + "Not enough SU to sell. "; 
@@ -449,13 +449,13 @@ class Market_SUETH extends Market {
 }
 const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
-
+export type Traders = Map<string, Trader>;
 
 export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
     market_SUETH: Market_SUETH;
-    traders: Map<string, Object> = new Map();
+    traders: Traders = new Map();
 
     // takes callBack funtions for visualisation
     constructor() {
