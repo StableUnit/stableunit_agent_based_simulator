@@ -7,8 +7,8 @@ import { colors } from '../theme';
 
 // import type { Order, OrderList } from '../types';
 
-import type {Order} from '../models/es6_simulation';
-import {Market_SUETH} from '../models/es6_simulation';
+import type { Order } from '../models/es6_simulation';
+import { Market_SUETH } from '../models/es6_simulation';
 type Orders = Array<Order>;
 
 type Props = {
@@ -30,6 +30,23 @@ type AskOrderEntry = {
 
 type OrderBookData = Array<BidOrderEntry | AskOrderEntry>;
 
+function snapByPrice(orders) {
+  return orders
+    .reduce((result, next) => {
+      const currentValue = result.get(next.price) || {
+        price: next.price,
+        bidsQuantity: 0,
+        bidsTotalQuantity: 0
+      };
+      return result.set(next.price, {
+        ...currentValue,
+        bidsQuantity: currentValue.bidsQuantity + next.eth_amount,
+        bidsTotalQuantity: 0
+      });
+    }, new Map())
+    .values();
+}
+
 // We can actually create selectors instead of such functions
 // Though this function is only used here, so there's no point
 function convertDataForChart(
@@ -40,27 +57,35 @@ function convertDataForChart(
   let asksAccumulator = 0;
   return [
     ...buyOrders
-      // .sort((a, b) => b.price - a.price)
-      .map((order: Order) => {
-        bidsAccumulator += order.su_amount;
-        return {
-          price: order.price,
-          bidsQuantity: order.su_amount,
+      .reduce((result, next) => {
+        bidsAccumulator += next.eth_amount;
+        const currentValue = result.get(next.price) || {
+          price: next.price,
+          bidsQuantity: 0,
+          bidsTotalQuantity: 0
+        };
+        return result.set(next.price, {
+          ...currentValue,
+          bidsQuantity: currentValue.bidsQuantity + next.eth_amount,
           bidsTotalQuantity: bidsAccumulator
-        };
-      })
-      ,
+        });
+      }, new Map())
+      .values(),
     ...sellOrders
-      // .sort((a, b) => a.price - b.price)
-      .map((order: Order) => {
-        asksAccumulator += order.su_amount;
-        return {
-          price: order.price,
-          asksQuantity: order.su_amount,
-          asksTotalQuantity: asksAccumulator
+      .reduce((result, next) => {
+        asksAccumulator += next.eth_amount;
+        const currentValue = result.get(next.price) || {
+          price: next.price,
+          asksQuantity: 0,
+          asksTotalQuantity: 0
         };
-      })
-
+        return result.set(next.price, {
+          ...currentValue,
+          asksQuantity: currentValue.asksQuantity + next.eth_amount,
+          asksTotalQuantity: asksAccumulator
+        });
+      }, new Map())
+      .values()
   ].sort((a, b) => a.price - b.price);
 }
 
@@ -70,6 +95,7 @@ const OrderBook = (props: Props) => {
   // Convert data for orderbook
   const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
+  console.log(data);
   const style = {
     width: '100%',
     height: mobile ? 150 : 220
@@ -109,7 +135,7 @@ const OrderBook = (props: Props) => {
     ],
     categoryAxis: {
       title: `Price (${market.name})`,
-      minHorizontalGap: 100,
+      minHorizontalGap: 0,
       startOnAxis: true,
       showFirstLabel: false,
       showLastLabel: false,

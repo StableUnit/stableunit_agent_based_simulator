@@ -8,6 +8,7 @@ import { Module, ModuleHeader, ModuleBody } from 'carbon-components-react';
 import ExchangeContainer from './components/ExchangeContainer';
 import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
+import Status from './components/Status';
 
 type Props = {
   start: () => void
@@ -66,6 +67,7 @@ class App extends React.Component<Props> {
             </Module>
           </Panel>
         </Wrap>
+        <Status />
       </div>
     );
   }

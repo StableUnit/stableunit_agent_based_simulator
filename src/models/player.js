@@ -10,6 +10,7 @@ function delay(ms) {
 
 export type SimulationStateShape = {
   simulation: Simulation,
+  status: string,
   tick: number
 };
 
@@ -21,6 +22,7 @@ export type SimulationState = RecordOf<SimulationStateShape>;
 
 const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   simulation: new Simulation(),
+  status: '',
   tick: 0
 });
 
@@ -35,7 +37,9 @@ export default {
       state: SimulationState,
       simulation: Simulation
     ): SimulationState => {
-      return state.set('simulation', simulation).update('tick', tick => tick + 1);
+      return state
+        .set('simulation', simulation)
+        .update('tick', tick => tick + 1)
     },
     placeBuyOrder: (
       state: SimulationState,
@@ -45,12 +49,12 @@ export default {
         eth_amount: string
       }
     ) => {
-      state.simulation.market_SUETH.newLimitBuyOrder(
+      const status = state.simulation.market_SUETH.newLimitBuyOrder(
         payload.trader,
         Number(payload.su_amount),
         Number(payload.eth_amount)
       );
-      return state;
+      return state.set('status', status);
     },
 
     placeSellOrder: (
@@ -61,11 +65,20 @@ export default {
         eth_amount: string
       }
     ) => {
-      state.simulation.market_SUETH.newLimitSellOrder(
+      const status = state.simulation.market_SUETH.newLimitSellOrder(
         payload.trader,
         Number(payload.su_amount),
         Number(payload.eth_amount)
       );
+      return state.set('status', status);
+    },
+
+    cancelBuyOrder: (state: SimulationState, order: Order): SimulationState => {
+      state.simulation.market_SUETH.deleteLimitBuyOrder(order);
+      return state;
+    },
+    cancelSellOrder: (state: SimulationState, order: Order): SimulationState => {
+      state.simulation.market_SUETH.deleteLimitSellOrder(order);
       return state;
     }
   },

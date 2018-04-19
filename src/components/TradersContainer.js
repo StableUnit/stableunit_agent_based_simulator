@@ -1,185 +1,71 @@
 //@flow
 
 import React from 'react';
-import type { Node } from 'react';
 import { connect } from 'react-redux';
-import { DataTable, Button } from 'carbon-components-react';
-import styled from 'styled-components';
+import { Button } from 'carbon-components-react';
 import { colors } from '../theme';
 import accounting from 'accounting';
 
-import type { Traders } from '../models/es6_simulation';
+import type { Traders, Order } from '../models/es6_simulation';
 import { Trader } from '../models/es6_simulation';
 
 import ManualControl from './ManualControl';
 
-const HARDCODED_ETH_PRICE_CHANGE_LATER = 600;
-
-const {
-  TableContainer,
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableBody,
-  TableCell
-} = DataTable;
-
 type Props = {
-  traders: Traders
+  traders: Traders,
+  tick: number,
+  cancelBuyOrder: Order => {},
+  cancelSellOrder: Order => {}
 };
-
-type Row = {
-  id: string,
-  name: string,
-  eth: string,
-  su: string
-};
-
-type Header = {
-  key: string,
-  header: string
-};
-
-const NumberCell = styled(TableCell)`
-  text-align: right !important;
-`;
-const NumberHeader = styled(TableHeader)`
-  text-align: right !important;
-`;
-const Positive = styled.div`
-  color: ${colors.green};
-`;
-const Negative = styled.div`
-  color: ${colors.red};
-`;
-// const ManualControl = styled.span`
-//   margin-left: 1em;
-//   white-space: nowrap;
-//   button {
-//     margin-left: 0.5em;
-//   }
-// `;
-
-function renderGains(value) {
-  return value > 0 ? (
-    <Positive>+{value.toFixed(1)}%</Positive>
-  ) : (
-    <Negative>{value.toFixed(1)}%</Negative>
-  );
-}
-
-// function getPortfolioWorth(trader: Trader): number {
-//   return (
-//     trader.portfolio.su +
-//     trader.portfolio.eth * HARDCODED_ETH_PRICE_CHANGE_LATER
-//   );
-// }
-
-function makeDatatableRows(traders: Traders): Array<Row> {
-  return Array.from(traders.values()).map((trader, index) => ({
-    id: String(index),
-    name: 'Trader ${index}',
-    eth: trader.eth_balance.toFixed(2),
-    su: trader.su_balance.toFixed(2),
-    trader: trader
-  }));
-  // .sort((a, b) => {
-  //   if (a.id === '0' || a.id === '1') {
-  //     return -1;
-  //   }
-  //   return b.portfolioWorth - a.portfolioWorth;
-  // });
-}
-
-function makeDatatableHeaders(): Array<Header> {
-  return [
-    {
-      key: 'controls',
-      header: ''
-    },
-    {
-      key: 'portfolioWorthDisplay',
-      header: 'Portfolio ($)'
-    },
-    {
-      key: 'eth',
-      header: '(ETH)'
-    },
-    {
-      key: 'su',
-      header: '(SU)'
-    }
-  ];
-}
-
-function getHeaderComponent(index: number) {
-  if (index > 1) {
-    return NumberHeader;
-  }
-
-  return TableHeader;
-}
-
-function getCellComponent(index: number) {
-  if (index > 1) {
-    return NumberCell;
-  }
-
-  return TableCell;
-}
 
 const TradersContainer = (props: Props) => {
-  const { traders } = props;
-  const rowsData = makeDatatableRows(traders);
-  const headers = makeDatatableHeaders();
+  const { traders, cancelBuyOrder, cancelSellOrder } = props;
+
+  const tradersArr = Array.from(traders.values());
 
   return (
     <div>
-      <DataTable
-        rows={rowsData}
-        headers={headers}
-        render={({ rows, headers, getHeaderProps }) => (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {headers.map((header, index) => {
-                    const HeaderComponent = getHeaderComponent(index);
-                    return (
-                      <HeaderComponent key={header.key}>
-                        {header.header}
-                      </HeaderComponent>
-                    );
-                  })}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row, rowIndex) => (
-                  <TableRow key={row.id}>
-                    {row.cells.map((cell, cellIndex) => {
-                      const CellComponent = getCellComponent(cellIndex);
-                      const trader = rowsData[rowIndex].trader;
-                      return (
-                        <CellComponent key={cell.id}>
-                          {cell.value}
-                          {cellIndex === 0 && <ManualControl trader={trader} />}
-                        </CellComponent>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      />
+      {tradersArr.map((trader, index) => {
+        return (
+          <div key={index}>
+            <table style={{ width: '100%' }}>
+              <tr>
+                <td>SU</td>
+                <td>{trader.su_balance}</td>
+              </tr>
+              <tr>
+                <td>ETH</td>
+                <td>{trader.eth_balance}</td>
+              </tr>
+            </table>
+            <ManualControl trader={trader} />
+            {Array.from(trader.buyOrders).map((order, orderIndex) => (
+              <div key={orderIndex}>
+                {order.su_amount}, {order.eth_amount}, {order.price.toFixed(2)}{' '}
+                <Button onClick={() => cancelBuyOrder(order)}>Cancel</Button>
+              </div>
+            ))}
+            {Array.from(trader.sellOrders).map((order, orderIndex) => (
+              <div key={orderIndex}>
+                {order.su_amount}, {order.eth_amount}, {order.price.toFixed(2)}{' '}
+                <Button onClick={() => cancelSellOrder(order)}>Cancel</Button>
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 };
 
 const mapState = state => ({
-  traders: state.player.simulation.traders
+  traders: state.player.simulation.traders,
+  tick: state.player.tick
 });
 
-export default connect(mapState)(TradersContainer);
+const mapDispatch = dispatch => ({
+  cancelBuyOrder: dispatch.player.cancelBuyOrder,
+  cancelSellOrder: dispatch.player.cancelSellOrder
+});
+
+export default connect(mapState, mapDispatch)(TradersContainer);

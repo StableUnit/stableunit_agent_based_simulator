@@ -143,7 +143,7 @@ class StableUnit extends Ethereum {
     }
 
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
-    buySUfromReserveSM(buyer: Trader, eth_amount: number) {    
+    buySUfromReserveSM(buyer: Trader, eth_amount: number) {
         // check that sender is owed that money
         if (buyer.eth_balance >= eth_amount) {
             // check that SF able to sell SU (always is able)
@@ -316,6 +316,7 @@ export class Market_SUETH extends Market {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
             this.buyOrders.push(order);
             trader.buyOrders.add(order);
+
             // the last item has the highest price
             this.buyOrders.sort((a,b) => b.price - a.price);
             return "Added limited buy order";
