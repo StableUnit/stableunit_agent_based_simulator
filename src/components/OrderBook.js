@@ -30,23 +30,6 @@ type AskOrderEntry = {
 
 type OrderBookData = Array<BidOrderEntry | AskOrderEntry>;
 
-function snapByPrice(orders) {
-  return orders
-    .reduce((result, next) => {
-      const currentValue = result.get(next.price) || {
-        price: next.price,
-        bidsQuantity: 0,
-        bidsTotalQuantity: 0
-      };
-      return result.set(next.price, {
-        ...currentValue,
-        bidsQuantity: currentValue.bidsQuantity + next.eth_amount,
-        bidsTotalQuantity: 0
-      });
-    }, new Map())
-    .values();
-}
-
 // We can actually create selectors instead of such functions
 // Though this function is only used here, so there's no point
 function convertDataForChart(
@@ -71,6 +54,7 @@ function convertDataForChart(
         });
       }, new Map())
       .values(),
+
     ...sellOrders
       .reduce((result, next) => {
         asksAccumulator += next.eth_amount;
@@ -95,7 +79,6 @@ const OrderBook = (props: Props) => {
   // Convert data for orderbook
   const data = convertDataForChart(market.buyOrders, market.sellOrders);
 
-  console.log(data);
   const style = {
     width: '100%',
     height: mobile ? 150 : 220

@@ -2,6 +2,7 @@
 import { Record } from 'immutable';
 
 import type { RecordOf, RecordFactory } from 'immutable';
+import type {Order} from './es6_simulation';
 import { Simulation, Trader } from './es6_simulation';
 
 function delay(ms) {
