@@ -2,7 +2,6 @@
 
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import Responsive from 'react-responsive';
 
 import logo from '../logo.svg';
 import { colors } from '../theme';
@@ -40,29 +39,25 @@ const TimeContainer = styled.div`
   flex-grow: 1;
 `;
 
-const Desktop = props => <Responsive {...props} minWidth={992} />;
-const Mobile = props => <Responsive {...props} maxWidth={991} />;
 
 class Header extends Component<Props> {
   render() {
     return (
       <Wrap>
-        <Desktop>
-          <LogoContainer>
-            <img alt="" src={logo} style={{ width: 36 }} />
-            <LogoType>StableUnit</LogoType>
-          </LogoContainer>
-          <DescriptionContainer>
-            This demo simulates the traders' reaction to major media news and
-            shows mechanics that StableUnit uses to keep it's price pegged to US
-            dollar in a trustless way
-          </DescriptionContainer>
-          <SubscribeContainer>
-            <Subscribe />
-          </SubscribeContainer>
-          <TimeContainer>
-          </TimeContainer>
-        </Desktop>
+        <LogoContainer>
+          <img alt="" src={logo} style={{ width: 36 }} />
+          <LogoType>StableUnit</LogoType>
+        </LogoContainer>
+        <DescriptionContainer>
+          This demo simulates the traders' reaction to major media news and
+          shows mechanics that StableUnit uses to keep it's price pegged to US
+          dollar in a trustless way
+        </DescriptionContainer>
+        <SubscribeContainer>
+          <Subscribe />
+        </SubscribeContainer>
+        <TimeContainer>
+        </TimeContainer>
       </Wrap>
     );
   }
