@@ -1,4 +1,3 @@
-//@flow
 import { List, Record } from 'immutable';
 import {
   randomizeLastHistoryEntry,

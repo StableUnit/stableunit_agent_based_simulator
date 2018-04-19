@@ -4,7 +4,6 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import Responsive from 'react-responsive';
 
-import CurrentTime from './CurrentTime';
 import logo from '../logo.svg';
 import { colors } from '../theme';
 import Subscribe from './Subscribe';
@@ -62,13 +61,8 @@ class Header extends Component<Props> {
             <Subscribe />
           </SubscribeContainer>
           <TimeContainer>
-            <CurrentTime />
           </TimeContainer>
         </Desktop>
-        <Mobile>
-          <img alt="" src={logo} style={{ width: 36, height: 36 }} />
-          <CurrentTime />
-        </Mobile>
       </Wrap>
     );
   }

@@ -11,11 +11,11 @@ class Ethereum {
     accounts:Map<string, number> = new Map();
     erc20tokens:Map<string, Map<string, number>> = new Map();
 
-    // this method is a simplification the real process 
+    // this method is a simplification the real process
     // of creating a new wallet and buying some ETH for fiat
     createWallet(initial_amount = 0) {
         // some random string which looks like eth address
-        const public_key = Array(40).fill().map(() => 
+        const public_key = Array(40).fill().map(() =>
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         .charAt(Math.floor(Math.random() * 62))).join("");
         // we don't simulate security - only general concept of workflow
@@ -42,7 +42,7 @@ class Ethereum {
         return false;
     }
 
-    // instead of implementing full https://theethereum.wiki/w/index.php/ERC20_Token_Standard, 
+    // instead of implementing full https://theethereum.wiki/w/index.php/ERC20_Token_Standard,
     // let's use simple token functionality
     createTokens(address_sender: string, token_name: string, amount_supply: number) {
         this.erc20tokens.set(token_name, new Map([[address_sender, amount_supply]]));
@@ -132,7 +132,7 @@ class StableUnit extends Ethereum {
     }
 
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
-    buySUfromReserveSM(buyer: Trader, amount_eth) {    
+    buySUfromReserveSM(buyer: Trader, amount_eth) {
         // check that sender is owed that money
         if (buyer.eth_balance >= amount_eth) {
             // check that SF able to sell SU (always is able)
@@ -190,7 +190,7 @@ export class Trader {
     }
     buyOrders: Set<Order> = new Set();
     sellOrders: Set<Order> = new Set();
-    
+
     // getEthBalance() {
     //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
     // }
@@ -237,19 +237,19 @@ export class Market_SUETH extends Market {
         super(initial_price, "SUETH");
     }
 
-    getCurrentBuyPrice() { 
-        if (this.buyOrders.length > 0) 
-            return this.buyOrders.slice(-1)[0].price; 
-        else 
+    getCurrentBuyPrice() {
+        if (this.buyOrders.length > 0)
+            return this.buyOrders.slice(-1)[0].price;
+        else
             return NaN;
     }
-    getCurrentSellPrice() { 
-        if (this.sellOrders.length > 0) 
-            return this.sellOrders.slice(-1)[0].price; 
-        else 
+    getCurrentSellPrice() {
+        if (this.sellOrders.length > 0)
+            return this.sellOrders.slice(-1)[0].price;
+        else
             return NaN;
     }
-    
+
     makeTrade(buyer: Trader, seller: Trader, deal_su: number, deal_eth: number) {
         // check that buyer has enougth eth to pay and seller enoguth su to sell
         if (buyer.eth_balance >= deal_eth && seller.su_balance >= deal_su) {
@@ -257,8 +257,8 @@ export class Market_SUETH extends Market {
             seller.eth_balance += deal_eth;
             buyer.su_balance += deal_su;
             seller.su_balance -= deal_su;
-            // web4.su.sendTransaction(sellOrder.trader.portfolio.su_wallet.address, 
-            //                         deal_su, 
+            // web4.su.sendTransaction(sellOrder.trader.portfolio.su_wallet.address,
+            //                         deal_su,
             //                         buyOrder.trader.portfolio.su_wallet.address);
             // buyOrder.eth_amount -= deal_eth;
             // sellOrder.eth_amount -= deal_eth;
@@ -283,7 +283,7 @@ export class Market_SUETH extends Market {
             return "No enough ETH";
         }
     }
-    
+
     newLimitSellOrder(trader: Trader, su_amount: number, eth_amount: number) {
         if (trader.su_balance >= su_amount) {
             const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
@@ -295,7 +295,7 @@ export class Market_SUETH extends Market {
         } else {
             return "Not enough SU";
         }
-        
+
     }
 
     deleteLimitBuyOrder(order:Order) {
@@ -320,7 +320,7 @@ export class Market_SUETH extends Market {
         order.trader.sellOrders.delete(order);
     }
 
-    // This method is trying to complete all possible deals if any available 
+    // This method is trying to complete all possible deals if any available
     update() {
         // check is any limit orders are possible to complete
         while (this.getCurrentBuyPrice() >= this.getCurrentSellPrice()) {
@@ -328,7 +328,7 @@ export class Market_SUETH extends Market {
             buyOrder.trader.buyOrders.delete(buyOrder);
             let sellOrder = this.sellOrders.pop();
             sellOrder.trader.sellOrders.delete(sellOrder);
-            // TODO: make fair exchange 
+            // TODO: make fair exchange
             // temp solution: market doesn't try to earn on this kind of deals
             let deal_price = (buyOrder.price + sellOrder.price) / 2;
             let deal_su = Math.min(buyOrder.su_amount, sellOrder.su_amount);
@@ -390,7 +390,7 @@ export class Market_SUETH extends Market {
     newMarketSellOrder(seller: Trader, su_amount: number) {
         let status_prefix = "Order was not completed. ";
         if (seller.su_balance < su_amount) {
-            return status_prefix + "Not enough SU to sell. "; 
+            return status_prefix + "Not enough SU to sell. ";
         }
         // if orderbook has sell orders and buyer is still wants to buy
         while (this.buyOrders.length > 0 && su_amount > Utility.EPS) {
@@ -421,7 +421,7 @@ export class Market_SUETH extends Market {
                 throw new Error("Market sell order error!");
             }
         }
-    } 
+    }
 
     test() {
         const trader_1 = new Trader({su_balance: 1000, eth_balance: 2});
@@ -429,7 +429,7 @@ export class Market_SUETH extends Market {
         this.newLimitBuyOrder(trader_1, 500, 1 );
         this.newLimitSellOrder(trader_2, 1000, 2);
         this.update();
-        assert.equal(trader_1.su_balance, 1500);    
+        assert.equal(trader_1.su_balance, 1500);
         assert.equal(trader_1.eth_balance, 1);
         assert.equal(trader_2.su_balance, 500);
         assert.equal(trader_2.eth_balance, 3);
@@ -473,7 +473,7 @@ export class Simulation {
     }
     // execute one tick of the simulation
     update() {
-        console.log('tick');
+        // console.log('tick');
         //this.traders.forEach()
     }
 }

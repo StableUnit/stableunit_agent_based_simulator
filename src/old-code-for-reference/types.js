@@ -1,5 +1,3 @@
-//@flow
-
 import { List, OrderedMap } from 'immutable';
 import type { RecordOf } from 'immutable';
 
@@ -123,7 +121,8 @@ export type SimulationStateShape = {
   mediaFeed: MediaFeed,
   currentTime: number,
   timeMultiplier: number,
-  fearLevel: number
+  fearLevel: number,
+  simulation: any
 };
 
 export type SimulationState = RecordOf<SimulationStateShape>;

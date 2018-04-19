@@ -2,16 +2,15 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import Responsive from 'react-responsive';
 
 // import type { Market } from '../types';
-import {Market} from '../models/es6_simulation';
+import {Market_SUETH} from '../models/es6_simulation';
 
 import OrderBook from './OrderBook';
 import CandleSticks from './CandleSticks';
 
 type Props = {
-  market: Market
+  market: Market_SUETH
 };
 
 const Wrap = styled.div`
@@ -24,28 +23,19 @@ const Half = styled.div`
   width: 50%;
 `;
 
-const Desktop = props => <Responsive {...props} minWidth={992} />;
-const Mobile = props => <Responsive {...props} maxWidth={991} />;
-
 const MarketContainer = (props: Props) => {
   const { market } = props;
 
   return (
     <div>
-      <Desktop>
         <Wrap>
           <Half>
             <CandleSticks market={market} />
           </Half>
-        </Wrap>
-      </Desktop>
-      <Mobile>
-        <Wrap>
           <Half>
-            <CandleSticks market={market} mobile />
+            <OrderBook market={market} />
           </Half>
         </Wrap>
-      </Mobile>
     </div>
   );
 };

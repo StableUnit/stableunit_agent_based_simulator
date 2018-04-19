@@ -1,4 +1,3 @@
-//@flow
 import { Record } from 'immutable';
 import nanoid from 'nanoid';
 

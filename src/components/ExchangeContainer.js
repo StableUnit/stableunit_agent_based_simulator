@@ -1,25 +1,22 @@
-//@flow
+// @flow
 
 import React from 'react';
 import { connect } from 'react-redux';
 import { ContentSwitcher, Switch } from 'carbon-components-react';
 import styled from 'styled-components';
 
-import type { Markets, FullState } from '../types';
+import type { FullState, SimulationState } from '../models/player';
 
 import MarketContainer from './MarketContainer';
+import MarketWithOrderBook from './MarketWithOrderBook';
 
 type Props = {
-  markets: Markets
+  player: SimulationState
 };
 
 type State = {
   selectedMarketIndex: number
 };
-
-const MarketToggle = styled(ContentSwitcher)`
-  justify-content: center;
-`;
 
 class ExchangeContainer extends React.Component<Props, State> {
   constructor(props) {
@@ -27,33 +24,20 @@ class ExchangeContainer extends React.Component<Props, State> {
     this.state = { selectedMarketIndex: 0 };
   }
 
-  handleMarketSwitch = data => {
-    this.setState({ selectedMarketIndex: data.index });
-  };
   render() {
-    const { markets } = this.props;
-    const { selectedMarketIndex } = this.state;
-    const market = markets.get(selectedMarketIndex);
+    const { player } = this.props;
 
     return (
       <div>
-        <MarketToggle
-          onChange={this.handleMarketSwitch}
-          selectedIndex={selectedMarketIndex}
-        >
-          {markets.map(market => (
-            <Switch key={market.name} name={market.name} text={market.name} />
-          ))}
-        </MarketToggle>
-
-        {market && <MarketContainer market={market} />}
+        <MarketContainer market={player.simulation.market_ETHUSD} />
+        <MarketWithOrderBook market={player.simulation.market_SUETH} />
       </div>
     );
   }
 }
 
 const mapState = (state: FullState) => ({
-  markets: state.simulation.markets
+  player: state.player
 });
 
 export default connect(mapState)(ExchangeContainer);

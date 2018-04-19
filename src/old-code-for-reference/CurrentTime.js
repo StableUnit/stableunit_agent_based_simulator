@@ -1,5 +1,3 @@
-//@flow
-
 import React, { Component } from 'react';
 import moment from 'moment';
 // import { getSimulatedTime } from '../util/date';

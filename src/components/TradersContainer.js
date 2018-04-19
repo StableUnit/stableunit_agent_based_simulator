@@ -8,8 +8,10 @@ import styled from 'styled-components';
 import { colors } from '../theme';
 import accounting from 'accounting';
 
-import type { Traders, FullState } from '../types';
+import type { Traders } from '../models/es6_simulation';
 import { Trader } from '../models/es6_simulation';
+
+import ManualControl from './ManualControl';
 
 const HARDCODED_ETH_PRICE_CHANGE_LATER = 600;
 
@@ -29,12 +31,9 @@ type Props = {
 
 type Row = {
   id: string,
-  emoji: string,
   name: string,
-  portfolioWorth: number,
   eth: string,
-  su: string,
-  percentDiff: Node
+  su: string
 };
 
 type Header = {
@@ -42,9 +41,6 @@ type Header = {
   header: string
 };
 
-const EmojiCell = styled(TableCell)`
-  font-size: 200%;
-`;
 const NumberCell = styled(TableCell)`
   text-align: right !important;
 `;
@@ -57,13 +53,13 @@ const Positive = styled.div`
 const Negative = styled.div`
   color: ${colors.red};
 `;
-const ManualControl = styled.span`
-  margin-left: 1em;
-  white-space: nowrap;
-  button {
-    margin-left: 0.5em;
-  }
-`;
+// const ManualControl = styled.span`
+//   margin-left: 1em;
+//   white-space: nowrap;
+//   button {
+//     margin-left: 0.5em;
+//   }
+// `;
 
 function renderGains(value) {
   return value > 0 ? (
@@ -73,44 +69,34 @@ function renderGains(value) {
   );
 }
 
-function getPortfolioWorth(trader: Trader): number {
-  return (
-    trader.portfolio.su +
-    trader.portfolio.eth * HARDCODED_ETH_PRICE_CHANGE_LATER
-  );
-}
+// function getPortfolioWorth(trader: Trader): number {
+//   return (
+//     trader.portfolio.su +
+//     trader.portfolio.eth * HARDCODED_ETH_PRICE_CHANGE_LATER
+//   );
+// }
 
 function makeDatatableRows(traders: Traders): Array<Row> {
-  return traders
-    .toList()
-    .map(trader => ({
-      id: trader.id,
-      emoji: trader.emoji,
-      name: trader.name,
-      portfolioWorth: getPortfolioWorth(trader),
-      portfolioWorthDisplay: accounting.formatNumber(getPortfolioWorth(trader)),
-      eth: trader.portfolio.eth.toFixed(2),
-      su: trader.portfolio.su.toFixed(2),
-      percentDiff: renderGains((Math.random() - 0.5) * 10)
-    }))
-    .sort((a, b) => {
-      if (a.id === '0' || a.id === '1') {
-        return -1;
-      }
-      return b.portfolioWorth - a.portfolioWorth;
-    })
-    .toArray();
+  return Array.from(traders.values()).map((trader, index) => ({
+    id: String(index),
+    name: 'Trader ${index}',
+    eth: trader.eth_balance.toFixed(2),
+    su: trader.su_balance.toFixed(2),
+    trader: trader
+  }));
+  // .sort((a, b) => {
+  //   if (a.id === '0' || a.id === '1') {
+  //     return -1;
+  //   }
+  //   return b.portfolioWorth - a.portfolioWorth;
+  // });
 }
 
 function makeDatatableHeaders(): Array<Header> {
   return [
     {
-      key: 'emoji',
+      key: 'controls',
       header: ''
-    },
-    {
-      key: 'name',
-      header: 'Name'
     },
     {
       key: 'portfolioWorthDisplay',
@@ -123,10 +109,6 @@ function makeDatatableHeaders(): Array<Header> {
     {
       key: 'su',
       header: '(SU)'
-    },
-    {
-      key: 'percentDiff',
-      header: 'Gains/Losses'
     }
   ];
 }
@@ -140,10 +122,6 @@ function getHeaderComponent(index: number) {
 }
 
 function getCellComponent(index: number) {
-  if (index === 0) {
-    return EmojiCell;
-  }
-
   if (index > 1) {
     return NumberCell;
   }
@@ -153,13 +131,13 @@ function getCellComponent(index: number) {
 
 const TradersContainer = (props: Props) => {
   const { traders } = props;
-  const rows = makeDatatableRows(traders);
+  const rowsData = makeDatatableRows(traders);
   const headers = makeDatatableHeaders();
 
   return (
     <div>
       <DataTable
-        rows={rows}
+        rows={rowsData}
         headers={headers}
         render={({ rows, headers, getHeaderProps }) => (
           <TableContainer>
@@ -181,18 +159,11 @@ const TradersContainer = (props: Props) => {
                   <TableRow key={row.id}>
                     {row.cells.map((cell, cellIndex) => {
                       const CellComponent = getCellComponent(cellIndex);
+                      const trader = rowsData[rowIndex].trader;
                       return (
                         <CellComponent key={cell.id}>
                           {cell.value}
-                          {rowIndex === 0 &&
-                            cellIndex === 1 && (
-                              <ManualControl>
-                                <Button small>Buy ETH</Button>
-                                <Button small disabled>
-                                  Sell ETH
-                                </Button>
-                              </ManualControl>
-                            )}
+                          {cellIndex === 0 && <ManualControl trader={trader} />}
                         </CellComponent>
                       );
                     })}
@@ -207,8 +178,8 @@ const TradersContainer = (props: Props) => {
   );
 };
 
-const mapState = (state: FullState) => ({
-  traders: state.simulation.traders
+const mapState = state => ({
+  traders: state.player.simulation.traders
 });
 
 export default connect(mapState)(TradersContainer);

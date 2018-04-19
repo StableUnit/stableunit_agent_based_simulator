@@ -1,4 +1,3 @@
-//@flow
 import { List, OrderedMap } from 'immutable';
 import nanoid from 'nanoid';
 import faker from 'faker';

@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 

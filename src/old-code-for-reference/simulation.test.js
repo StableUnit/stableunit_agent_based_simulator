@@ -1,5 +1,3 @@
-//@flow
-
 import simulation, { makeSimulationState } from './simulation';
 
 import { makeTrader } from './traders';

@@ -5,8 +5,8 @@
 // - Major wallet is hacked
 // - War start
 // -
-import type { MediaImpact } from '../types';
 
+type MediaImpact = -2 | -1 | 1 | 2;
 type NewsGenerators = Array<() => string>;
 
 function random<T>(arr: Array<T>): T {

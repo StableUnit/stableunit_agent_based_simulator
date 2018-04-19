@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { init } from '@rematch/core';
 import selectorsPlugin from '@rematch/select';
 import App from './App';
-import simulation from './models/simulation';
+import player from './models/player';
 
 // import { injectGlobal } from 'styled-components';
 
@@ -18,7 +18,7 @@ const select = selectorsPlugin();
 
 export const store = init({
   models: {
-    simulation
+    player
   },
   plugins: [select]
 });

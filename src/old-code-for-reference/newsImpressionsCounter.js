@@ -1,4 +1,3 @@
-//@flow
 import type { MediaImpact } from '../types';
 
 const stages = [50, 60, 80, 120, 110, 80, 65, 50, 40, 35, 27, 20, 10, 5, 2];

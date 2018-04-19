@@ -1,5 +1,3 @@
-//@flow
-
 import { List, Record, OrderedMap } from 'immutable';
 import type { RecordFactory } from 'immutable';
 //import { select } from '@rematch/select';
@@ -50,7 +48,8 @@ export const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
   ]),
   stableSystem: makeStableSystem(),
   mediaFeed: OrderedMap(),
-  fearLevel: 50
+  fearLevel: 50,
+  simulation: {}
 });
 
 const initialState = makeSimulationState();
@@ -75,8 +74,8 @@ export default {
     // Exchange reducers
     initializeMarket,
     updateExchange,
-    placeBuyOrder,
-    placeSellOrder,
+    // placeBuyOrder,
+    // placeSellOrder,
 
     // Stable system reducers
     updateStableSystem,
@@ -88,9 +87,23 @@ export default {
     decreaseFearLevel,
 
     // Global ES6 simulation persistance
-    updateSimulationState: (state, data) => {
-      console.log('updating', data);
-      return state.set('newTraders', data.traders);
+    updateSimulationState: (state: SimulationState, data: Simulation) => {
+      return state
+        .set('simulation', data)
+        .set('newTraders', data.traders)
+        .set('market_ETHUSD', data.market_ETHUSD)
+        .set('market_SUETH', data.market_SUETH)
+        ;
+    },
+
+    placeBuyOrder: (state: SimulationState, trader: Trader, su_amount: string, eth_amount: string) => {
+      state.simulation.market_SUETH.newLimitBuyOrder(trader, Number(su_amount), Number(eth_amount));
+      return state;
+    },
+
+    placeSellOrder: (state: SimulationState, trader: Trader, su_amount: string, eth_amount: string) => {
+      state.simulation.market_SUETH.newLimitSellOrder(trader, Number(su_amount), Number(eth_amount));
+      return state;
     },
 
     // Simple tick counter
