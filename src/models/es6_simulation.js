@@ -2,7 +2,12 @@
 import assert from 'assert';
 
 const Utility = {
-    EPS: 1e-6
+    EPS: 1e-6,
+    generateRandomPortfolio() {
+        return {su_balance: Math.round(1000*Math.random()), 
+                eth_balance: Math.round(2*Math.random())
+            };
+    }
 };
 
 // it's very simplified version Ethereum blockhain
@@ -230,6 +235,8 @@ export class Trader {
     }
     buyOrders: Set<Order> = new Set();
     sellOrders: Set<Order> = new Set();
+
+    update() {}
 
     // getEthBalance() {
     //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
@@ -492,6 +499,82 @@ const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
 export type Traders = Map<string, Trader>;
 
+class ArbitrageTrader extends Trader {
+    min_deal_eth = 1;
+    max_deal_eth = 10;
+    marginality = 0.1;
+
+    update() {
+        if (this.eth_balance > this.min_deal_eth) {
+            // buy SU from the reserve
+            let deal_eth = Math.min(this.eth_balance, this.max_deal_eth);
+            let old_su_balance = this.su_balance;
+            web4.su.buySUfromReserveSM(this, deal_eth);
+            let deal_su = this.su_balance - old_su_balance;
+            let deal_price = deal_eth / deal_su;
+            // sell it more expensive on the market
+            const ROI = 1 + this.marginality;
+            market_SUETH.newLimitSellOrder(this, deal_su, deal_su*deal_price*ROI);
+        }
+    }
+}
+
+class AlgoTrader extends Trader {
+    marginality = 0.05;
+    max_deal_eth = 1;
+    max_deal_su = 1000;
+    update() {
+        // lets calc current prices in USD
+        // const eth_price = market_ETHUSD.getCurrentPrice();
+        // const su_peg_price = 1;
+        // const su_price = market_SUETH.getCurrentPrice() * eth_price;
+        // // some prices might be NaN if there are not enought liquidity
+        // const su_sell_price = market_SUETH.getCurrentSellPrice() * eth_price;
+        // const su_buy_price = market_SUETH.getCurrentBuyPrice() * eth_price;
+
+        // if we can buy cheap SU (cheaper than 1-marginality)
+        // we can sell it later for the peg price and get profit (ROI = 1+marginaliry)
+        // let calc price in ETH for SU/ETH market
+        let good_su_sell_price = (1 - this.marginality) / market_ETHUSD.getCurrentPrice();
+        if (market_SUETH.getCurrentSellPrice() < good_su_sell_price ) {
+            // maximum eth we can afford to stake
+            let max_deal_eth = Math.min(this.max_deal_eth, this.eth_balance);
+            // calc avaliable cheap su
+            let available_cheap_su = 0;
+            let nessesary_eth = 0;
+            for (let i = market_SUETH.sellOrders.length-1; i >= 0; --i) {
+                const sellOrder = market_SUETH.sellOrders[i];
+                if (sellOrder.price < good_su_sell_price) {
+                    if (nessesary_eth + sellOrder.eth_amount <= max_deal_eth) {
+                        nessesary_eth += sellOrder.eth_amount;
+                        available_cheap_su += sellOrder.su_amount;
+                    } else {
+                        let deal_eth = max_deal_eth - nessesary_eth;
+                        let deal_su = deal_eth / sellOrder.price - Utility.EPS;
+                        nessesary_eth += deal_eth;
+                        available_cheap_su += deal_su;
+                        break;
+                    }
+                } else break;
+            }
+            let deal_su = available_cheap_su;
+            market_SUETH.newMarketBuyOrder(this, deal_su);
+            // lets sell it expensive
+            let deal_eth = deal_su / market_ETHUSD.getCurrentPrice();
+            market_SUETH.newLimitSellOrder(this, deal_su, deal_eth);
+        }
+
+        // // if we can sell SU more than (1+marginality), lets do that
+        // // we will buy it again aroun 1 USD for SU because the System deisgned to be stable
+        // let good_su_buy_price = (1 + this.marginality) / market_ETHUSD.getCurrentPrice();
+        // if (market_SUETH.getCurrentBuyPrice() > good_su_buy_price) {
+        //     let max_deal_su = Math.min(this.max_deal_su, this.su_balance);
+        //     // calc how much su we can sell with profit
+
+        // }
+    }
+}
+
 export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
@@ -509,12 +592,18 @@ export class Simulation {
         // traders
         this.traders.set("human_1", new Trader({su_balance: 1000, eth_balance: 2}));
         this.traders.set("human_2", new Trader({su_balance: 1000, eth_balance: 2}));
+        //this.traders.set("arbitrage_1", new ArbitrageTrader(Utility.generateRandomPortfolio()));
+        this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
         // tests
         market_SUETH.test();
     }
     // execute one tick of the simulation
     update() {
         // console.log('tick');
-        //this.traders.forEach()
+        market_SUETH.update();
+        for (let [name, trader] of this.traders) {
+            trader.update();
+        }
+
     }
 }
