@@ -143,7 +143,7 @@ class StableUnit extends Ethereum {
     }
 
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
-    buySUfromReserveSM(buyer: Trader, eth_amount: number) {
+    buySUfromReserveSM(buyer: Trader, eth_amount: number) {    
         // check that sender is owed that money
         if (buyer.eth_balance >= eth_amount) {
             // check that SF able to sell SU (always is able)
