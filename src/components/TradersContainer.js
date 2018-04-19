@@ -21,13 +21,14 @@ type Props = {
 const TradersContainer = (props: Props) => {
   const { traders, cancelBuyOrder, cancelSellOrder } = props;
 
-  const tradersArr = Array.from(traders.values());
+  const tradersArr = Array.from(traders.entries()).map(traderData => ({ name: traderData[0], ...traderData[1] }));
 
   return (
     <div>
       {tradersArr.map((trader, index) => {
         return (
           <div key={index}>
+            <strong>{trader.name}</strong>
             <table style={{ width: '100%' }}>
               <tr>
                 <td>SU</td>
