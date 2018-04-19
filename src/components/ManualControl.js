@@ -48,8 +48,6 @@ class ManualControl extends React.Component<Props, State> {
       sell_eth_amount
     } = this.state;
 
-    console.log(buy_eth_amount);
-
     return (
       <div>
         <div>
