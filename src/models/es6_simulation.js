@@ -83,33 +83,44 @@ class StableUnit extends Ethereum {
     SU_price: number;
     SU_circulation: number;
 
-    reserve_account = {};
-    fundation_account = {};
+    //reserve_account = {};
+    //fundation_account = {};
     reserve_eth: number;
     reserve_ratio: number;
+    bonds: number;
+    BONDS_EMISSION = 0.1; // 10% of the SU in circulation
+    bond_price: number;
+    shares: number;
     FrosenRatio = 0.0;
 
     constructor(ethereum: Ethereum) {
         super();
         // init stabilisation fund with some existing funds (after ICO for example)
-        this.reserve_account = ethereum.createWallet(1000);
+        //this.reserve_account = ethereum.createWallet(1000);
         this.reserve_eth = 1000;
         // create DAO
-        this.fundation_account = this.createWallet(1);
-        this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
+        //this.fundation_account = this.createWallet(1);
+        //this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
+        this.shares = 1000;
         // create Bonds as type of token
-        this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
+        //this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
+        this.bonds = 0;
     }
 
     // Oracle smartcontract takes info from outside
-    callOracleSM(SUETH_price, ETHUSD_price) {
+    callOracleSM(ETHUSD_price: number) {
+        this.ETHUSD_price = ETHUSD_price;
+        this.reserve_ratio = this.reserve_eth*ETHUSD_price / this.SU_circulation;
+    }
+
+    // Not sure yet whether we need SU/ETH or SU/USD as an input for oracle
+    callOracleSM2(SUETH_price: number, ETHUSD_price: number) {
         // reads info from outside world and brings it to the blockchain
         // TODO: checks that prices haven't check too much so nobody is trying to compromize the System
+        this.callOracleSM(ETHUSD_price);
         this.SUETH_price = SUETH_price;
-        this.ETHUSD_price = ETHUSD_price;
-        const SU_price = SUETH_price * ETHUSD_price;
+        const SU_price = SUETH_price * this.ETHUSD_price;
         this.SU_price = SU_price;
-        this.reserve_ratio = this.reserve_eth*ETHUSD_price / this.SU_circulation;
 
         // expand supply via stablization fund + repaing bonds
         if (this.PEG + this.D1 <= SU_price) {
@@ -132,13 +143,18 @@ class StableUnit extends Ethereum {
     }
 
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
+<<<<<<< Updated upstream
     buySUfromReserveSM(buyer: Trader, amount_eth) {
+=======
+    buySUfromReserveSM(buyer: Trader, eth_amount: number) {    
+>>>>>>> Stashed changes
         // check that sender is owed that money
-        if (buyer.eth_balance >= amount_eth) {
+        if (buyer.eth_balance >= eth_amount) {
             // check that SF able to sell SU (always is able)
             // price of SU is 1+delta_S
-            let deal_su = amount_eth * (this.ETHUSD_price*(1 + this.D1));
-            buyer.eth_balance -= amount_eth;
+            let deal_price /*SUETH*/ = (1 + this.D1) /*SU/USD*/ /  this.ETHUSD_price;
+            let deal_su = eth_amount / deal_price;
+            buyer.eth_balance -= eth_amount;
             buyer.su_balance += deal_su;
             this.SU_circulation += deal_su;
             return true;
@@ -146,9 +162,33 @@ class StableUnit extends Ethereum {
         return false;
     }
 
-    sellSUtoReserveSM(su_addr, amount_su, txn_sign, eth_addr) {}
+    //sellSUtoReserveSM(su_addr, amount_su, txn_sign, eth_addr) {}
+    sellSUtoReserveSM(seller: Trader, su_amount: number) {
+        if (seller.su_balance >= su_amount) {
+            // TODO: calc accurate price according wp
+            let deal_price = (1 - this.D1) / this.ETHUSD_price;
+            let deal_eth = su_amount * deal_price;
+            // check that SF able to buy SU (enougth ETH)
+            if (this.reserve_eth < deal_eth) {
+                deal_eth = Math.min(this.reserve_eth, deal_eth);
+                // reserve is empty, unlock bonds mechanism
+                this.unlockBonds();
+            }
+            seller.eth_balance += deal_eth;
+            seller.su_balance -= su_amount;
+            this.SU_circulation -= su_amount;
+            return true;
+        }
+    }
+
+    unlockBonds() {
+        this.bonds = this.SU_circulation * this.BONDS_EMISSION;
+    }
     // bonds are erc20 tokens so can be store on the same addresses;
-    buyBondsSM(su_addr, amount_su, tnx_sign, eth_addr_erc20token) {}
+    //buyBondsSM(su_addr, amount_su, tnx_sign, eth_addr_erc20token) {}
+    buyBondsSM(trader: Trader, amount_su) {
+
+    }
 
     sellBondsSM() {}
 
@@ -181,12 +221,16 @@ export class Trader {
     //portfolio = {};
     su_balance: number;
     eth_balance: number;
+    bonds_balance: number;
+    shares_balance: number;
 
     constructor(portfolio: {su_balance: number, eth_balance: number}) {
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.su_balance);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.eth_balance);
         this.su_balance = portfolio.su_balance;
         this.eth_balance = portfolio.eth_balance;
+        this.bonds_balance = 0;
+        this.shares_balance = 0;
     }
     buyOrders: Set<Order> = new Set();
     sellOrders: Set<Order> = new Set();
