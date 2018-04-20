@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import {Market_SUETH} from '../models/es6_simulation';
 
 import OrderBook from './OrderBook';
-import CandleSticks from './CandleSticks';
+import History from './History';
 
 type Props = {
   market: Market_SUETH
@@ -30,7 +30,7 @@ const MarketContainer = (props: Props) => {
     <div>
         <Wrap>
           <Half>
-            <CandleSticks market={market} />
+            <History market={market} />
           </Half>
           <Half>
             <OrderBook market={market} />
