@@ -23,10 +23,7 @@ const History = (props: Props) => {
 
   // Convert data for orderbook
   // const data = convertDataForChart(market.history);
-  const data: HistoryData = [...market.history];
-
-
-  console.log(data)
+  const data: HistoryData = market.history.slice(-50);
 
   const style = {
     width: '100%',
