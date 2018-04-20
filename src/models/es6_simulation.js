@@ -259,10 +259,12 @@ export type Order = {
 export class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
+    random_change: number;
 
     constructor(initial_price: number, name: string = 'no_name') {
         this.name = name;
         this.setNewPrice(initial_price);
+        this.random_change = initial_price*0.01;
     }
 
     setNewPrice(new_price: number) {
@@ -271,6 +273,10 @@ export class Market {
 
     getCurrentPrice() {
         return this.history[this.history.length-1].price;
+    }
+
+    addRandomPriceChange() {
+        this.setNewPrice(this.getCurrentPrice() + (Math.random()-1/2)*this.random_change);
     }
 }
 const market_ETHUSD = new Market(500 /*USD per ETH */, "ETH/USD");
@@ -604,6 +610,7 @@ export class Simulation {
         for (let [name, trader] of this.traders) {
             trader.update();
         }
+        market_ETHUSD.addRandomPriceChange();
 
     }
 }
