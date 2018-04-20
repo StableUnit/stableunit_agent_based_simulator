@@ -23,7 +23,8 @@ const History = (props: Props) => {
 
   // Convert data for orderbook
   // const data = convertDataForChart(market.history);
-  const data: HistoryData = market.history;
+  const data: HistoryData = [...market.history];
+
 
   console.log(data)
 
@@ -46,10 +47,8 @@ const History = (props: Props) => {
         // balloonText:
         //   'Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>',
         closeField: 'close',
-        fillColors: colors.green,
         lineColor: colors.green,
         lineAlpha: 1,
-        fillAlphas: 0.9,
         negativeFillColors: colors.red,
         negativeLineColor: colors.red,
         title: 'Price:',
