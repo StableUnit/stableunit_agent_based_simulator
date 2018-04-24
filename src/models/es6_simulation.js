@@ -7,7 +7,8 @@ const Utility = {
         return {su_balance: Math.round(1000*Math.random()), 
                 eth_balance: Math.round(2*Math.random())
             };
-    }
+    },
+    simulationTick: 0
 };
 
 // it's very simplified version Ethereum blockhain
@@ -235,8 +236,26 @@ export class Trader {
     }
     buyOrders: Set<Order> = new Set();
     sellOrders: Set<Order> = new Set();
+    ttl: Map<Order, number> = new Map();
 
-    update() {}
+    update() {
+        // update orders ttl and remove expired
+        for (let [order, ttl] of this.ttl) {
+            this.ttl.set(order, ttl-1);
+            if (--ttl <= 0) {
+                this.ttl.delete(order);
+                if (order.type === "buy") 
+                    market_SUETH.deleteLimitBuyOrder(order);
+                else
+                    market_SUETH.deleteLimitSellOrder(order); 
+            }
+        }
+
+
+        // for (let [order,ttl] of this.sellOrders) {
+        //     if (--ttl <= 0) market_SUETH.deleteLimitSellOrder(order);
+        // }
+    }
 
     // getEthBalance() {
     //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
@@ -246,29 +265,37 @@ export class Trader {
     //     return web4.su.accounts.get(this.portfolio.su_wallet.address) || 0;
     // }
 
-    test() {}
+    test() {
+        let returned_status = market_SUETH.newLimitBuyOrder(this, 1*Math.random(), 0.1);
+        if (returned_status.order !== undefined) {
+            returned_status.order.type = "buy";
+            this.ttl.set( returned_status.order, 5);
+        } 
+    }
 }
 export type Order = {
     trader: Trader;
     su_amount: number;
     eth_amount: number;
     price: number;
+    type?:string;
 }
 
 // market of two particular asserts, i.e. ETH/USD, in this case prices are in USD
 export class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
+    volatility_factor = 0.05;
     random_change: number;
 
     constructor(initial_price: number, name: string = 'no_name') {
         this.name = name;
         this.setNewPrice(initial_price);
-        this.random_change = initial_price*0.01;
+        this.random_change = initial_price*this.volatility_factor;
     }
 
     setNewPrice(new_price: number) {
-        this.history.push({datetime: this.history.length, price: new_price});
+        this.history.push({datetime: Utility.simulationTick, price: new_price});
     }
 
     getCurrentPrice() {
@@ -326,21 +353,29 @@ export class Market_SUETH extends Market {
     newLimitBuyOrder(trader: Trader, su_amount: number, eth_amount: number) {
         // check that the trader can afford that
         if (trader.eth_balance >= eth_amount) {
-            const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
+            const order:Order = {
+                trader: trader, 
+                su_amount: su_amount, 
+                eth_amount: eth_amount, 
+                price: eth_amount / su_amount};
             this.buyOrders.push(order);
             trader.buyOrders.add(order);
 
             // the last item has the highest price
             this.buyOrders.sort((a,b) => b.price - a.price);
-            return "Added limited buy order";
+            return {order: order, status: "Added limited buy order"};
         } else {
-            return "No enough ETH";
+            return {status: "No enough ETH"};
         }
     }
 
     newLimitSellOrder(trader: Trader, su_amount: number, eth_amount: number) {
         if (trader.su_balance >= su_amount) {
-            const order:Order = {trader: trader, su_amount: su_amount, eth_amount: eth_amount, price: eth_amount / su_amount};
+            const order:Order = {
+                trader: trader, 
+                su_amount: su_amount, 
+                eth_amount: eth_amount, 
+                price: eth_amount / su_amount};
             this.sellOrders.push(order);
             trader.sellOrders.add(order);
             // the last item has the smallest price
@@ -505,12 +540,15 @@ const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
 export type Traders = Map<string, Trader>;
 
-class ArbitrageTrader extends Trader {
+
+// This traders earn on differences between market price and SU reserve price
+class ArbitrageUpTrader extends Trader {
     min_deal_eth = 1;
     max_deal_eth = 10;
     marginality = 0.1;
 
     update() {
+        super.update();
         if (this.eth_balance > this.min_deal_eth) {
             // buy SU from the reserve
             let deal_eth = Math.min(this.eth_balance, this.max_deal_eth);
@@ -525,11 +563,16 @@ class ArbitrageTrader extends Trader {
     }
 }
 
+class ArbitrageDownTrader extends Trader {
+
+}
+
 class AlgoTrader extends Trader {
     marginality = 0.05;
     max_deal_eth = 1;
     max_deal_su = 1000;
     update() {
+        super.update();
         // lets calc current prices in USD
         // const eth_price = market_ETHUSD.getCurrentPrice();
         // const su_peg_price = 1;
@@ -581,14 +624,16 @@ class AlgoTrader extends Trader {
     }
 }
 
+
 export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
     market_SUETH: Market_SUETH;
     traders: Traders = new Map();
-
+    
     // takes callBack funtions for visualisation
     constructor() {
+    
         // init all instances of the simulation:
         // blokchains,
         this.web4 = web4;
@@ -601,16 +646,21 @@ export class Simulation {
         //this.traders.set("arbitrage_1", new ArbitrageTrader(Utility.generateRandomPortfolio()));
         this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
         // tests
-        market_SUETH.test();
+        // market_SUETH.test();
+        // for (let [, trader] of this.traders) {
+        //     trader.test();
+        // }
+        
     }
     // execute one tick of the simulation
     update() {
         // console.log('tick');
         market_SUETH.update();
-        for (let [name, trader] of this.traders) {
+        for (let [, trader] of this.traders) {
             trader.update();
         }
         market_ETHUSD.addRandomPriceChange();
-
+        Utility.simulationTick += 1;
+        console.log(Utility.simulationTick);
     }
 }
