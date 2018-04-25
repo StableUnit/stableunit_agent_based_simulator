@@ -58,6 +58,7 @@ function convertDataForChart(
       .values(),
 
     ...sellOrders
+      .sort((a, b) => a.price - b.price)
       .map(order => ({ ...order, price: Number(order.price.toFixed(3)) }))
       .reduce((result, next) => {
         asksAccumulator +=  next.amount_SU;
