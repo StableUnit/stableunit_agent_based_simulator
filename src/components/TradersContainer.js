@@ -27,30 +27,30 @@ const TradersContainer = (props: Props) => {
     <div>
       {tradersArr.map((trader, index) => {
         return (
-          <div key={index}>
+          <div key={trader.name}>
             <strong>{trader.name}</strong>
             <table style={{ width: '100%' }}>
               <tbody>
                 <tr>
                   <td>SU</td>
-                  <td>{trader.su_balance}</td>
+                  <td>{trader.su_balance.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>ETH</td>
-                  <td>{trader.eth_balance}</td>
+                  <td>{trader.eth_balance.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
             <ManualControl trader={trader} />
             {Array.from(trader.buyOrders).map((order, orderIndex) => (
               <div key={orderIndex}>
-                {order.su_amount}, {order.eth_amount}, {order.price.toFixed(2)}{' '}
+                {order.type} {order.su_amount.toFixed(2)}, {order.eth_amount.toFixed(2)}, {order.price.toFixed(4)}{' '}
                 <Button onClick={() => cancelBuyOrder(order)}>Cancel</Button>
               </div>
             ))}
             {Array.from(trader.sellOrders).map((order, orderIndex) => (
               <div key={orderIndex}>
-                {order.su_amount}, {order.eth_amount}, {order.price.toFixed(2)}{' '}
+                {order.type} {order.su_amount.toFixed(2)}, {order.eth_amount.toFixed(2)}, {order.price.toFixed(4)}{' '}
                 <Button onClick={() => cancelSellOrder(order)}>Cancel</Button>
               </div>
             ))}
