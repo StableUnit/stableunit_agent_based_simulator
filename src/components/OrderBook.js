@@ -8,11 +8,11 @@ import { colors } from '../theme';
 // import type { Order, OrderList } from '../types';
 
 import type { Order } from '../models/es6_simulation';
-import { Market_SUETH } from '../models/es6_simulation';
+import { Market_SUmETH } from '../models/es6_simulation';
 type Orders = Array<Order>;
 
 type Props = {
-  market: Market_SUETH,
+  market: Market_SUmETH,
   mobile: boolean
 };
 
@@ -42,7 +42,7 @@ function convertDataForChart(
     ...buyOrders
       .sort((a, b) => b.price - a.price)
       .reduce((result, next) => {
-        bidsAccumulator += next.eth_amount * next.su_amount;
+        bidsAccumulator += next.amount_SU;
         const currentValue = result.get(next.price) || {
           price: next.price,
           bidsQuantity: 0,
@@ -50,7 +50,7 @@ function convertDataForChart(
         };
         return result.set(next.price, {
           ...currentValue,
-          bidsQuantity: currentValue.bidsQuantity + next.eth_amount * next.su_amount,
+          bidsQuantity: currentValue.bidsQuantity +  next.amount_SU,
           bidsTotalQuantity: bidsAccumulator
         });
       }, new Map())
@@ -58,7 +58,7 @@ function convertDataForChart(
 
     ...sellOrders
       .reduce((result, next) => {
-        asksAccumulator += next.eth_amount * next.su_amount;
+        asksAccumulator +=  next.amount_SU;
         const currentValue = result.get(next.price) || {
           price: next.price,
           asksQuantity: 0,
@@ -66,7 +66,7 @@ function convertDataForChart(
         };
         return result.set(next.price, {
           ...currentValue,
-          asksQuantity: currentValue.asksQuantity + next.eth_amount * next.su_amount,
+          asksQuantity: currentValue.asksQuantity + next.amount_SU,
           asksTotalQuantity: asksAccumulator
         });
       }, new Map())
@@ -78,7 +78,7 @@ const OrderBook = (props: Props) => {
   const { market, mobile } = props;
 
   // Convert data for orderbook
-  const data = convertDataForChart(market.buyOrders, market.sellOrders);
+  const data = convertDataForChart(market.buy_orders, market.sell_orders);
 
   const style = {
     width: '100%',

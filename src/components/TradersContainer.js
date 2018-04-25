@@ -33,24 +33,24 @@ const TradersContainer = (props: Props) => {
               <tbody>
                 <tr>
                   <td>SU</td>
-                  <td>{trader.su_balance.toFixed(2)}</td>
+                  <td>{trader.balance_SU.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>ETH</td>
-                  <td>{trader.eth_balance.toFixed(2)}</td>
+                  <td>{trader.balance_mETH.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
             <ManualControl trader={trader} />
-            {Array.from(trader.buyOrders).map((order, orderIndex) => (
+            {Array.from(trader.buy_orders).map((order, orderIndex) => (
               <div key={orderIndex}>
-                {order.type} {order.su_amount.toFixed(2)}, {order.eth_amount.toFixed(2)}, {order.price.toFixed(4)}{' '}
+                {order.type} {order.amount_SU.toFixed(2)}, {order.amount_mETH.toFixed(2)}, {order.price.toFixed(4)}{' '}
                 <Button onClick={() => cancelBuyOrder(order)}>Cancel</Button>
               </div>
             ))}
-            {Array.from(trader.sellOrders).map((order, orderIndex) => (
+            {Array.from(trader.sell_orders).map((order, orderIndex) => (
               <div key={orderIndex}>
-                {order.type} {order.su_amount.toFixed(2)}, {order.eth_amount.toFixed(2)}, {order.price.toFixed(4)}{' '}
+                {order.type} {order.amount_SU.toFixed(2)}, {order.amount_mETH.toFixed(2)}, {order.price.toFixed(4)}{' '}
                 <Button onClick={() => cancelSellOrder(order)}>Cancel</Button>
               </div>
             ))}

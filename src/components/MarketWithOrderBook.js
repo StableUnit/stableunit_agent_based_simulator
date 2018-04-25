@@ -4,13 +4,13 @@ import React from 'react';
 import styled from 'styled-components';
 
 // import type { Market } from '../types';
-import {Market_SUETH} from '../models/es6_simulation';
+import {Market_SUmETH} from '../models/es6_simulation';
 
 import OrderBook from './OrderBook';
 import History from './History';
 
 type Props = {
-  market: Market_SUETH,
+  market: Market_SUmETH,
   title: string
 };
 
