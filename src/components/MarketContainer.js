@@ -9,7 +9,8 @@ import { Market } from '../models/es6_simulation';
 import History from './History';
 
 type Props = {
-  market: Market
+  market: Market,
+  title: string
 };
 
 const Wrap = styled.div`
@@ -23,10 +24,11 @@ const Half = styled.div`
 `;
 
 const MarketContainer = (props: Props) => {
-  const { market } = props;
+  const { market, title } = props;
 
   return (
     <div>
+      <h3>{title}</h3>
       <Wrap>
         <Half>
           <History market={market} />

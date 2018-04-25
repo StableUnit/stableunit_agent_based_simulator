@@ -10,7 +10,8 @@ import OrderBook from './OrderBook';
 import History from './History';
 
 type Props = {
-  market: Market_SUETH
+  market: Market_SUETH,
+  title: string
 };
 
 const Wrap = styled.div`
@@ -24,10 +25,11 @@ const Half = styled.div`
 `;
 
 const MarketContainer = (props: Props) => {
-  const { market } = props;
+  const { market, title } = props;
 
   return (
     <div>
+        <h3>{title}</h3>
         <Wrap>
           <Half>
             <History market={market} />

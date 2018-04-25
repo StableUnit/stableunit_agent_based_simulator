@@ -30,14 +30,16 @@ const TradersContainer = (props: Props) => {
           <div key={index}>
             <strong>{trader.name}</strong>
             <table style={{ width: '100%' }}>
-              <tr>
-                <td>SU</td>
-                <td>{trader.su_balance}</td>
-              </tr>
-              <tr>
-                <td>ETH</td>
-                <td>{trader.eth_balance}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td>SU</td>
+                  <td>{trader.su_balance}</td>
+                </tr>
+                <tr>
+                  <td>ETH</td>
+                  <td>{trader.eth_balance}</td>
+                </tr>
+              </tbody>
             </table>
             <ManualControl trader={trader} />
             {Array.from(trader.buyOrders).map((order, orderIndex) => (

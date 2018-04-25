@@ -42,34 +42,62 @@ export default {
         .set('simulation', simulation)
         .update('tick', tick => tick + 1)
     },
-    placeBuyOrder: (
+    placeLimitBuyOrder: (
       state: SimulationState,
       payload: {
         trader: Trader,
-        su_amount: string,
-        eth_amount: string
+        price: string,
+        quantity: string
       }
     ) => {
       const status = state.simulation.market_SUETH.newLimitBuyOrder(
         payload.trader,
-        Number(payload.su_amount),
-        Number(payload.eth_amount)
+        Number(payload.quantity),
+        Number(payload.price) * Number(payload.quantity)
       );
       return state.set('status', status);
     },
 
-    placeSellOrder: (
+    placeLimitSellOrder: (
       state: SimulationState,
       payload: {
         trader: Trader,
-        su_amount: string,
-        eth_amount: string
+        price: string,
+        quantity: string
       }
     ) => {
       const status = state.simulation.market_SUETH.newLimitSellOrder(
         payload.trader,
-        Number(payload.su_amount),
-        Number(payload.eth_amount)
+        Number(payload.quantity),
+        Number(payload.price) * Number(payload.quantity)
+      );
+      return state.set('status', status);
+    },
+
+    placeMarketBuyOrder: (
+      state: SimulationState,
+      payload: {
+        trader: Trader,
+        quantity: string
+      }
+    ) => {
+      const status = state.simulation.market_SUETH.newMarketBuyOrder(
+        payload.trader,
+        Number(payload.quantity)
+      );
+      return state.set('status', status);
+    },
+
+    placeMarketSellOrder: (
+      state: SimulationState,
+      payload: {
+        trader: Trader,
+        quantity: string
+      }
+    ) => {
+      const status = state.simulation.market_SUETH.newMarketSellOrder(
+        payload.trader,
+        Number(payload.quantity)
       );
       return state.set('status', status);
     },

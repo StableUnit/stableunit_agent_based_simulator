@@ -8,31 +8,39 @@ import { Trader } from '../models/es6_simulation';
 
 type Props = {
   trader: Trader,
-  placeBuyOrder: (payload: {
+  placeLimitBuyOrder: (payload: {
     trader: Trader,
-    su_amount: string,
-    eth_amount: string
+    price: string,
+    quantity: string
   }) => {},
-  placeSellOrder: (payload: {
+  placeLimitSellOrder: (payload: {
     trader: Trader,
-    su_amount: string,
-    eth_amount: string
+    price: string,
+    quantity: string
+  }) => {},
+  placeMarketBuyOrder: (payload: {
+    trader: Trader,
+    quantity: string
+  }) => {},
+  placeMarketSellOrder: (payload: {
+    trader: Trader,
+    quantity: string
   }) => {}
 };
 
 type State = {
-  buy_su_amount: string,
-  buy_eth_amount: string,
-  sell_su_amount: string,
-  sell_eth_amount: string
+  buy_price_in_eth: string,
+  buy_su_quantity: string,
+  sell_price_in_eth: string,
+  sell_su_quantity: string
 };
 
 class ManualControl extends React.Component<Props, State> {
   state = {
-    buy_su_amount: '',
-    buy_eth_amount: '',
-    sell_su_amount: '',
-    sell_eth_amount: ''
+    buy_price_in_eth: '',
+    buy_su_quantity: '',
+    sell_price_in_eth: '',
+    sell_su_quantity: ''
   };
 
   update = data => {
@@ -40,63 +48,90 @@ class ManualControl extends React.Component<Props, State> {
   };
 
   render() {
-    const { placeBuyOrder, placeSellOrder, trader } = this.props;
+    const { placeLimitBuyOrder, placeLimitSellOrder, placeMarketBuyOrder, placeMarketSellOrder, trader } = this.props;
     const {
-      buy_su_amount,
-      buy_eth_amount,
-      sell_su_amount,
-      sell_eth_amount
+      buy_price_in_eth,
+      buy_su_quantity,
+      sell_price_in_eth,
+      sell_su_quantity
     } = this.state;
 
     return (
       <div>
         <div>
           <input
-            placeholder="su"
-            value={buy_su_amount}
-            onChange={e => this.update({ buy_su_amount: e.target.value })}
+            placeholder="Price in ETH"
+            value={buy_price_in_eth}
+            onChange={e => this.update({ buy_price_in_eth: e.target.value })}
           />{' '}
           <input
-            placeholder="eth"
-            value={buy_eth_amount}
-            onChange={e => this.update({ buy_eth_amount: e.target.value })}
+            placeholder="SU quantity"
+            value={buy_su_quantity}
+            onChange={e => this.update({ buy_su_quantity: e.target.value })}
           />{' '}
           <Button
+            disabled={!buy_price_in_eth || !buy_su_quantity}
             small
             onClick={() =>
-              placeBuyOrder({
+              placeLimitBuyOrder({
                 trader,
-                su_amount: buy_su_amount,
-                eth_amount: buy_eth_amount
+                price: buy_price_in_eth,
+                quantity: buy_su_quantity
               })
             }
           >
-            Buy
+            Buy Limit
           </Button>
+          <Button
+            disabled={!buy_su_quantity}
+            small
+            onClick={() =>
+              placeMarketBuyOrder({
+                trader,
+                quantity: buy_su_quantity
+              })
+            }
+          >
+            Buy Market
+          </Button>
+
         </div>
 
         <div>
           <input
-            placeholder="su"
-            value={sell_su_amount}
-            onChange={e => this.update({ sell_su_amount: e.target.value })}
+            placeholder="Price in ETH"
+            value={sell_price_in_eth}
+            onChange={e => this.update({ sell_price_in_eth: e.target.value })}
           />{' '}
           <input
-            placeholder="eth"
-            value={sell_eth_amount}
-            onChange={e => this.update({ sell_eth_amount: e.target.value })}
+            placeholder="SU quantity"
+            value={sell_su_quantity}
+            onChange={e => this.update({ sell_su_quantity: e.target.value })}
           />{' '}
           <Button
+            disabled={!sell_price_in_eth || !sell_su_quantity}
             small
             onClick={() =>
-              placeSellOrder({
+              placeLimitSellOrder({
                 trader,
-                su_amount: sell_su_amount,
-                eth_amount: sell_eth_amount
+                price: sell_price_in_eth,
+                quantity: sell_su_quantity
               })
             }
           >
-            Sell
+            Sell Limit
+          </Button>
+          <Button
+            disabled={!sell_su_quantity}
+            small
+            onClick={() =>
+              placeMarketSellOrder({
+                trader,
+                quantity: sell_su_quantity
+              })
+            }
+          >
+            Sell Market
           </Button>
         </div>
       </div>
@@ -105,8 +140,10 @@ class ManualControl extends React.Component<Props, State> {
 }
 
 const mapDispatch = dispatch => ({
-  placeBuyOrder: dispatch.player.placeBuyOrder,
-  placeSellOrder: dispatch.player.placeSellOrder
+  placeLimitBuyOrder: dispatch.player.placeLimitBuyOrder,
+  placeLimitSellOrder: dispatch.player.placeLimitSellOrder,
+  placeMarketBuyOrder: dispatch.player.placeMarketBuyOrder,
+  placeMarketSellOrder: dispatch.player.placeMarketSellOrder
 });
 
 export default connect(null, mapDispatch)(ManualControl);

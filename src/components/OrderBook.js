@@ -41,7 +41,7 @@ function convertDataForChart(
   return [
     ...buyOrders
       .reduce((result, next) => {
-        bidsAccumulator += next.eth_amount;
+        bidsAccumulator += next.eth_amount * next.su_amount;
         const currentValue = result.get(next.price) || {
           price: next.price,
           bidsQuantity: 0,
@@ -49,7 +49,7 @@ function convertDataForChart(
         };
         return result.set(next.price, {
           ...currentValue,
-          bidsQuantity: currentValue.bidsQuantity + next.eth_amount,
+          bidsQuantity: currentValue.bidsQuantity + next.eth_amount * next.su_amount,
           bidsTotalQuantity: bidsAccumulator
         });
       }, new Map())
@@ -57,7 +57,7 @@ function convertDataForChart(
 
     ...sellOrders
       .reduce((result, next) => {
-        asksAccumulator += next.eth_amount;
+        asksAccumulator += next.eth_amount * next.su_amount;
         const currentValue = result.get(next.price) || {
           price: next.price,
           asksQuantity: 0,
@@ -65,7 +65,7 @@ function convertDataForChart(
         };
         return result.set(next.price, {
           ...currentValue,
-          asksQuantity: currentValue.asksQuantity + next.eth_amount,
+          asksQuantity: currentValue.asksQuantity + next.eth_amount * next.su_amount,
           asksTotalQuantity: asksAccumulator
         });
       }, new Map())
