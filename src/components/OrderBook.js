@@ -80,7 +80,7 @@ const OrderBook = (props: Props) => {
   const { market, mobile } = props;
 
   // Convert data for orderbook
-  const data = convertDataForChart(market.buy_orders, market.sell_orders);
+  const data = convertDataForChart([...market.buy_orders], [...market.sell_orders]);
 
   const style = {
     width: '100%',
