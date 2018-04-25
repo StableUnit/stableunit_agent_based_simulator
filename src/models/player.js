@@ -118,6 +118,12 @@ export default {
         return;
       }
       isInitialized = true;
+
+      // Making simulation global to be able to watch
+      // TODO: Remove later
+      window.simulation = rootState.player.simulation;
+
+
       while (true) {
         rootState.player.simulation.update();
         this.updateSimulationState(rootState.player.simulation);
