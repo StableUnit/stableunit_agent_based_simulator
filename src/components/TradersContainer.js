@@ -21,7 +21,7 @@ type Props = {
 const TradersContainer = (props: Props) => {
   const { traders, cancelBuyOrder, cancelSellOrder } = props;
 
-  const tradersArr = Array.from(traders.entries()).map(traderData => ({ name: traderData[0], ...traderData[1] }));
+  const tradersArr = Array.from(traders.values());
 
   return (
     <div>
