@@ -501,15 +501,18 @@ export class Market_SUETH extends Market {
 const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
 export class Trader {
+    name: string;
     //portfolio = {};
     su_balance: number;
     eth_balance: number;
     bonds_balance: number;
     shares_balance: number;
-    time_frame: number;
-    time_until_update: number;
 
-    constructor(portfolio: {su_balance: number, eth_balance: number}, time_frame: number = 1) {
+    time_frame: number;
+    time_left_until_update: number;
+
+    constructor(name: string, portfolio: {su_balance: number, eth_balance: number}, time_frame: number = 1) {
+        this.name = name;
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.su_balance);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.eth_balance);
         this.su_balance = portfolio.su_balance;
@@ -518,7 +521,7 @@ export class Trader {
         this.shares_balance = 0;
 
         this.time_frame = time_frame;
-        this.time_until_update = 0;
+        this.time_left_until_update = 0;
     }
     buyOrders: Set<Order> = new Set();
     sellOrders: Set<Order> = new Set();
@@ -537,9 +540,9 @@ export class Trader {
 
     isTimeToUpdate() {
         // return true is there's time to update
-        this.time_until_update -= 1;
-        if (this.time_until_update <= 0) {
-            this.time_until_update = this.time_frame;
+        this.time_left_until_update -= 1;
+        if (this.time_left_until_update <= 0) {
+            this.time_left_until_update = this.time_frame;
             return true;
         } else {
             return false;
@@ -573,27 +576,33 @@ export type Order = {
 
 export type Traders = Map<string, Trader>;
 
-// SimpleTrader use very simple logic to trade into plus:
-// if trader type is "bull" - it buys SU cheaper than $1 and sells it back at $1
-// if trader type is "bear" - it sells SU for higher than $1 and buys it back at $1
+// SimpleTrader uses very simple logic to trade:
+// It know that the SU price will always fluctate around $1 so
+// if trader' dna.type is "bull" - it buys SU cheaper than $1 and sells it back at $1
+// if trader' dna.type is "bear" - it sells SU for higher than $1 and buys it back at $1
+// the trader whould like to earn dna.roi from this trade and acts every dna.time_frame ticks
 class SimpleTrader extends Trader {
+    DEFAULT_ROI = 0.1;
+    roi: number;
     type: string;
     time_frame: number; 
-    time_since_last_update = 0;
-    marginality: number = 0.1; // USD
 
-    constructor(portfolio, dna:{type: string, time_frame: number}) {
-        super(portfolio);
+    constructor(name:string, portfolio, dna:{type: string, time_frame: number, roi?: number}) {
+        super(name, portfolio, dna.time_frame);
         this.type = dna.type;
         this.time_frame = dna.time_frame;
+        this.roi = dna.roi || this.DEFAULT_ROI;
     }
     update() {
         super.update();
         // execute update ones in time_frame ticks
         if (super.isTimeToUpdate()) {
             let su_peg_price_eth = 1 / market_ETHUSD.getCurrentPrice();
-            let su_low_price_eth = (1-this.marginality) / market_ETHUSD.getCurrentPrice();
-            let su_high_price_eth = (1+this.marginality) / market_ETHUSD.getCurrentPrice();
+            // return on investment = (gain from investment – cost of investment) / cost of investment
+            // when trading above 1 for 1+x: roi == (1+x - 1)/1 => x == roi
+            let su_high_price_eth = (1+this.roi) / market_ETHUSD.getCurrentPrice();
+            // when trading below 1 for 1-y: roi == (1 - (1-y))/(1-y) == y/(1-y) => y == roi/(roi+1)
+            let su_low_price_eth = (1-this.roi/(1+this.roi)) / market_ETHUSD.getCurrentPrice();
             if (this.type === "bull") {
                 // buying cheap su and belive that price will rise to peg
                 market_SUETH.newLimitBuyOrder(this, this.eth_balance / su_low_price_eth, this.eth_balance, this.time_frame);
@@ -722,12 +731,17 @@ export class Simulation {
         this.market_ETHUSD = market_ETHUSD;
         this.market_SUETH = market_SUETH;
         // traders
-        this.traders.set("human_1", new Trader({su_balance: 1000, eth_balance: 2}));
-        this.traders.set("human_2", new Trader({su_balance: 1000, eth_balance: 2}));
-        this.traders.set("simple_bull", new SimpleTrader({su_balance: 1000, eth_balance: 2},{type: "bull", time_frame: 5}));
-        this.traders.set("simple_bear", new SimpleTrader({su_balance: 1000, eth_balance: 2},{type: "bear", time_frame: 5}));
-        this.traders.set("random_t1", new RandomTrader({su_balance: 1000, eth_balance: 2}, 1));
-        this.traders.set("random_t2", new RandomTrader({su_balance: 1000, eth_balance: 2}, 2));
+        let traders = [];
+        traders.push(new Trader("human_1", {su_balance: 1000, eth_balance: 2}));
+        traders.push(new Trader("human_2",{su_balance: 1000, eth_balance: 2}));
+        traders.push(new SimpleTrader("simple_bull", {su_balance: 1000, eth_balance: 2},{type: "bull", time_frame: 5, roi: 0.2}));
+        traders.push(new SimpleTrader("simple_bear", {su_balance: 1000, eth_balance: 2},{type: "bear", time_frame: 5}));
+        traders.push(new RandomTrader("random_t1", {su_balance: 1000, eth_balance: 2}, 1));
+        traders.push(new RandomTrader("random_t2", {su_balance: 1000, eth_balance: 2}, 2));
+        
+        for (let trader of traders) {
+            this.traders.set(trader.name, trader);
+        }
         //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
         //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
         // tests
@@ -752,5 +766,6 @@ export class Simulation {
         // updates
         Utility.simulationTick += 1;
         console.log(Utility.simulationTick);
+        console.log(this.traders.get("human_1"));
     }
 }
