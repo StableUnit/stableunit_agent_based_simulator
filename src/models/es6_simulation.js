@@ -5,8 +5,11 @@ const Utility = {
     EPS: 1e-6,
     generateRandomPortfolio() {
         return {su_balance: Math.round(1000*Math.random()), 
-                eth_balance: Math.round(2*Math.random())
+                eth_balance: Math.round(10*Math.random())
             };
+    },
+    randomSuOrder() {
+        return Math.round(Math.random()*50);
     },
     simulationTick: 0
 };
@@ -202,10 +205,6 @@ class StableUnit extends Ethereum {
             super.sendTransaction(address_sender, amount, address_recipient);
         }
     }
-
-    test() {
-
-    }
 }
 
 // simple interface of communication with blockchain networks
@@ -219,60 +218,6 @@ class Web4 {
 }
 const web4 = new Web4();
 
-export class Trader {
-    //portfolio = {};
-    su_balance: number;
-    eth_balance: number;
-    bonds_balance: number;
-    shares_balance: number;
-
-    constructor(portfolio: {su_balance: number, eth_balance: number}) {
-        // this.portfolio.su_wallet = web4.su.createWallet(portfolio.su_balance);
-        // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.eth_balance);
-        this.su_balance = portfolio.su_balance;
-        this.eth_balance = portfolio.eth_balance;
-        this.bonds_balance = 0;
-        this.shares_balance = 0;
-    }
-    buyOrders: Set<Order> = new Set();
-    sellOrders: Set<Order> = new Set();
-    ttl: Map<Order, number> = new Map();
-
-    update() {
-        // update orders ttl and remove expired
-        for (let [order, ttl] of this.ttl) {
-            this.ttl.set(order, ttl-1);
-            if (--ttl <= 0) {
-                this.ttl.delete(order);
-                if (order.type === "buy") 
-                    market_SUETH.deleteLimitBuyOrder(order);
-                else
-                    market_SUETH.deleteLimitSellOrder(order); 
-            }
-        }
-
-
-        // for (let [order,ttl] of this.sellOrders) {
-        //     if (--ttl <= 0) market_SUETH.deleteLimitSellOrder(order);
-        // }
-    }
-
-    // getEthBalance() {
-    //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
-    // }
-
-    // getSuBalance() {
-    //     return web4.su.accounts.get(this.portfolio.su_wallet.address) || 0;
-    // }
-
-    test() {
-        let returned_status = market_SUETH.newLimitBuyOrder(this, 1*Math.random(), 0.1);
-        if (returned_status.order !== undefined) {
-            returned_status.order.type = "buy";
-            this.ttl.set( returned_status.order, 5);
-        } 
-    }
-}
 export type Order = {
     trader: Trader;
     su_amount: number;
@@ -350,34 +295,46 @@ export class Market_SUETH extends Market {
         return false;
     }
 
-    newLimitBuyOrder(trader: Trader, su_amount: number, eth_amount: number) {
+    newLimitBuyOrder(trader: Trader, su_amount: number, eth_amount: number, ttl: number = -1) {
         // check that the trader can afford that
         if (trader.eth_balance >= eth_amount) {
             const order:Order = {
                 trader: trader, 
                 su_amount: su_amount, 
                 eth_amount: eth_amount, 
-                price: eth_amount / su_amount};
+                price: eth_amount / su_amount,
+                type: "buy"
+            };
             this.buyOrders.push(order);
             trader.buyOrders.add(order);
+            if (ttl > 0) {
+                trader.ttl.set(order, ttl);
+            }
 
             // the last item has the highest price
             this.buyOrders.sort((a,b) => b.price - a.price);
-            return {order: order, status: "Added limited buy order"};
+            //return {order: order, status: "Added limited buy order"};
+            return "Added limited buy order";
         } else {
-            return {status: "No enough ETH"};
+            //return {status: "No enough ETH"};
+            return "No enough ETH";
         }
     }
 
-    newLimitSellOrder(trader: Trader, su_amount: number, eth_amount: number) {
+    newLimitSellOrder(trader: Trader, su_amount: number, eth_amount: number, ttl: number = -1) {
         if (trader.su_balance >= su_amount) {
             const order:Order = {
                 trader: trader, 
                 su_amount: su_amount, 
                 eth_amount: eth_amount, 
-                price: eth_amount / su_amount};
+                price: eth_amount / su_amount,
+                type: "sell"
+            };
             this.sellOrders.push(order);
             trader.sellOrders.add(order);
+            if (ttl > 0) {
+                trader.ttl.set(order, ttl);
+            }
             // the last item has the smallest price
             this.buyOrders.sort((a,b) => a.price - b.price);
             return "Added limited sell order";
@@ -409,10 +366,18 @@ export class Market_SUETH extends Market {
         order.trader.sellOrders.delete(order);
     }
 
+    deleteLimitOrder(order: Order) {
+        if (order.type === "buy") 
+            this.deleteLimitBuyOrder(order); 
+        else 
+            this.deleteLimitSellOrder(order);
+    }
+
     // This method is trying to complete all possible deals if any available
     update() {
         // check is any limit orders are possible to complete
         while (this.getCurrentBuyPrice() >= this.getCurrentSellPrice()) {
+            debugger;
             let buyOrder = this.buyOrders.pop();
             buyOrder.trader.buyOrders.delete(buyOrder);
             let sellOrder = this.sellOrders.pop();
@@ -425,7 +390,9 @@ export class Market_SUETH extends Market {
             // make a deal between buyer and seller
             if( this.makeTrade(buyOrder.trader, sellOrder.trader, deal_su, deal_eth) ) {
                 buyOrder.su_amount -= deal_su;
+                buyOrder.eth_amount -= deal_eth;
                 sellOrder.su_amount -= deal_su;
+                sellOrder.eth_amount -= deal_eth;
                 // save this deal in the history
                 this.setNewPrice(deal_price);
             }
@@ -449,6 +416,7 @@ export class Market_SUETH extends Market {
         while (this.sellOrders.length > 0 && su_amount > Utility.EPS) {
             // take the cheapest one
             let sellOrder = this.sellOrders.pop();
+            sellOrder.trader.sellOrders.delete(sellOrder);
             // calc the deal details
             let deal_price = sellOrder.price;
             let deal_su = Math.min(su_amount, sellOrder.su_amount);
@@ -462,6 +430,7 @@ export class Market_SUETH extends Market {
                 // if the sell order is only partially completed - add reminder back
                 if (sellOrder.su_amount > Utility.EPS) {
                     this.sellOrders.push(sellOrder);
+                    sellOrder.trader.sellOrders.add(sellOrder);
                 }
             }
         }
@@ -485,6 +454,7 @@ export class Market_SUETH extends Market {
         while (this.buyOrders.length > 0 && su_amount > Utility.EPS) {
         // take the cheapest one
             let buyOrder = this.buyOrders.pop();
+            buyOrder.trader.buyOrders.delete(buyOrder);
             // calc the deal details
             let deal_price = buyOrder.price;
             let deal_su = Math.min(su_amount, buyOrder.su_amount);
@@ -498,6 +468,7 @@ export class Market_SUETH extends Market {
                 // if the sell order is only partially completed - add reminder back
                 if (buyOrder.su_amount > Utility.EPS) {
                     this.buyOrders.push(buyOrder);
+                    buyOrder.trader.buyOrders.add(buyOrder);
                 }
             }
         }
@@ -538,7 +509,115 @@ export class Market_SUETH extends Market {
 }
 const market_SUETH = new Market_SUETH(0.002/* ETH per SU */);
 
+export class Trader {
+    //portfolio = {};
+    su_balance: number;
+    eth_balance: number;
+    bonds_balance: number;
+    shares_balance: number;
+    time_frame: number;
+    time_until_update: number;
+
+    constructor(portfolio: {su_balance: number, eth_balance: number}, time_frame: number = 1) {
+        // this.portfolio.su_wallet = web4.su.createWallet(portfolio.su_balance);
+        // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.eth_balance);
+        this.su_balance = portfolio.su_balance;
+        this.eth_balance = portfolio.eth_balance;
+        this.bonds_balance = 0;
+        this.shares_balance = 0;
+
+        this.time_frame = time_frame;
+        this.time_until_update = 0;
+    }
+    buyOrders: Set<Order> = new Set();
+    sellOrders: Set<Order> = new Set();
+    ttl: Map<Order, number> = new Map();
+
+    update() {
+        // update orders ttl and remove expired
+        for (let [order, ttl] of this.ttl) {
+            this.ttl.set(order, ttl-1);
+            if (--ttl <= 0) {
+                this.ttl.delete(order);
+                market_SUETH.deleteLimitOrder(order);
+            }
+        }
+    }
+
+    isTimeToUpdate() {
+        // return true is there's time to update
+        this.time_until_update -= 1;
+        if (this.time_until_update <= 0) {
+            this.time_until_update = this.time_frame;
+            return true;
+        } else {
+            return false;
+        } 
+    }
+
+    // getEthBalance() {
+    //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
+    // }
+
+    // getSuBalance() {
+    //     return web4.su.accounts.get(this.portfolio.su_wallet.address) || 0;
+    // }
+
+    test() {
+        // let returned_status = market_SUETH.newLimitBuyOrder(this, 1*Math.random(), 0.1);
+        // if (returned_status.order !== undefined) {
+        //     returned_status.order.type = "buy";
+        //     this.ttl.set( returned_status.order, 5);
+        // } 
+    }
+}
+
 export type Traders = Map<string, Trader>;
+
+class SimpleTrader extends Trader {
+    type: string;
+    time_frame: number; 
+    time_since_last_update = 0;
+    marginality: number = 0.1; // USD
+
+    constructor(portfolio, dna:{type: string, time_frame: number}) {
+        super(portfolio);
+        this.type = dna.type;
+        this.time_frame = dna.time_frame;
+    }
+    update() {
+        super.update();
+        // execute update ones in time_frame ticks
+        if (super.isTimeToUpdate()) {
+            let su_peg_price_eth = 1 / market_ETHUSD.getCurrentPrice();
+            let su_low_price_eth = (1-this.marginality) / market_ETHUSD.getCurrentPrice();
+            let su_high_price_eth = (1+this.marginality) / market_ETHUSD.getCurrentPrice();
+            if (this.type === "bull") {
+                // buying cheap su and belive that price will rise to peg
+                market_SUETH.newLimitBuyOrder(this, this.eth_balance / su_low_price_eth, this.eth_balance, this.time_frame);
+                market_SUETH.newLimitSellOrder(this, this.eth_balance / su_peg_price_eth, this.eth_balance, this.time_frame);
+            } else {
+                // selling hight and belibe that price will fall to peg
+                market_SUETH.newLimitBuyOrder(this, this.eth_balance / su_peg_price_eth, this.eth_balance, this.time_frame);
+                market_SUETH.newLimitSellOrder(this, this.eth_balance / su_high_price_eth, this.eth_balance, this.time_frame);
+            }
+        }
+    }
+}
+
+class RandomTrader extends Trader {
+    trade_freqnefy: number = 0.5;
+    update() {
+        super.update();
+        if (super.isTimeToUpdate()) {
+            if (Math.random() < 1/2) {
+                market_SUETH.newMarketBuyOrder(this, Utility.randomSuOrder());
+            } else {
+                market_SUETH.newMarketSellOrder(this, Utility.randomSuOrder());
+            }
+        }
+    }
+}
 
 
 // This traders earn on differences between market price and SU reserve price
@@ -643,8 +722,12 @@ export class Simulation {
         // traders
         this.traders.set("human_1", new Trader({su_balance: 1000, eth_balance: 2}));
         this.traders.set("human_2", new Trader({su_balance: 1000, eth_balance: 2}));
-        //this.traders.set("arbitrage_1", new ArbitrageTrader(Utility.generateRandomPortfolio()));
-        this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
+        this.traders.set("simple_bull", new SimpleTrader({su_balance: 1000, eth_balance: 2},{type: "bull", time_frame: 5}));
+        this.traders.set("simple_bear", new SimpleTrader({su_balance: 1000, eth_balance: 2},{type: "bear", time_frame: 5}));
+        this.traders.set("random_t1", new RandomTrader({su_balance: 1000, eth_balance: 2}, 1));
+        this.traders.set("random_t2", new RandomTrader({su_balance: 1000, eth_balance: 2}, 2));
+        //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
+        //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
         // tests
         // market_SUETH.test();
         // for (let [, trader] of this.traders) {
@@ -654,12 +737,17 @@ export class Simulation {
     }
     // execute one tick of the simulation
     update() {
-        // console.log('tick');
-        market_SUETH.update();
+        // generate inputs
+        market_ETHUSD.addRandomPriceChange();
+        web4.su.callOracleSM(market_ETHUSD.getCurrentPrice());
+        
+        // simulation exectution
         for (let [, trader] of this.traders) {
             trader.update();
         }
-        market_ETHUSD.addRandomPriceChange();
+        market_SUETH.update();
+
+        // updates
         Utility.simulationTick += 1;
         console.log(Utility.simulationTick);
     }
