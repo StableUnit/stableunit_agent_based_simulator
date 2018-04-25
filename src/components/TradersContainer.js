@@ -29,6 +29,11 @@ const TradersContainer = (props: Props) => {
         return (
           <div key={trader.name}>
             <strong>{trader.name}</strong>
+            <div>
+              {trader.type ? <div>TYPE: {trader.type}</div> : null}
+              {trader.roi ? <div>ROI: {trader.roi}</div> : null}
+              {trader.time_frame ? <div>Timeframe: {trader.time_frame}</div> : null}
+            </div>
             <table style={{ width: '100%' }}>
               <tbody>
                 <tr>
