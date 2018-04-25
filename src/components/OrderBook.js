@@ -114,16 +114,16 @@ const OrderBook = (props: Props) => {
     valueAxes: [
       {
         id: 'cumulativeVolume',
-        title: 'Volume'
+        title: 'Volume (SU)'
       }
     ],
     categoryAxis: {
-      title: `Price (${market.name})`,
+      title: `Price (ETH)`,
       minHorizontalGap: 0,
       startOnAxis: true,
       showFirstLabel: false,
       showLastLabel: false,
-      labelsEnabled: false
+      labelsEnabled: true
     },
     export: {
       enabled: true
