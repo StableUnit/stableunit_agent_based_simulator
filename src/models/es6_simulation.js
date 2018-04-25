@@ -4,7 +4,7 @@ import assert from 'assert';
 const Utility = {
     EPS: 1e-6,
     generateRandomPortfolio() {
-        return {balance_SU: Math.round(1000*Math.random()), 
+        return {balance_SU: Math.round(1000*Math.random()),
                 balance_mETH: Math.round(1000*Math.random())
             };
     },
@@ -79,7 +79,7 @@ class Ethereum {
     }
 }
 
-class StableUnit extends Ethereum {
+export class StableUnit extends Ethereum {
     PEG = 1.0;
     D1 = 0.05;
     D2 = 0.1;
@@ -288,11 +288,11 @@ export class Market_SUmETH extends Market {
         // check that the trader can afford that
         if (trader.balance_mETH >= amount_mETH) {
             const order:Order = {
-                trader: trader, 
+                trader: trader,
                 type: "buy",
                 price: amount_mETH / amount_SU,
-                amount_SU: amount_SU, 
-                amount_mETH: amount_mETH, 
+                amount_SU: amount_SU,
+                amount_mETH: amount_mETH,
             };
             this.buy_orders.push(order);
             trader.buy_orders.add(order);
@@ -316,9 +316,9 @@ export class Market_SUmETH extends Market {
         }
         if (trader.balance_SU >= amount_SU) {
             const order:Order = {
-                trader: trader, 
-                amount_SU: amount_SU, 
-                amount_mETH: amount_mETH, 
+                trader: trader,
+                amount_SU: amount_SU,
+                amount_mETH: amount_mETH,
                 price: amount_mETH / amount_SU,
                 type: "sell"
             };
@@ -358,9 +358,9 @@ export class Market_SUmETH extends Market {
     }
 
     deleteLimitOrder(order: Order) {
-        if (order.type === "buy") 
-            this.deleteLimitBuyOrder(order); 
-        else 
+        if (order.type === "buy")
+            this.deleteLimitBuyOrder(order);
+        else
             this.deleteLimitSellOrder(order);
     }
 
@@ -518,7 +518,7 @@ export class Market_SUmETH extends Market {
         this.newLimitBuyOrder(trader_4, 90, 100);
         this.newLimitBuyOrder(trader_4, 80, 100);
         assert.equal(this.checkInvariant(), true);
-        
+
     }
 }
 const market_SUETH = new Market_SUmETH(0.002/* ETH per SU */);
@@ -551,10 +551,10 @@ export class Trader {
         this.time_frame = time_frame;
         this.time_left_until_update = 0;
     }
-    
+
     getPortfolio() {
         let portfolio = {};
-        if (this.balance_SU > 0) 
+        if (this.balance_SU > 0)
             portfolio.balance_SU = this.balance_SU;
         if (this.balance_mETH > 0)
             portfolio.balance_mETH = this.balance_mETH;
@@ -588,7 +588,7 @@ export class Trader {
             return true;
         } else {
             return false;
-        } 
+        }
     }
 
     // getEthBalance() {
@@ -604,7 +604,7 @@ export class Trader {
         // if (returned_status.order !== undefined) {
         //     returned_status.order.type = "buy";
         //     this.ttl.set( returned_status.order, 5);
-        // } 
+        // }
     }
 }
 
@@ -627,7 +627,7 @@ class SimpleTrader extends Trader {
     DEFAULT_ROI = 0.1;
     roi: number;
     type: string;
-    time_frame: number; 
+    time_frame: number;
 
     constructor(name:string, portfolio, dna:{type: string, time_frame: number, roi?: number}) {
         super(name, portfolio, dna, dna.time_frame);
@@ -762,10 +762,10 @@ export class Simulation {
     market_ETHUSD: Market;
     market_SUETH: Market_SUmETH;
     traders: Traders = new Map();
-    
+
     // takes callBack funtions for visualisation
     constructor() {
-    
+
         // init all instances of the simulation:
         // blokchains,
         this.web4 = web4;
@@ -791,14 +791,14 @@ export class Simulation {
         // for (let [, trader] of this.traders) {
         //     trader.test();
         // }
-        
+
     }
     // execute one tick of the simulation
     update() {
         // generate inputs
         market_mETHUSD.addRandomPriceChange();
         web4.su.callOracleSM(market_mETHUSD.getCurrentPrice());
-        
+
         // simulation exectution
         for (let [, trader] of this.traders) {
             trader.update();

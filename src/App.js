@@ -9,6 +9,7 @@ import ExchangeContainer from './components/ExchangeContainer';
 import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
 import Status from './components/Status';
+import StableUnitContainer from './components/StableUnitContainer';
 
 type Props = {
   start: () => void
@@ -43,7 +44,7 @@ class App extends React.Component<Props> {
             </Module>
             <Module>
               <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
-              <ModuleBody>{/* <StableSystemContainer /> */}</ModuleBody>
+              <ModuleBody><StableUnitContainer /></ModuleBody>
             </Module>
           </Panel>
           <Panel>
