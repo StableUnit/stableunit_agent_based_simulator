@@ -554,14 +554,21 @@ export class Trader {
     
     getPortfolio() {
         let portfolio = {};
-        if (this.balance_SU > 0) 
+        portfolio.total_USD = 0;
+        if (this.balance_SU > 0) {
             portfolio.balance_SU = this.balance_SU;
-        if (this.balance_mETH > 0)
+            portfolio.total_USD += this.balance_SU * market_SUETH.getCurrentPrice() * market_mETHUSD.getCurrentPrice();
+        } 
+        if (this.balance_mETH > 0) {
             portfolio.balance_mETH = this.balance_mETH;
-        if (this.balance_BONDs > 0)
+            portfolio.total_USD += this.balance_mETH * market_mETHUSD.getCurrentPrice();
+        }
+        if (this.balance_BONDs > 0) {
             portfolio.balance_BONDs = this.balance_BONDs;
-        if (this.balance_SHAREs > 0)
+        }   
+        if (this.balance_SHAREs > 0) {
             portfolio.balance_SHAREs = this.balance_SHAREs;
+        }
         return portfolio;
     }
 
@@ -639,21 +646,21 @@ class SimpleTrader extends Trader {
         super.update();
         // execute update ones in time_frame ticks
         if (super.isTimeToUpdate()) {
-            let su_peg_price_eth = 1 / market_mETHUSD.getCurrentPrice();
+            let SU_peg_price_mETH = 1 / market_mETHUSD.getCurrentPrice();
             // return on investment = (gain from investment – cost of investment) / cost of investment
             // when trading above 1 for 1+x: roi == (1+x - 1)/1 => x == roi
-            let su_high_price_eth = (1+this.roi) / market_mETHUSD.getCurrentPrice();
+            let SU_high_price_mETH = (1+this.roi) / market_mETHUSD.getCurrentPrice();
             // when trading below 1 for 1-y: roi == (1 - (1-y))/(1-y) == y/(1-y) => y == roi/(roi+1)
-            let su_low_price_eth = (1-this.roi/(1+this.roi)) / market_mETHUSD.getCurrentPrice();
-            if (this.type === "bull") {
+            let SO_low_price_mETH = (1-this.roi/(1+this.roi)) / market_mETHUSD.getCurrentPrice();
+            //if (this.type === "bull") {
                 // buying cheap su and belive that price will rise to peg
-                market_SUETH.newLimitBuyOrder(this, this.balance_mETH / su_low_price_eth, this.balance_mETH, this.time_frame);
-                market_SUETH.newLimitSellOrder(this, this.balance_mETH / su_peg_price_eth, this.balance_mETH, this.time_frame);
-            } else {
+                market_SUETH.newLimitBuyOrder(this, this.balance_mETH / SO_low_price_mETH, this.balance_mETH, this.time_frame);
+              //  market_SUETH.newLimitSellOrder(this, this.balance_mETH / (SU_peg_price_mETH-Utility.EPS), this.balance_mETH, this.time_frame);
+            //} else {
                 // selling hight and belibe that price will fall to peg
-                market_SUETH.newLimitBuyOrder(this, this.balance_mETH / su_peg_price_eth, this.balance_mETH, this.time_frame);
-                market_SUETH.newLimitSellOrder(this, this.balance_mETH / su_high_price_eth, this.balance_mETH, this.time_frame);
-            }
+                //market_SUETH.newLimitBuyOrder(this, this.balance_mETH / (SU_peg_price_mETH+Utility.EPS), this.balance_mETH, this.time_frame);
+                market_SUETH.newLimitSellOrder(this, this.balance_mETH / SU_high_price_mETH, this.balance_mETH, this.time_frame);
+            //}
         }
     }
 }
@@ -670,6 +677,94 @@ class RandomTrader extends Trader {
                 market_SUETH.newMarketSellOrder(this, Utility.randomSuOrder());
             }
         }
+    }
+}
+
+
+
+
+export class Simulation {
+    web4: Web4;
+    market_ETHUSD: Market;
+    market_SUETH: Market_SUmETH;
+    traders: Traders = new Map();
+    
+    // takes callBack funtions for visualisation
+    constructor() {
+    
+        // init all instances of the simulation:
+        // blokchains,
+        this.web4 = web4;
+        // exchanges,
+        this.market_ETHUSD = market_mETHUSD;
+        this.market_SUETH = market_SUETH;
+        // traders
+        let traders = [];
+        traders.push(new Trader("human_1", {balance_SU: 1000, balance_mETH: 500}));
+        traders.push(new Trader("human_2",{balance_SU: 2000, balance_mETH: 1000}));
+        // traders.push(new SimpleTrader(  
+        //     "simple_bull_1", 
+        //     Utility.generateRandomPortfolio(), 
+        //     {type: "bull", time_frame: 2, roi: 0.2}));
+        // traders.push(new SimpleTrader(
+        //     "simple_bull_2", 
+        //     Utility.generateRandomPortfolio(), 
+        //     {type: "bull", time_frame: 1, roi: 0.1}));
+        // traders.push(new SimpleTrader(
+        //     "simple_bear_1", 
+        //     Utility.generateRandomPortfolio(), 
+        //     {type: "bear", time_frame: 2, roi: 0.2}));
+        // traders.push(new SimpleTrader(
+        //     "simple_bear_2", 
+        //     Utility.generateRandomPortfolio(), 
+        //     {type: "bear", time_frame: 1, roi: 0.1}));
+        for (let i = 0; i < 10; i++) {
+            traders.push(new SimpleTrader(
+                "simple_" + i,
+                Utility.generateRandomPortfolio(),
+                {type:"none", time_frame: Math.round(1+Math.random()*5), roi: 0.3*Math.random()}
+            ));
+        }
+        // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
+        // traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
+        for (let i = 0; i < 5; i++) {
+            traders.push(new RandomTrader(
+                "random_" + i,
+                Utility.generateRandomPortfolio(),
+                {time_frame: Math.round(1+Math.random()*5)}
+            ));
+        }
+        for (let trader of traders) {
+            this.traders.set(trader.name, trader);
+        }
+        //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
+        //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
+        // tests
+        //market_SUETH.test();
+        // for (let [, trader] of this.traders) {
+        //     trader.test();
+        // }
+        
+    }
+    // execute one tick of the simulation
+    update() {
+        // generate inputs
+        market_mETHUSD.addRandomPriceChange();
+        web4.su.callOracleSM(market_mETHUSD.getCurrentPrice());
+        
+        // simulation exectution
+        for (let [, trader] of this.traders) {
+            trader.update();
+            // if( !market_SUETH.checkInvariant() ) {
+            //     console.log(trader);
+            //     debugger;
+            // }
+        }
+        market_SUETH.update();
+
+        // updates
+        Utility.simulation_tick += 1;
+        console.log(Utility.simulation_tick);
     }
 }
 
@@ -755,62 +850,3 @@ class RandomTrader extends Trader {
 //         // }
 //     }
 // }
-
-
-export class Simulation {
-    web4: Web4;
-    market_ETHUSD: Market;
-    market_SUETH: Market_SUmETH;
-    traders: Traders = new Map();
-    
-    // takes callBack funtions for visualisation
-    constructor() {
-    
-        // init all instances of the simulation:
-        // blokchains,
-        this.web4 = web4;
-        // exchanges,
-        this.market_ETHUSD = market_mETHUSD;
-        this.market_SUETH = market_SUETH;
-        // traders
-        let traders = [];
-        traders.push(new Trader("human_1", {balance_SU: 2000, balance_mETH: 1000}));
-        traders.push(new Trader("human_2",{balance_SU: 2000, balance_mETH: 1000}));
-        traders.push(new SimpleTrader("simple_bull_1", Utility.generateRandomPortfolio(), {type: "bull", time_frame: 5, roi: 0.2}));
-        traders.push(new SimpleTrader("simple_bull_2", Utility.generateRandomPortfolio(), {type: "bull", time_frame: 1, roi: 0.3}));
-        traders.push(new SimpleTrader("simple_bear", Utility.generateRandomPortfolio(), {type: "bear", time_frame: 5}));
-        traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
-        traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
-        for (let trader of traders) {
-            this.traders.set(trader.name, trader);
-        }
-        //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
-        //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
-        // tests
-        //market_SUETH.test();
-        // for (let [, trader] of this.traders) {
-        //     trader.test();
-        // }
-        
-    }
-    // execute one tick of the simulation
-    update() {
-        // generate inputs
-        market_mETHUSD.addRandomPriceChange();
-        web4.su.callOracleSM(market_mETHUSD.getCurrentPrice());
-        
-        // simulation exectution
-        for (let [, trader] of this.traders) {
-            trader.update();
-            // if( !market_SUETH.checkInvariant() ) {
-            //     console.log(trader);
-            //     debugger;
-            // }
-        }
-        market_SUETH.update();
-
-        // updates
-        Utility.simulation_tick += 1;
-        console.log(Utility.simulation_tick);
-    }
-}
