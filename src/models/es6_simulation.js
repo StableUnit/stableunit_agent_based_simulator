@@ -218,14 +218,6 @@ class Web4 {
 }
 const web4 = new Web4();
 
-export type Order = {
-    trader: Trader;
-    su_amount: number;
-    eth_amount: number;
-    price: number;
-    type?:string;
-}
-
 // market of two particular asserts, i.e. ETH/USD, in this case prices are in USD
 export class Market {
     name: string;
@@ -282,6 +274,8 @@ export class Market_SUETH extends Market {
             seller.eth_balance += deal_eth;
             buyer.su_balance += deal_su;
             seller.su_balance -= deal_su;
+            // save this deal in the history
+            this.setNewPrice(deal_eth/deal_su);
             // web4.su.sendTransaction(sellOrder.trader.portfolio.su_wallet.address,
             //                         deal_su,
             //                         buyOrder.trader.portfolio.su_wallet.address);
@@ -377,7 +371,6 @@ export class Market_SUETH extends Market {
     update() {
         // check is any limit orders are possible to complete
         while (this.getCurrentBuyPrice() >= this.getCurrentSellPrice()) {
-            debugger;
             let buyOrder = this.buyOrders.pop();
             buyOrder.trader.buyOrders.delete(buyOrder);
             let sellOrder = this.sellOrders.pop();
@@ -393,8 +386,6 @@ export class Market_SUETH extends Market {
                 buyOrder.eth_amount -= deal_eth;
                 sellOrder.su_amount -= deal_su;
                 sellOrder.eth_amount -= deal_eth;
-                // save this deal in the history
-                this.setNewPrice(deal_price);
             }
             // if the one of the orders is only partially completed - add reminder back
             if (sellOrder.su_amount > Utility.EPS) {
@@ -572,8 +563,19 @@ export class Trader {
     }
 }
 
+export type Order = {
+    trader: Trader;
+    su_amount: number;
+    eth_amount: number;
+    price: number;
+    type?:string;
+}
+
 export type Traders = Map<string, Trader>;
 
+// SimpleTrader use very simple logic to trade into plus:
+// if trader type is "bull" - it buys SU cheaper than $1 and sells it back at $1
+// if trader type is "bear" - it sells SU for higher than $1 and buys it back at $1
 class SimpleTrader extends Trader {
     type: string;
     time_frame: number; 
@@ -605,6 +607,7 @@ class SimpleTrader extends Trader {
     }
 }
 
+// This trader randomly sells and buys some arbitary amount of SU
 class RandomTrader extends Trader {
     trade_freqnefy: number = 0.5;
     update() {
@@ -619,89 +622,88 @@ class RandomTrader extends Trader {
     }
 }
 
+// // This trader earns on differences between market price and SU reserve price
+// class ArbitrageUpTrader extends Trader {
+//     min_deal_eth = 1;
+//     max_deal_eth = 10;
+//     marginality = 0.1;
 
-// This traders earn on differences between market price and SU reserve price
-class ArbitrageUpTrader extends Trader {
-    min_deal_eth = 1;
-    max_deal_eth = 10;
-    marginality = 0.1;
+//     update() {
+//         super.update();
+//         if (this.eth_balance > this.min_deal_eth) {
+//             // buy SU from the reserve
+//             let deal_eth = Math.min(this.eth_balance, this.max_deal_eth);
+//             let old_su_balance = this.su_balance;
+//             web4.su.buySUfromReserveSM(this, deal_eth);
+//             let deal_su = this.su_balance - old_su_balance;
+//             let deal_price = deal_eth / deal_su;
+//             // sell it more expensive on the market
+//             const ROI = 1 + this.marginality;
+//             market_SUETH.newLimitSellOrder(this, deal_su, deal_su*deal_price*ROI);
+//         }
+//     }
+// }
 
-    update() {
-        super.update();
-        if (this.eth_balance > this.min_deal_eth) {
-            // buy SU from the reserve
-            let deal_eth = Math.min(this.eth_balance, this.max_deal_eth);
-            let old_su_balance = this.su_balance;
-            web4.su.buySUfromReserveSM(this, deal_eth);
-            let deal_su = this.su_balance - old_su_balance;
-            let deal_price = deal_eth / deal_su;
-            // sell it more expensive on the market
-            const ROI = 1 + this.marginality;
-            market_SUETH.newLimitSellOrder(this, deal_su, deal_su*deal_price*ROI);
-        }
-    }
-}
+// class ArbitrageDownTrader extends Trader {
 
-class ArbitrageDownTrader extends Trader {
+// }
 
-}
+// class AlgoTrader extends Trader {
+//     marginality = 0.05;
+//     max_deal_eth = 1;
+//     max_deal_su = 1000;
+//     update() {
+//         super.update();
+//         // lets calc current prices in USD
+//         // const eth_price = market_ETHUSD.getCurrentPrice();
+//         // const su_peg_price = 1;
+//         // const su_price = market_SUETH.getCurrentPrice() * eth_price;
+//         // // some prices might be NaN if there are not enought liquidity
+//         // const su_sell_price = market_SUETH.getCurrentSellPrice() * eth_price;
+//         // const su_buy_price = market_SUETH.getCurrentBuyPrice() * eth_price;
 
-class AlgoTrader extends Trader {
-    marginality = 0.05;
-    max_deal_eth = 1;
-    max_deal_su = 1000;
-    update() {
-        super.update();
-        // lets calc current prices in USD
-        // const eth_price = market_ETHUSD.getCurrentPrice();
-        // const su_peg_price = 1;
-        // const su_price = market_SUETH.getCurrentPrice() * eth_price;
-        // // some prices might be NaN if there are not enought liquidity
-        // const su_sell_price = market_SUETH.getCurrentSellPrice() * eth_price;
-        // const su_buy_price = market_SUETH.getCurrentBuyPrice() * eth_price;
+//         // if we can buy cheap SU (cheaper than 1-marginality)
+//         // we can sell it later for the peg price and get profit (ROI = 1+marginaliry)
+//         // let calc price in ETH for SU/ETH market
+//         let good_su_sell_price = (1 - this.marginality) / market_ETHUSD.getCurrentPrice();
+//         if (market_SUETH.getCurrentSellPrice() < good_su_sell_price ) {
+//             // maximum eth we can afford to stake
+//             let max_deal_eth = Math.min(this.max_deal_eth, this.eth_balance);
+//             // calc avaliable cheap su
+//             let available_cheap_su = 0;
+//             let nessesary_eth = 0;
+//             for (let i = market_SUETH.sellOrders.length-1; i >= 0; --i) {
+//                 const sellOrder = market_SUETH.sellOrders[i];
+//                 if (sellOrder.price < good_su_sell_price) {
+//                     if (nessesary_eth + sellOrder.eth_amount <= max_deal_eth) {
+//                         nessesary_eth += sellOrder.eth_amount;
+//                         available_cheap_su += sellOrder.su_amount;
+//                     } else {
+//                         let deal_eth = max_deal_eth - nessesary_eth;
+//                         let deal_su = deal_eth / sellOrder.price - Utility.EPS;
+//                         nessesary_eth += deal_eth;
+//                         available_cheap_su += deal_su;
+//                         break;
+//                     }
+//                 } else break;
+//             }
+//             let deal_su = available_cheap_su;
+//             market_SUETH.newMarketBuyOrder(this, deal_su);
+//             // lets sell it expensive
+//             let deal_eth = deal_su / market_ETHUSD.getCurrentPrice();
+//             market_SUETH.newLimitSellOrder(this, deal_su, deal_eth);
+//         }
 
-        // if we can buy cheap SU (cheaper than 1-marginality)
-        // we can sell it later for the peg price and get profit (ROI = 1+marginaliry)
-        // let calc price in ETH for SU/ETH market
-        let good_su_sell_price = (1 - this.marginality) / market_ETHUSD.getCurrentPrice();
-        if (market_SUETH.getCurrentSellPrice() < good_su_sell_price ) {
-            // maximum eth we can afford to stake
-            let max_deal_eth = Math.min(this.max_deal_eth, this.eth_balance);
-            // calc avaliable cheap su
-            let available_cheap_su = 0;
-            let nessesary_eth = 0;
-            for (let i = market_SUETH.sellOrders.length-1; i >= 0; --i) {
-                const sellOrder = market_SUETH.sellOrders[i];
-                if (sellOrder.price < good_su_sell_price) {
-                    if (nessesary_eth + sellOrder.eth_amount <= max_deal_eth) {
-                        nessesary_eth += sellOrder.eth_amount;
-                        available_cheap_su += sellOrder.su_amount;
-                    } else {
-                        let deal_eth = max_deal_eth - nessesary_eth;
-                        let deal_su = deal_eth / sellOrder.price - Utility.EPS;
-                        nessesary_eth += deal_eth;
-                        available_cheap_su += deal_su;
-                        break;
-                    }
-                } else break;
-            }
-            let deal_su = available_cheap_su;
-            market_SUETH.newMarketBuyOrder(this, deal_su);
-            // lets sell it expensive
-            let deal_eth = deal_su / market_ETHUSD.getCurrentPrice();
-            market_SUETH.newLimitSellOrder(this, deal_su, deal_eth);
-        }
+//         // // if we can sell SU more than (1+marginality), lets do that
+//         // // we will buy it again aroun 1 USD for SU because the System deisgned to be stable
+//         // let good_su_buy_price = (1 + this.marginality) / market_ETHUSD.getCurrentPrice();
+//         // if (market_SUETH.getCurrentBuyPrice() > good_su_buy_price) {
+//         //     let max_deal_su = Math.min(this.max_deal_su, this.su_balance);
+//         //     // calc how much su we can sell with profit
 
-        // // if we can sell SU more than (1+marginality), lets do that
-        // // we will buy it again aroun 1 USD for SU because the System deisgned to be stable
-        // let good_su_buy_price = (1 + this.marginality) / market_ETHUSD.getCurrentPrice();
-        // if (market_SUETH.getCurrentBuyPrice() > good_su_buy_price) {
-        //     let max_deal_su = Math.min(this.max_deal_su, this.su_balance);
-        //     // calc how much su we can sell with profit
-
-        // }
-    }
-}
+//         // }
+//     }
+// }
 
 
 export class Simulation {
