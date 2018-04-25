@@ -281,19 +281,22 @@ export class Market_SUmETH extends Market {
         return false;
     }
 
-    newLimitBuyOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl: number = -1) {
+    newLimitBuyOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl?: number) {
+        if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
+            return "Incorrect order";
+        }
         // check that the trader can afford that
         if (trader.balance_mETH >= amount_mETH) {
             const order:Order = {
                 trader: trader, 
+                type: "buy",
+                price: amount_mETH / amount_SU,
                 amount_SU: amount_SU, 
                 amount_mETH: amount_mETH, 
-                price: amount_mETH / amount_SU,
-                type: "buy"
             };
             this.buy_orders.push(order);
             trader.buy_orders.add(order);
-            if (ttl > 0) {
+            if (ttl) {
                 trader.ttl.set(order, ttl);
             }
 
@@ -308,6 +311,9 @@ export class Market_SUmETH extends Market {
     }
 
     newLimitSellOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl: number = -1) {
+        if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
+            return "Incorrect order";
+        }
         if (trader.balance_SU >= amount_SU) {
             const order:Order = {
                 trader: trader, 
@@ -322,12 +328,11 @@ export class Market_SUmETH extends Market {
                 trader.ttl.set(order, ttl);
             }
             // the last item has the smallest price
-            this.buy_orders.sort((a,b) => b.price - a.price);
+            this.sell_orders.sort((a,b) => b.price - a.price);
             return "Added limited sell order";
         } else {
             return "Not enough SU";
         }
-
     }
 
     deleteLimitBuyOrder(order: Order) {
@@ -359,6 +364,19 @@ export class Market_SUmETH extends Market {
             this.deleteLimitSellOrder(order);
     }
 
+    checkInvariant() {
+        for (let i = 1; i < this.sell_orders.length; i++) {
+            if (this.sell_orders[i-1].price < this.sell_orders[i].price) {
+                return false;
+            }
+        }
+        for (let i = 1; i < this.buy_orders.length; i++) {
+            if (this.buy_orders[i-1].price > this.buy_orders[i].price) {
+                return false;
+            }
+        }
+        return true;
+    }
     // This method is trying to complete all possible deals if any available
     update() {
         // check is any limit orders are possible to complete
@@ -381,12 +399,14 @@ export class Market_SUmETH extends Market {
             }
             // if the one of the orders is only partially completed - add reminder back
             if (sell_order.amount_SU > Utility.EPS) {
-                this.sell_orders.push(sell_order);
-                sell_order.trader.sell_orders.add(sell_order);
+                //this.sell_orders.push(sell_order);
+                //sell_order.trader.sell_orders.add(sell_order);
+                this.newLimitSellOrder(sell_order.trader, sell_order.amount_SU, sell_order.amount_mETH);
             }
             if (buy_order.amount_SU > Utility.EPS) {
-                this.buy_orders.push(buy_order);
-                buy_order.trader.buy_orders.add(buy_order);
+                // this.buy_orders.push(buy_order);
+                // buy_order.trader.buy_orders.add(buy_order);
+                this.newLimitBuyOrder(buy_order.trader, buy_order.amount_SU, buy_order.amount_mETH);
             }
         }
     }
@@ -412,8 +432,9 @@ export class Market_SUmETH extends Market {
                 sell_order.amount_mETH -= deal_ETH;
                 // if the sell order is only partially completed - add reminder back
                 if (sell_order.amount_SU > Utility.EPS) {
-                    this.sell_orders.push(sell_order);
-                    sell_order.trader.sell_orders.add(sell_order);
+                    // this.sell_orders.push(sell_order);
+                    // sell_order.trader.sell_orders.add(sell_order);
+                    this.newLimitSellOrder(sell_order.trader, sell_order.amount_SU, sell_order.amount_mETH);
                 }
             }
         }
@@ -450,8 +471,9 @@ export class Market_SUmETH extends Market {
                 buy_order.amount_mETH -= deal_mETH;
                 // if the sell order is only partially completed - add reminder back
                 if (buy_order.amount_SU > Utility.EPS) {
-                    this.buy_orders.push(buy_order);
-                    buy_order.trader.buy_orders.add(buy_order);
+                    // this.buy_orders.push(buy_order);
+                    // buy_order.trader.buy_orders.add(buy_order);
+                    this.newLimitBuyOrder(buy_order.trader, buy_order.amount_SU, buy_order.amount_mETH);
                 }
             }
         }
@@ -488,6 +510,15 @@ export class Market_SUmETH extends Market {
         this.deleteLimitBuyOrder([...trader_3.buy_orders].pop());
         this.newMarketBuyOrder(trader_3, 2001);
         assert.equal(trader_3.balance_mETH, 2.5);
+        const trader_4 = new Trader("trader_4", {balance_SU: 2000, balance_mETH: 1000});
+        this.newLimitBuyOrder(trader_4, 100, 100);
+        this.newLimitBuyOrder(trader_4, 90, 100);
+        this.newLimitBuyOrder(trader_4, 80, 100);
+        this.newLimitBuyOrder(trader_4, 100, 100);
+        this.newLimitBuyOrder(trader_4, 90, 100);
+        this.newLimitBuyOrder(trader_4, 80, 100);
+        assert.equal(this.checkInvariant(), true);
+        
     }
 }
 const market_SUETH = new Market_SUmETH(0.002/* ETH per SU */);
@@ -756,7 +787,7 @@ export class Simulation {
         //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
         //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
         // tests
-        // market_SUETH.test();
+        //market_SUETH.test();
         // for (let [, trader] of this.traders) {
         //     trader.test();
         // }
@@ -771,6 +802,10 @@ export class Simulation {
         // simulation exectution
         for (let [, trader] of this.traders) {
             trader.update();
+            // if( !market_SUETH.checkInvariant() ) {
+            //     console.log(trader);
+            //     debugger;
+            // }
         }
         market_SUETH.update();
 
