@@ -41,6 +41,7 @@ function convertDataForChart(
   return [
     ...buyOrders
       .sort((a, b) => b.price - a.price)
+      .map(order => ({ ...order, price: Number(order.price.toFixed(3)) }))
       .reduce((result, next) => {
         bidsAccumulator += next.amount_SU;
         const currentValue = result.get(next.price) || {
@@ -57,6 +58,7 @@ function convertDataForChart(
       .values(),
 
     ...sellOrders
+      .map(order => ({ ...order, price: Number(order.price.toFixed(3)) }))
       .reduce((result, next) => {
         asksAccumulator +=  next.amount_SU;
         const currentValue = result.get(next.price) || {
