@@ -306,7 +306,7 @@ export class Market_SUETH extends Market {
             }
 
             // the last item has the highest price
-            this.buyOrders.sort((a,b) => b.price - a.price);
+            this.buyOrders.sort((a,b) => a.price - b.price);
             //return {order: order, status: "Added limited buy order"};
             return "Added limited buy order";
         } else {
@@ -330,7 +330,7 @@ export class Market_SUETH extends Market {
                 trader.ttl.set(order, ttl);
             }
             // the last item has the smallest price
-            this.buyOrders.sort((a,b) => a.price - b.price);
+            this.buyOrders.sort((a,b) => b.price - a.price);
             return "Added limited sell order";
         } else {
             return "Not enough SU";
@@ -738,7 +738,6 @@ export class Simulation {
         traders.push(new SimpleTrader("simple_bear", {su_balance: 1000, eth_balance: 2},{type: "bear", time_frame: 5}));
         traders.push(new RandomTrader("random_t1", {su_balance: 1000, eth_balance: 2}, 1));
         traders.push(new RandomTrader("random_t2", {su_balance: 1000, eth_balance: 2}, 2));
-        
         for (let trader of traders) {
             this.traders.set(trader.name, trader);
         }
@@ -766,6 +765,5 @@ export class Simulation {
         // updates
         Utility.simulationTick += 1;
         console.log(Utility.simulationTick);
-        console.log(this.traders.get("human_1"));
     }
 }
