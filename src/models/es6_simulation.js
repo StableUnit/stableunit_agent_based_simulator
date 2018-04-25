@@ -495,6 +495,7 @@ const market_SUETH = new Market_SUmETH(0.002/* ETH per SU */);
 export class Trader {
     name: string;
     //portfolio = {};
+    dna = {};
     balance_SU: number;
     balance_mETH: number;
     balance_BONDs: number;
@@ -503,7 +504,11 @@ export class Trader {
     time_frame: number;
     time_left_until_update: number;
 
-    constructor(name: string, portfolio: {balance_SU: number, balance_mETH: number}, time_frame: number = 1) {
+    buy_orders: Set<Order> = new Set();
+    sell_orders: Set<Order> = new Set();
+    ttl: Map<Order, number> = new Map();
+
+    constructor(name: string, portfolio: {balance_SU: number, balance_mETH: number}, dna: Object = {}, time_frame: number = 1) {
         this.name = name;
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.balance_SU);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.balance_mETH);
@@ -511,13 +516,27 @@ export class Trader {
         this.balance_mETH = portfolio.balance_mETH;
         this.balance_BONDs = 0;
         this.balance_SHAREs = 0;
-
+        this.dna = dna;
         this.time_frame = time_frame;
         this.time_left_until_update = 0;
     }
-    buy_orders: Set<Order> = new Set();
-    sell_orders: Set<Order> = new Set();
-    ttl: Map<Order, number> = new Map();
+    
+    getPortfolio() {
+        let portfolio = {};
+        if (this.balance_SU > 0) 
+            portfolio.balance_SU = this.balance_SU;
+        if (this.balance_mETH > 0)
+            portfolio.balance_mETH = this.balance_mETH;
+        if (this.balance_BONDs > 0)
+            portfolio.balance_BONDs = this.balance_BONDs;
+        if (this.balance_SHAREs > 0)
+            portfolio.balance_SHAREs = this.balance_SHAREs;
+        return portfolio;
+    }
+
+    getDNA() {
+        return this.dna;
+    }
 
     update() {
         // update orders ttl and remove expired
@@ -560,10 +579,10 @@ export class Trader {
 
 export type Order = {
     trader: Trader;
+    type?:string;
+    price: number;
     amount_SU: number;
     amount_mETH: number;
-    price: number;
-    type?:string;
 }
 
 export type Traders = Map<string, Trader>;
@@ -580,7 +599,7 @@ class SimpleTrader extends Trader {
     time_frame: number; 
 
     constructor(name:string, portfolio, dna:{type: string, time_frame: number, roi?: number}) {
-        super(name, portfolio, dna.time_frame);
+        super(name, portfolio, dna, dna.time_frame);
         this.type = dna.type;
         this.time_frame = dna.time_frame;
         this.roi = dna.roi || this.DEFAULT_ROI;
@@ -724,12 +743,13 @@ export class Simulation {
         this.market_SUETH = market_SUETH;
         // traders
         let traders = [];
-        traders.push(new Trader("human_1", {balance_SU: 1000, balance_mETH: 2000}));
-        traders.push(new Trader("human_2",{balance_SU: 1000, balance_mETH: 2000}));
-        traders.push(new SimpleTrader("simple_bull", {balance_SU: 1000, balance_mETH: 2000},{type: "bull", time_frame: 5, roi: 0.2}));
-        traders.push(new SimpleTrader("simple_bear", {balance_SU: 1000, balance_mETH: 2000},{type: "bear", time_frame: 5}));
-        traders.push(new RandomTrader("random_t1", {balance_SU: 1000, balance_mETH: 2000}, 1));
-        traders.push(new RandomTrader("random_t2", {balance_SU: 1000, balance_mETH: 2000}, 2));
+        traders.push(new Trader("human_1", {balance_SU: 2000, balance_mETH: 1000}));
+        traders.push(new Trader("human_2",{balance_SU: 2000, balance_mETH: 1000}));
+        traders.push(new SimpleTrader("simple_bull_1", Utility.generateRandomPortfolio(), {type: "bull", time_frame: 5, roi: 0.2}));
+        traders.push(new SimpleTrader("simple_bull_2", Utility.generateRandomPortfolio(), {type: "bull", time_frame: 1, roi: 0.3}));
+        traders.push(new SimpleTrader("simple_bear", Utility.generateRandomPortfolio(), {type: "bear", time_frame: 5}));
+        traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
+        traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
         for (let trader of traders) {
             this.traders.set(trader.name, trader);
         }
