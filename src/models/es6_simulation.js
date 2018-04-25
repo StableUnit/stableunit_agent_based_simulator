@@ -79,7 +79,7 @@ class Ethereum {
     }
 }
 
-class StableUnit extends Ethereum {
+export class StableUnit extends Ethereum {
     PEG = 1.0;
     D1 = 0.05;
     D2 = 0.1;

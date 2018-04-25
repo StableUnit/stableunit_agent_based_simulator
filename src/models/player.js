@@ -2,7 +2,7 @@
 import { Record } from 'immutable';
 
 import type { RecordOf, RecordFactory } from 'immutable';
-import type {Order} from './es6_simulation';
+import type { Order } from './es6_simulation';
 import { Simulation, Trader } from './es6_simulation';
 
 function delay(ms) {
@@ -40,7 +40,7 @@ export default {
     ): SimulationState => {
       return state
         .set('simulation', simulation)
-        .update('tick', tick => tick + 1)
+        .update('tick', tick => tick + 1);
     },
     placeLimitBuyOrder: (
       state: SimulationState,
@@ -106,8 +106,24 @@ export default {
       state.simulation.market_SUETH.deleteLimitBuyOrder(order);
       return state;
     },
-    cancelSellOrder: (state: SimulationState, order: Order): SimulationState => {
+    cancelSellOrder: (
+      state: SimulationState,
+      order: Order
+    ): SimulationState => {
       state.simulation.market_SUETH.deleteLimitSellOrder(order);
+      return state;
+    },
+
+    updateStableUnitDeltas: (
+      state: SimulationState,
+      payload: { d1: string, d2: string, d3: string, d4: string, d5: string }
+    ): SimulationState => {
+      const su = state.simulation.web4.su;
+      su.D1 = Number(payload.d1);
+      su.D2 = Number(payload.d2);
+      su.D3 = Number(payload.d3);
+      su.D4 = Number(payload.d4);
+      su.D5 = Number(payload.d5);
       return state;
     }
   },
@@ -122,7 +138,6 @@ export default {
       // Making simulation global to be able to watch
       // TODO: Remove later
       window.simulation = rootState.player.simulation;
-
 
       while (true) {
         rootState.player.simulation.update();
