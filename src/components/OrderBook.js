@@ -40,6 +40,7 @@ function convertDataForChart(
   let asksAccumulator = 0;
   return [
     ...buyOrders
+      .sort((a, b) => b.price - a.price)
       .reduce((result, next) => {
         bidsAccumulator += next.eth_amount * next.su_amount;
         const currentValue = result.get(next.price) || {
