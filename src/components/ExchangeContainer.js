@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-import { ContentSwitcher, Switch } from 'carbon-components-react';
-import styled from 'styled-components';
+import { Button } from 'carbon-components-react';
 
 import type { FullState, SimulationState } from '../models/player';
 
@@ -29,11 +28,48 @@ class ExchangeContainer extends React.Component<Props, State> {
 
     return (
       <div>
-        <div style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}>
-          <MarketContainer title="ETH-USD" market={player.simulation.market_ETHUSD} />
-          <MarketContainer title="SU-USD" market={player.simulation.market_SUUSD} />
+        <div
+          style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}
+        >
+          <div style={{ flex: 1 }}>
+            <MarketContainer
+              title="ETH-USD"
+              market={player.simulation.market_ETHUSD}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <Button
+                onClick={() =>
+                  player.simulation.market_ETHUSD.setNewPrice(
+                    player.simulation.market_ETHUSD.getCurrentPrice() * 1.1
+                  )
+                }
+              >
+                Increase
+              </Button>
+              <Button
+                onClick={() =>
+                  player.simulation.market_ETHUSD.setNewPrice(
+                    player.simulation.market_ETHUSD.getCurrentPrice() * 0.9
+                  )
+                }
+              >
+                Decrease
+              </Button>
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <MarketContainer
+              title="SU-USD"
+              market={player.simulation.market_SUUSD}
+            />
+          </div>
         </div>
-        <MarketWithOrderBook title="SU-ETH" market={player.simulation.market_SUETH} />
+        <div style={{ marginTop: '2em' }}>
+          <MarketWithOrderBook
+            title="SU-ETH"
+            market={player.simulation.market_SUETH}
+          />
+        </div>
       </div>
     );
   }
