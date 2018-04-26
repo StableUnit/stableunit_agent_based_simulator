@@ -191,7 +191,7 @@ export class StableUnit extends Ethereum {
     }
     // bonds are erc20 tokens so can be store on the same addresses;
     //buyBondsSM(su_addr, amount_su, tnx_sign, eth_addr_erc20token) {}
-    buyBondsSM(trader: Trader, amount_SU) {
+    buyBondsSM(trader: Trader, amount_SU: number) {
 
     }
 
@@ -199,7 +199,7 @@ export class StableUnit extends Ethereum {
 
     // during temporaty freeze only part of fund are avaliable for transaction
     // so we have to reimplement basic transation logic
-    sendTransaction(address_sender, amount, address_recipient) {
+    sendTransaction(address_sender: string, amount: number, address_recipient: string) {
         // check that avaliable unparked balace is sufficient for transaction
         if ((this.accounts.get(address_sender) || 0) * (1.0 - this.PARKING_current_ratio) >= amount) {
             super.sendTransaction(address_sender, amount, address_recipient);
@@ -522,6 +522,7 @@ export class Market_SUmETH extends Market {
     }
 }
 const market_SUETH = new Market_SUmETH(0.002/* ETH per SU */);
+const market_SUUSD = new Market(1,"SU/USD");
 
 export class Trader {
     name: string;
@@ -654,12 +655,12 @@ class SimpleTrader extends Trader {
             let SO_low_price_mETH = (1-this.roi/(1+this.roi)) / market_mETHUSD.getCurrentPrice();
             //if (this.type === "bull") {
                 // buying cheap su and belive that price will rise to peg
-                market_SUETH.newLimitBuyOrder(this, this.balance_mETH / SO_low_price_mETH, this.balance_mETH, this.time_frame);
+            market_SUETH.newLimitBuyOrder(this, this.balance_mETH / SO_low_price_mETH, this.balance_mETH, this.time_frame);
               //  market_SUETH.newLimitSellOrder(this, this.balance_mETH / (SU_peg_price_mETH-Utility.EPS), this.balance_mETH, this.time_frame);
             //} else {
                 // selling hight and belibe that price will fall to peg
                 //market_SUETH.newLimitBuyOrder(this, this.balance_mETH / (SU_peg_price_mETH+Utility.EPS), this.balance_mETH, this.time_frame);
-                market_SUETH.newLimitSellOrder(this, this.balance_mETH / SU_high_price_mETH, this.balance_mETH, this.time_frame);
+            market_SUETH.newLimitSellOrder(this, this.balance_mETH / SU_high_price_mETH, this.balance_mETH, this.time_frame);
             //}
         }
     }
@@ -687,6 +688,7 @@ export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
     market_SUETH: Market_SUmETH;
+    market_SUUSD: Market;
     traders: Traders = new Map();
     
     // takes callBack funtions for visualisation
@@ -698,6 +700,7 @@ export class Simulation {
         // exchanges,
         this.market_ETHUSD = market_mETHUSD;
         this.market_SUETH = market_SUETH;
+        this.market_SUUSD = market_SUUSD;
         // traders
         let traders = [];
         traders.push(new Trader("human_1", {balance_SU: 1000, balance_mETH: 500}));
@@ -751,6 +754,7 @@ export class Simulation {
         // generate inputs
         market_mETHUSD.addRandomPriceChange();
         web4.su.callOracleSM(market_mETHUSD.getCurrentPrice());
+        market_SUUSD.setNewPrice(market_SUETH.getCurrentPrice()*market_mETHUSD.getCurrentPrice());
         
         // simulation exectution
         for (let [, trader] of this.traders) {
