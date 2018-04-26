@@ -29,7 +29,10 @@ class ExchangeContainer extends React.Component<Props, State> {
 
     return (
       <div>
-        <MarketContainer title="ETH-USD" market={player.simulation.market_ETHUSD} />
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}>
+          <MarketContainer title="ETH-USD" market={player.simulation.market_ETHUSD} />
+          <MarketContainer title="SU-USD" market={player.simulation.market_SUUSD} />
+        </div>
         <MarketWithOrderBook title="SU-ETH" market={player.simulation.market_SUETH} />
       </div>
     );

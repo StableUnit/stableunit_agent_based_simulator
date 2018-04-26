@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { Module, ModuleHeader, ModuleBody } from 'carbon-components-react';
 
 import ExchangeContainer from './components/ExchangeContainer';
+import DemandContainer from './components/DemandContainer';
 import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
 import Status from './components/Status';
@@ -44,13 +45,17 @@ class App extends React.Component<Props> {
             </Module>
             <Module>
               <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
-              <ModuleBody><StableUnitContainer /></ModuleBody>
+              <ModuleBody>
+                <StableUnitContainer />
+              </ModuleBody>
             </Module>
           </Panel>
           <Panel>
             <Module>
               <ModuleHeader>Media Impact Simulation</ModuleHeader>
-              <ModuleBody>{/* <ControlPanelContainer /> */}</ModuleBody>
+              <ModuleBody>
+                <DemandContainer />
+              </ModuleBody>
             </Module>
             <Module>
               <ModuleHeader>Traders</ModuleHeader>

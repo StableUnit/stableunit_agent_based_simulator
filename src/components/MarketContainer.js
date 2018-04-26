@@ -13,27 +13,13 @@ type Props = {
   title: string
 };
 
-const Wrap = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`;
-
-const Half = styled.div`
-  width: 50%;
-`;
-
 const MarketContainer = (props: Props) => {
   const { market, title } = props;
 
   return (
-    <div>
+    <div style={{ flex: 1 }}>
       <h3>{title}</h3>
-      <Wrap>
-        <Half>
-          <History market={market} />
-        </Half>
-      </Wrap>
+      <History market={market} />
     </div>
   );
 };
