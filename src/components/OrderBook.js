@@ -2,6 +2,7 @@
 
 import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
+import { formatNumber } from 'accounting';
 
 import { colors } from '../theme';
 
@@ -51,7 +52,7 @@ function convertDataForChart(
         };
         return result.set(next.price, {
           ...currentValue,
-          bidsQuantity: currentValue.bidsQuantity +  next.amount_SU,
+          bidsQuantity: currentValue.bidsQuantity + next.amount_SU,
           bidsTotalQuantity: bidsAccumulator
         });
       }, new Map())
@@ -61,7 +62,7 @@ function convertDataForChart(
       .sort((a, b) => a.price - b.price)
       .map(order => ({ ...order, price: Number(order.price.toFixed(3)) }))
       .reduce((result, next) => {
-        asksAccumulator +=  next.amount_SU;
+        asksAccumulator += next.amount_SU;
         const currentValue = result.get(next.price) || {
           price: next.price,
           asksQuantity: 0,
@@ -81,7 +82,10 @@ const OrderBook = (props: Props) => {
   const { market, mobile } = props;
 
   // Convert data for orderbook
-  const data = convertDataForChart([...market.buy_orders], [...market.sell_orders]);
+  const data = convertDataForChart(
+    [...market.buy_orders],
+    [...market.sell_orders]
+  );
 
   const style = {
     width: '100%',
@@ -126,7 +130,7 @@ const OrderBook = (props: Props) => {
       startOnAxis: true,
       showFirstLabel: false,
       showLastLabel: false,
-      labelsEnabled: true
+      labelsEnabled: false
     },
     export: {
       enabled: true
@@ -136,6 +140,19 @@ const OrderBook = (props: Props) => {
   return (
     <div>
       <AmCharts.React style={style} options={options} />
+      <div style={{ textAlign: 'center', paddingLeft: 60 }}>
+        {market.buy_orders.length &&
+          formatNumber(
+            market.buy_orders[market.buy_orders.length - 1].price,
+            2
+          )}{' '}
+        -{' '}
+        {market.sell_orders.length &&
+          formatNumber(
+            market.sell_orders[market.sell_orders.length - 1].price,
+            2
+          )}
+      </div>
     </div>
   );
 };
