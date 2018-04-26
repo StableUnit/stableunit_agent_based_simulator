@@ -9,7 +9,7 @@ const Utility = {
             };
     },
     randomSuOrder() {
-        return Math.round(Math.random()*50);
+        return Math.round(Math.random()*10);
     },
     simulation_tick: 0
 };
@@ -681,14 +681,12 @@ class RandomTrader extends Trader {
     }
 }
 
-
-
-
 export class Simulation {
     web4: Web4;
     market_ETHUSD: Market;
     market_SUETH: Market_SUmETH;
     market_SUUSD: Market;
+    market_demand: Market;
     traders: Traders = new Map();
     
     // takes callBack funtions for visualisation
@@ -701,10 +699,11 @@ export class Simulation {
         this.market_ETHUSD = market_mETHUSD;
         this.market_SUETH = market_SUETH;
         this.market_SUUSD = market_SUUSD;
+        this.market_demand = new Market(0.5,"SU demand");
         // traders
         let traders = [];
-        traders.push(new Trader("human_1", {balance_SU: 1000, balance_mETH: 500}));
-        traders.push(new Trader("human_2",{balance_SU: 2000, balance_mETH: 1000}));
+        traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 500}));
+        traders.push(new Trader("human_2",{balance_SU: 1000, balance_mETH: 1000}));
         // traders.push(new SimpleTrader(  
         //     "simple_bull_1", 
         //     Utility.generateRandomPortfolio(), 
@@ -725,7 +724,7 @@ export class Simulation {
             traders.push(new SimpleTrader(
                 "simple_" + i,
                 Utility.generateRandomPortfolio(),
-                {type:"none", time_frame: Math.round(1+Math.random()*5), roi: 0.3*Math.random()}
+                {type:"none", time_frame: Math.round(1+Math.random()*5), roi: 0.1*Math.random()}
             ));
         }
         // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
@@ -759,16 +758,24 @@ export class Simulation {
         // simulation exectution
         for (let [, trader] of this.traders) {
             trader.update();
-            // if( !market_SUETH.checkInvariant() ) {
-            //     console.log(trader);
-            //     debugger;
-            // }
         }
         market_SUETH.update();
 
         // updates
         Utility.simulation_tick += 1;
         console.log(Utility.simulation_tick);
+
+        let total_buy_volume = 0;
+        let total_sell_volume = 0;
+        for (let order of market_SUETH.buy_orders) {
+            total_buy_volume += order.amount_SU;
+        }
+        for (let order of market_SUETH.sell_orders) {
+            total_sell_volume += order.amount_SU;
+        }
+        console.log("buy: " + (total_buy_volume).toFixed(2) + 
+                    ", sell: " + (total_sell_volume).toFixed(2) + 
+                    ", r=" + (total_buy_volume/total_sell_volume).toFixed(3));
     }
 }
 
