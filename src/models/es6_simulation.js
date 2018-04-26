@@ -5,7 +5,7 @@ const Utility = {
     EPS: 1e-6,
     generateRandomPortfolio() {
         return {balance_SU: Math.round(1000*Math.random()), 
-                balance_mETH: Math.round(1000*Math.random())
+                balance_mETH: Math.round(2000*Math.random())
             };
     },
     randomSuOrder() {
@@ -267,6 +267,18 @@ export class Market_SUmETH extends Market {
             return NaN;
     }
 
+    getOrderbookVolumeRatio() {
+        let total_buy_volume = 0;
+        let total_sell_volume = 0;
+        for (let order of market_SUETH.buy_orders) {
+            total_buy_volume += order.amount_SU;
+        }
+        for (let order of market_SUETH.sell_orders) {
+            total_sell_volume += order.amount_SU;
+        }
+        return total_buy_volume / total_sell_volume;
+    }
+
     makeTrade(buyer: Trader, seller: Trader, deal_SU: number, deal_mETH: number) {
         // check that buyer has enougth eth to pay and seller enoguth su to sell
         if (buyer.balance_mETH >= deal_mETH && seller.balance_SU >= deal_SU) {
@@ -521,7 +533,7 @@ export class Market_SUmETH extends Market {
         
     }
 }
-const market_SUETH = new Market_SUmETH(0.002/* ETH per SU */);
+const market_SUETH = new Market_SUmETH(2/* mETH per SU */);
 const market_SUUSD = new Market(1,"SU/USD");
 
 export class Trader {
@@ -647,21 +659,21 @@ class SimpleTrader extends Trader {
         super.update();
         // execute update ones in time_frame ticks
         if (super.isTimeToUpdate()) {
-            let SU_peg_price_mETH = 1 / market_mETHUSD.getCurrentPrice();
             // return on investment = (gain from investment – cost of investment) / cost of investment
             // when trading above 1 for 1+x: roi == (1+x - 1)/1 => x == roi
             let SU_high_price_mETH = (1+this.roi) / market_mETHUSD.getCurrentPrice();
             // when trading below 1 for 1-y: roi == (1 - (1-y))/(1-y) == y/(1-y) => y == roi/(roi+1)
-            let SO_low_price_mETH = (1-this.roi/(1+this.roi)) / market_mETHUSD.getCurrentPrice();
-            //if (this.type === "bull") {
-                // buying cheap su and belive that price will rise to peg
-            market_SUETH.newLimitBuyOrder(this, this.balance_mETH / SO_low_price_mETH, this.balance_mETH, this.time_frame);
-              //  market_SUETH.newLimitSellOrder(this, this.balance_mETH / (SU_peg_price_mETH-Utility.EPS), this.balance_mETH, this.time_frame);
-            //} else {
-                // selling hight and belibe that price will fall to peg
-                //market_SUETH.newLimitBuyOrder(this, this.balance_mETH / (SU_peg_price_mETH+Utility.EPS), this.balance_mETH, this.time_frame);
-            market_SUETH.newLimitSellOrder(this, this.balance_mETH / SU_high_price_mETH, this.balance_mETH, this.time_frame);
-            //}
+            let SU_low_price_mETH = (1-this.roi/(1+this.roi)) / market_mETHUSD.getCurrentPrice();
+            // buying cheap su and belive that price will rise to peg
+            market_SUETH.newLimitBuyOrder(
+                this, 
+                this.balance_mETH / SU_low_price_mETH, 
+                this.balance_mETH, this.time_frame);
+            // selling hight and belibe that price will fall to peg    
+            market_SUETH.newLimitSellOrder(
+                this, this.balance_SU, 
+                this.balance_SU * SU_high_price_mETH, 
+                this.time_frame);
         }
     }
 }
@@ -729,13 +741,13 @@ export class Simulation {
         }
         // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
         // traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
-        for (let i = 0; i < 5; i++) {
-            traders.push(new RandomTrader(
-                "random_" + i,
-                Utility.generateRandomPortfolio(),
-                {time_frame: Math.round(1+Math.random()*5)}
-            ));
-        }
+        // for (let i = 0; i < 5; i++) {
+        //     traders.push(new RandomTrader(
+        //         "random_" + i,
+        //         Utility.generateRandomPortfolio(),
+        //         {time_frame: Math.round(1+Math.random()*5)}
+        //     ));
+        // }
         for (let trader of traders) {
             this.traders.set(trader.name, trader);
         }
@@ -763,19 +775,7 @@ export class Simulation {
 
         // updates
         Utility.simulation_tick += 1;
-        console.log(Utility.simulation_tick);
-
-        let total_buy_volume = 0;
-        let total_sell_volume = 0;
-        for (let order of market_SUETH.buy_orders) {
-            total_buy_volume += order.amount_SU;
-        }
-        for (let order of market_SUETH.sell_orders) {
-            total_sell_volume += order.amount_SU;
-        }
-        console.log("buy: " + (total_buy_volume).toFixed(2) + 
-                    ", sell: " + (total_sell_volume).toFixed(2) + 
-                    ", r=" + (total_buy_volume/total_sell_volume).toFixed(3));
+        console.log("r = " + market_SUETH.getOrderbookVolumeRatio().toFixed(3));
     }
 }
 
