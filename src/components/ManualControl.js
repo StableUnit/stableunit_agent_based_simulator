@@ -60,7 +60,7 @@ class ManualControl extends React.Component<Props, State> {
       <div>
         <div>
           <input
-            placeholder="Price in ETH"
+            placeholder="Price in mETH"
             value={buy_price_in_eth}
             onChange={e => this.update({ buy_price_in_eth: e.target.value })}
           />{' '}
@@ -99,7 +99,7 @@ class ManualControl extends React.Component<Props, State> {
 
         <div>
           <input
-            placeholder="Price in ETH"
+            placeholder="Price in mETH"
             value={sell_price_in_eth}
             onChange={e => this.update({ sell_price_in_eth: e.target.value })}
           />{' '}
