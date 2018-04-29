@@ -11,13 +11,6 @@ import { Trader } from '../models/es6_simulation';
 
 import ManualControl from './ManualControl';
 
-type Props = {
-  traders: Traders,
-  tick: number,
-  cancelBuyOrder: Order => {},
-  cancelSellOrder: Order => {}
-};
-
 const f = num => accounting.formatNumber(num, 2);
 
 const format = value => typeof value === 'number' ?
@@ -35,7 +28,21 @@ function printObject(object) {
 const Symbol = ({ children }) =>
   <span style={{ color: '#ccc', paddingRight: '10px' }}>{ children }</span>;
 
-class SingleTrader extends React.Component {
+
+
+type SingleTraderProps = {
+  trader: Trader,
+  expandAll: bool,
+  cancelBuyOrder: Order => {},
+  cancelSellOrder: Order => {}
+};
+
+type SingleTraderState = {
+  expanded: bool
+};
+
+
+class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState> {
   state = {
     expanded: false,
   }
@@ -108,7 +115,19 @@ class SingleTrader extends React.Component {
 }
 
 
-class TradersContainer extends React.Component {
+
+type TradersContainerProps = {
+  traders: Traders,
+  tick: number,
+  cancelBuyOrder: Order => {},
+  cancelSellOrder: Order => {}
+};
+
+type TradersContainerState = {
+  expandAll: bool
+};
+
+class TradersContainer extends React.Component<TradersContainerProps, TradersContainerState> {
   state = {
     expandAll: false,
   }
