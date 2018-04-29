@@ -1,6 +1,6 @@
 //@flow
 
-import React from 'react';
+import React, { Fragment } from 'react';
 
 import { connect } from 'react-redux';
 import { Button } from 'carbon-components-react';
@@ -40,7 +40,7 @@ class ManualControl extends React.Component<Props, State> {
     buy_price_in_eth: '',
     buy_su_quantity: '',
     sell_price_in_eth: '',
-    sell_su_quantity: ''
+    sell_su_quantity: '',
   };
 
   update = data => {
@@ -49,15 +49,16 @@ class ManualControl extends React.Component<Props, State> {
 
   render() {
     const { placeLimitBuyOrder, placeLimitSellOrder, placeMarketBuyOrder, placeMarketSellOrder, trader } = this.props;
+
     const {
       buy_price_in_eth,
       buy_su_quantity,
       sell_price_in_eth,
-      sell_su_quantity
+      sell_su_quantity,
     } = this.state;
 
     return (
-      <div>
+      <div className="manualOrderForm">
         <div>
           <input
             placeholder="Price in mETH"
