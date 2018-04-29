@@ -18,38 +18,56 @@ type Props = {
   cancelSellOrder: Order => {}
 };
 
+const f = num => accounting.formatNumber(num, 2);
+
+const format = value => typeof value === 'number' ?
+  f(value) : String(value);
+
 function printObject(object) {
-  return (
-    <table style={{ marginBottom: 5, marginTop: 5 }}>
-      <tbody>
-        {Object.entries(object).map((pair, index) => (
-          <tr key={pair[0]}>
-            <td>{pair[0]}</td>
-            <td style={{ paddingLeft: 10 }}>
-              {typeof pair[1] === 'number'
-                ? accounting.formatNumber(pair[1], 2)
-                : String(pair[1])}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+  return Object.entries(object).map(([ name, value], index) => (
+    <span style={{ paddingRight: '20px' }}>
+      <strong>{name}</strong>: { ' ' }
+      <span>{format(value)}</span>
+    </span>
+  ));
 }
 
-const TradersContainer = (props: Props) => {
-  const { traders, cancelBuyOrder, cancelSellOrder } = props;
+const Symbol = ({ children }) =>
+  <span style={{ color: '#ccc', paddingRight: '10px' }}>{ children }</span>;
 
-  const tradersArr = Array.from(traders.values());
+class SingleTrader extends React.Component {
+  state = {
+    expanded: false,
+  }
 
-  return (
-    <div>
-      {tradersArr.map((trader, index) => {
-        return (
-          <div key={trader.name} style={{ marginBottom: '1.5em' }}>
-            <strong>{trader.name}</strong>
-            {printObject(trader.getDNA())}
-            {printObject(trader.getPortfolio())}
+  toggleExpand = () => {
+    this.setState({ expanded: !this.state.expanded })
+  }
+
+  render() {
+    const { trader, expandAll, cancelBuyOrder, cancelSellOrder } = this.props;
+    const { expanded } = this.state;
+    const portfolio = trader.getPortfolio();
+    const { total_USD, balance_SU, balance_mETH, balance_SHAREs, balance_BONDs } = portfolio;
+
+    return (
+      <div key={trader.name} style={{ marginBottom: '1.5em' }}>
+        <strong>{trader.name}</strong>
+
+        <span style={{ padding: '0 10px' }}>
+          {f(balance_SU)}<Symbol>SU</Symbol>
+          {f(balance_mETH)}<Symbol>mETH</Symbol>
+          (~ {f(total_USD)}$)
+        </span>
+
+        <button onClick={this.toggleExpand}>↕</button>
+
+        <div className="traderDNA">
+          {printObject(trader.getDNA())}
+        </div>
+
+        { (expanded || expandAll) &&
+          <div>
             <ManualControl trader={trader} />
 
             <table style={{ width: '100%' }}>
@@ -57,9 +75,9 @@ const TradersContainer = (props: Props) => {
                 {Array.from(trader.buy_orders).map((order, orderIndex) => (
                   <tr key={`buy${orderIndex}`}>
                     <td>{order.type}</td>
-                    <td>{accounting.formatNumber(order.amount_SU, 2)}</td>
-                    <td>{accounting.formatNumber(order.amount_mETH, 2)}</td>
-                    <td>{accounting.formatNumber(order.price, 2)}</td>
+                    <td>{f(order.amount_SU)}</td>
+                    <td>{f(order.amount_mETH)}</td>
+                    <td>{f(order.price)}</td>
                     <td>
                       <Button onClick={() => cancelBuyOrder(order)}>
                         Cancel
@@ -70,9 +88,9 @@ const TradersContainer = (props: Props) => {
                 {Array.from(trader.sell_orders).map((order, orderIndex) => (
                   <tr key={`sell${orderIndex}`}>
                     <td>{order.type}</td>
-                    <td>{accounting.formatNumber(order.amount_SU, 2)}</td>
-                    <td>{accounting.formatNumber(order.amount_mETH, 2)}</td>
-                    <td>{accounting.formatNumber(order.price, 2)}</td>
+                    <td>{f(order.amount_SU)}</td>
+                    <td>{f(order.amount_mETH)}</td>
+                    <td>{f(order.price)}</td>
                     <td>
                       <Button onClick={() => cancelSellOrder(order)}>
                         Cancel
@@ -83,10 +101,43 @@ const TradersContainer = (props: Props) => {
               </tbody>
             </table>
           </div>
-        );
-      })}
-    </div>
-  );
+        }
+      </div>
+    )
+  }
+}
+
+
+class TradersContainer extends React.Component {
+  state = {
+    expandAll: false,
+  }
+
+  render() {
+    const { traders, cancelBuyOrder, cancelSellOrder } = this.props;
+    const { expandAll } = this.state;
+
+    const tradersArr = Array.from(traders.values());
+
+    return (
+      <div>
+        <button onClick={() => this.setState({ expandAll: !expandAll })}>
+          expand / collapse all
+        </button>
+        {
+          tradersArr.map((trader, index) =>
+            <SingleTrader
+              trader={trader}
+              cancelBuyOrder={cancelBuyOrder}
+              cancelSellOrder={cancelSellOrder}
+              expandAll={expandAll}
+              key={index}
+            />
+          )
+        }
+      </div>
+    );
+  }
 };
 
 const mapState = state => ({
