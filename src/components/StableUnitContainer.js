@@ -51,20 +51,28 @@ class StableUnitContainer extends Component<Props, State> {
   }
 
   render() {
-    const renderInput = (name: string) => <NumberInput
-      id={name}
-      style={{ minWidth: '5em' }}
-      key={name}
-      label={name.toUpperCase()}
-      value={Number(this.state[name])}
-      step={STEP}
-      onChange={this.updateValue(name)}
-    />
+    const renderInput = ({ name, label }) =>
+      <NumberInput
+        id={name}
+        style={{ minWidth: '5em' }}
+        key={name}
+        label={label}
+        value={Number(this.state[name])}
+        step={STEP}
+        onChange={this.updateValue(name)}
+      />
 
     return (
       <div>
         <div style={{ display: 'flex' }}>
-          {['d1', 'd2', 'd3', 'd4', 'd5'].map(renderInput)}
+          {
+            [
+              { name: 'd1', label: 'Δs' },
+              { name: 'd2', label: 'Δb' },
+              { name: 'd3', label: 'Δd' },
+              { name: 'd4', label: 'Δp' },
+            ].map(renderInput)
+          }
         </div>
         <Button onClick={this.apply}>Apply</Button>
       </div>

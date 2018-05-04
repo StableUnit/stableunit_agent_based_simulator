@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { Module, ModuleHeader, ModuleBody } from 'carbon-components-react';
 
 import ExchangeContainer from './components/ExchangeContainer';
+import StableUnitChartContainer from './components/StableUnitChartContainer';
 import DemandContainer from './components/DemandContainer';
 import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
@@ -22,8 +23,12 @@ const Wrap = styled.div`
   min-width: 1300px;
 `;
 
-const Panel = styled.div`
-  width: 50%;
+const PanelLeft = styled.div`
+  width: 60%;
+`;
+
+const PanelRight = styled.div`
+  width: 40%;
 `;
 
 class App extends React.Component<Props> {
@@ -36,11 +41,25 @@ class App extends React.Component<Props> {
         <Header />
 
         <Wrap>
-          <Panel>
+          <PanelLeft>
+            <Module>
+              <ModuleHeader>Stable Unit Simulation</ModuleHeader>
+              <ModuleBody>
+                <StableUnitChartContainer />
+              </ModuleBody>
+            </Module>
             <Module>
               <ModuleHeader>Exchange Simulation</ModuleHeader>
               <ModuleBody>
                 <ExchangeContainer />
+              </ModuleBody>
+            </Module>
+          </PanelLeft>
+          <PanelRight>
+            <Module>
+              <ModuleHeader>Media Impact Simulation</ModuleHeader>
+              <ModuleBody>
+                <DemandContainer />
               </ModuleBody>
             </Module>
             <Module>
@@ -49,21 +68,13 @@ class App extends React.Component<Props> {
                 <StableUnitContainer />
               </ModuleBody>
             </Module>
-          </Panel>
-          <Panel>
-            <Module>
-              <ModuleHeader>Media Impact Simulation</ModuleHeader>
-              <ModuleBody>
-                <DemandContainer />
-              </ModuleBody>
-            </Module>
             <Module>
               <ModuleHeader>Traders</ModuleHeader>
               <ModuleBody>
                 <TradersContainer />
               </ModuleBody>
             </Module>
-          </Panel>
+          </PanelRight>
         </Wrap>
         <Status />
       </div>

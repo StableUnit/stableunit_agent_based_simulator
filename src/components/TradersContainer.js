@@ -58,7 +58,7 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
     const { total_USD, balance_SU, balance_mETH, balance_SHAREs, balance_BONDs } = portfolio;
 
     return (
-      <div key={trader.name} style={{ marginBottom: '1.5em' }}>
+      <div key={trader.name} style={{ marginTop: '2em' }}>
         <strong>{trader.name}</strong>
 
         <span style={{ padding: '0 10px' }}>

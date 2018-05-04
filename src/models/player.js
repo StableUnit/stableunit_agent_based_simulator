@@ -142,7 +142,7 @@ export default {
       while (true) {
         rootState.player.simulation.update();
         this.updateSimulationState(rootState.player.simulation);
-        await delay(1000);
+        await delay(100);
       }
     }
   }
