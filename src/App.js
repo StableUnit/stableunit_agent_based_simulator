@@ -46,6 +46,7 @@ class App extends React.Component<Props> {
               <ModuleHeader>Stable Unit Simulation</ModuleHeader>
               <ModuleBody>
                 <StableUnitChartContainer />
+                <StableUnitContainer />
               </ModuleBody>
             </Module>
             <Module>
@@ -60,12 +61,6 @@ class App extends React.Component<Props> {
               <ModuleHeader>Media Impact Simulation</ModuleHeader>
               <ModuleBody>
                 <DemandContainer />
-              </ModuleBody>
-            </Module>
-            <Module>
-              <ModuleHeader>Stable Unit System Simulation</ModuleHeader>
-              <ModuleBody>
-                <StableUnitContainer />
               </ModuleBody>
             </Module>
             <Module>
