@@ -24,22 +24,21 @@ const Half = styled.div`
   width: 50%;
 `;
 
-const MarketContainer = (props: Props) => {
+const MarketWithOrderBook = (props: Props) => {
   const { market, title } = props;
 
   return (
     <div>
-        <h3>{title}</h3>
-        <Wrap>
-          <Half>
-            <History market={market} />
-          </Half>
-          <Half>
-            <OrderBook market={market} />
-          </Half>
-        </Wrap>
+      <Wrap>
+        <Half>
+          <History market={market} title={title} />
+        </Half>
+        <Half>
+          <OrderBook market={market} />
+        </Half>
+      </Wrap>
     </div>
   );
 };
 
-export default MarketContainer;
+export default MarketWithOrderBook;

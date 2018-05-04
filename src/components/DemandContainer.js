@@ -6,7 +6,7 @@ import { Button } from 'carbon-components-react';
 
 import type { FullState, SimulationState } from '../models/player';
 
-import MarketContainer from './MarketContainer';
+import History from './History';
 
 type Props = {
   player: SimulationState
@@ -30,32 +30,30 @@ class DemandContainer extends React.Component<Props, State> {
         <div
           style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}
         >
-          <MarketContainer
+          <History
             title="Market demand"
             market={player.simulation.market_demand}
           />
-          <div>
-            <Button
-              onClick={() =>
-                player.simulation.market_demand.setNewPrice(
-                  player.simulation.market_demand.getCurrentPrice() * 1.1
-                )
-              }
-            >
-              Increase
-            </Button>
-          </div>
-          <div>
-            <Button
-              onClick={() =>
-                player.simulation.market_demand.setNewPrice(
-                  player.simulation.market_demand.getCurrentPrice() * 0.9
-                )
-              }
-            >
-              Decrease
-            </Button>
-          </div>
+        </div>
+        <div>
+          <Button
+            onClick={() =>
+              player.simulation.market_demand.setNewPrice(
+                player.simulation.market_demand.getCurrentPrice() * 1.1
+              )
+            }
+          >
+            Increase
+          </Button>
+          <Button
+            onClick={() =>
+              player.simulation.market_demand.setNewPrice(
+                player.simulation.market_demand.getCurrentPrice() * 0.9
+              )
+            }
+          >
+            Decrease
+          </Button>
         </div>
       </div>
     );

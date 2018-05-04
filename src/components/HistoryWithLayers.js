@@ -8,7 +8,12 @@ import { Market } from '../models/es6_simulation';
 
 type Props = {
   market: Market,
-  title: string
+  title: string,
+  D1: number,
+  D2: number,
+  D3: number,
+  D4: number,
+  D5: number
 };
 
 type State = {
@@ -30,9 +35,23 @@ class History extends React.Component<Props, State> {
   };
 
   render() {
-    const { market, title } = this.props;
+    const { market, title, D1, D2, D3, D4, D5 } = this.props;
     const { showAll } = this.state;
     const sliceLength = showAll ? 0 : -50;
+
+    const guides = [
+      { value: 1 + D1, label: 'market stabilization', lineColor: "#660000", },
+      { value: 1 - D1, label: 'Δs: stabilization fund', lineColor: "#990000", },
+      { value: 1 - D2, label: 'Δb: bonds', lineColor: "#CC0000", },
+      { value: 1 - D3, label: 'Δd: shares dilution', lineColor: "#FF0000", },
+      { value: 1 - D4, label: 'Δp: temporary parking', lineColor: "#FF0000", },
+    ].map(guide => ({
+      ...guide,
+      lineAlpha: 1,
+      dashLength: 2,
+      inside: true,
+      labelRotation: 90,
+    }))
 
     // Convert data for orderbook
     // const data = convertDataForChart(market.history);
@@ -40,7 +59,7 @@ class History extends React.Component<Props, State> {
 
     const style = {
       width: '100%',
-      height: 200
+      height: 300
     };
 
     const options = {
@@ -49,6 +68,11 @@ class History extends React.Component<Props, State> {
       valueAxes: [
         {
           position: 'left',
+          guides,
+          gridCount: 7,
+          minimum: 0.5,
+          maximum: 1.2,
+          autoGridCount: false,
         }
       ],
       graphs: [

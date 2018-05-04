@@ -6,11 +6,12 @@ import { Button } from 'carbon-components-react';
 
 import type { FullState, SimulationState } from '../models/player';
 
-import MarketContainer from './MarketContainer';
+import History from './History';
+import HistoryWithLayers from './HistoryWithLayers';
 import MarketWithOrderBook from './MarketWithOrderBook';
 
 type Props = {
-  player: SimulationState
+  player: SimulationState,
 };
 
 type State = {
@@ -32,7 +33,7 @@ class ExchangeContainer extends React.Component<Props, State> {
           style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}
         >
           <div style={{ flex: 1 }}>
-            <MarketContainer
+            <History
               title="ETH-USD"
               market={player.simulation.market_ETHUSD}
             />
@@ -56,12 +57,6 @@ class ExchangeContainer extends React.Component<Props, State> {
                 Decrease
               </Button>
             </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <MarketContainer
-              title="SU-USD"
-              market={player.simulation.market_SUUSD}
-            />
           </div>
         </div>
         <div style={{ marginTop: '2em' }}>
