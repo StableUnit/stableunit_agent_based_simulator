@@ -7,7 +7,7 @@ type Props = {
   title: string,
   name: string,
   showAll: bool,
-  toggleShowAll: function
+  toggleShowAll: Function
 };
 
 const TitleWithToggle = (props: Props) => {
