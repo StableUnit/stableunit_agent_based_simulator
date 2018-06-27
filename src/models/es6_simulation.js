@@ -256,7 +256,7 @@ export type Order = {
   amount_SU: number;
   amount_mETH: number;
   price: number; // ==SU/mETH
-  ttl: number;   // time to live, in ticks, or NaN
+  ttl?: number;   // time to live, in ticks, or NaN
 }
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
@@ -321,12 +321,13 @@ export class Market_SUmETH extends Market {
                 amount_mETH: amount_mETH,
                 ttl: ttl ? ttl: NaN,
             };
-            this.buy_orders.push(order);
+            // add to the trader
             trader.orders.add(order);
             if (ttl) {
                 trader.ttl.set(order, ttl);
             }
-
+            // add to the market
+            this.buy_orders.push(order);
             // the last item has the highest price
             this.buy_orders.sort((a,b) => a.price - b.price);
             //return {order: order, status: "Added limited buy order"};
@@ -350,27 +351,17 @@ export class Market_SUmETH extends Market {
                 type: "sell",
                 ttl: ttl ? ttl: NaN,
             };
-            this.sell_orders.push(order);
             trader.orders.add(order);
             if (ttl > 0) {
                 trader.ttl.set(order, ttl);
             }
+            this.sell_orders.push(order);
             // the last item has the smallest price
             this.sell_orders.sort((a,b) => b.price - a.price);
             return "Added limited sell order";
         } else {
             return "Not enough SU";
         }
-    }
-
-    // TODO: legacy
-    deleteLimitBuyOrder(order: Order) {
-        this.cancelOrder(order);
-    }
-
-    //TODO: legacy
-    deleteLimitSellOrder(order: Order) {
-        this.cancelOrder(order);
     }
 
     cancelOrder(order: Order) {
@@ -398,19 +389,16 @@ export class Market_SUmETH extends Market {
         return false;
     }
 
-    checkInvariant() {
-        for (let i = 1; i < this.sell_orders.length; i++) {
-            if (this.sell_orders[i-1].price < this.sell_orders[i].price) {
-                return false;
-            }
-        }
-        for (let i = 1; i < this.buy_orders.length; i++) {
-            if (this.buy_orders[i-1].price > this.buy_orders[i].price) {
-                return false;
-            }
-        }
-        return true;
+    // TODO: legacy
+    deleteLimitBuyOrder(order: Order) {
+      this.cancelOrder(order);
     }
+
+    //TODO: legacy
+    deleteLimitSellOrder(order: Order) {
+      this.cancelOrder(order);
+    }
+
     // This method is trying to complete all possible deals if any available
     update() {
         // check is any limit orders are possible to complete
@@ -446,7 +434,7 @@ export class Market_SUmETH extends Market {
     }
 
     // A market order is a buy or sell order to be executed immediately at current market prices.
-    // Like pacman it eats all avalibile sell order until reach su_amount
+    // Like pacman it eats all available sell order until reach su_amount
     newMarketBuyOrder(buyer: Trader, amount_SU: number) {
         let status_prefix = "Order was not completed. ";
         // if orderbook has sell orders and buyer is still wants to buy
@@ -460,7 +448,7 @@ export class Market_SUmETH extends Market {
             let deal_ETH = deal_SU*deal_price;
             // try to make a deal
             if (this.buySuForEth(buyer, sell_order.trader, deal_SU, deal_ETH)) {
-                status_prefix = "The order was partialy completed. ";
+                status_prefix = "The order was partially completed. ";
                 amount_SU -= deal_SU;
                 sell_order.amount_SU -= deal_SU;
                 sell_order.amount_mETH -= deal_ETH;
@@ -499,7 +487,7 @@ export class Market_SUmETH extends Market {
             let deal_mETH = deal_SU*deal_price;
             // try to make a deal
             if (this.buySuForEth(buy_order.trader, seller, deal_SU, deal_mETH)) {
-                status_prefix = "The order was partialy completed. ";
+                status_prefix = "The order was partially completed. ";
                 amount_SU -= deal_SU;
                 buy_order.amount_SU -= deal_SU;
                 buy_order.amount_mETH -= deal_mETH;
@@ -522,38 +510,6 @@ export class Market_SUmETH extends Market {
         }
     }
 
-    test() {
-        const trader_1 = new Trader("trader_1", {balance_SU: 1000, balance_mETH: 2});
-        const trader_2 = new Trader("trader_2", {balance_SU: 1000, balance_mETH: 2});
-        this.newLimitBuyOrder(trader_1, 500, 1 );
-        this.newLimitSellOrder(trader_2, 1000, 2);
-        this.update();
-        assert.equal(trader_1.balance_SU, 1500);
-        assert.equal(trader_1.balance_mETH, 1);
-        assert.equal(trader_2.balance_SU, 500);
-        assert.equal(trader_2.balance_mETH, 3);
-        assert.equal(this.getCurrentValue(), 0.002);
-        assert.equal(this.newMarketBuyOrder(trader_1, 501), "The order was partialy completed. Not enough sell orders in the queue. ");
-        const trader_3 = new Trader("trader_3", {balance_SU: 0, balance_mETH: 10});
-        this.newLimitSellOrder(trader_1, 500, 1);
-        this.newLimitSellOrder(trader_1, 500, 1.5);
-        this.newLimitSellOrder(trader_1, 500, 2);
-        this.newLimitSellOrder(trader_1, 500, 3);
-        this.newLimitBuyOrder(trader_1, 500, 4);
-        this.newLimitBuyOrder(trader_3, 2001, 1);
-        this.deleteLimitBuyOrder([...trader_3.orders].pop());
-        this.newMarketBuyOrder(trader_3, 2001);
-        assert.equal(trader_3.balance_mETH, 2.5);
-        const trader_4 = new Trader("trader_4", {balance_SU: 2000, balance_mETH: 1000});
-        this.newLimitBuyOrder(trader_4, 100, 100);
-        this.newLimitBuyOrder(trader_4, 90, 100);
-        this.newLimitBuyOrder(trader_4, 80, 100);
-        this.newLimitBuyOrder(trader_4, 100, 100);
-        this.newLimitBuyOrder(trader_4, 90, 100);
-        this.newLimitBuyOrder(trader_4, 80, 100);
-        assert.equal(this.checkInvariant(), true);
-
-    }
 }
 const market_SUETH = new Market_SUmETH(2/* mETH per SU */);
 const market_SUUSD = new Market(1, "SU/USD");
@@ -575,7 +531,6 @@ export class Trader {
     time_left_until_update: number;
 
     orders: Set<Order> = new Set();
-    // deprecated
     ttl: Map<Order, number> = new Map();
 
     constructor(name: string, portfolio: {balance_SU: number, balance_mETH: number}, dna: Object = {}, time_frame: number = 1) {
@@ -626,7 +581,7 @@ export class Trader {
         }
     }
 
-    isTimeToUpdate() {
+    ifTimeToUpdate() {
         // return true is there's time to update
         this.time_left_until_update -= 1;
         if (this.time_left_until_update <= 0) {
@@ -637,14 +592,6 @@ export class Trader {
         }
     }
 
-    // getEthBalance() {
-    //     return web4.eth.accounts.get(this.portfolio.eth_wallet.address) || 0;
-    // }
-
-    // getSuBalance() {
-    //     return web4.su.accounts.get(this.portfolio.su_wallet.address) || 0;
-    // }
-
     test() {
         // let returned_status = market_SUETH.newLimitBuyOrder(this, 1*Math.random(), 0.1);
         // if (returned_status.order !== undefined) {
@@ -653,7 +600,6 @@ export class Trader {
         // }
     }
 }
-
 
 // Pool of all trader instances for outside control
 export type Traders = Map<string, Trader>;
@@ -678,7 +624,7 @@ class SimpleTrader extends Trader {
     update() {
         super.update();
         // execute update ones in time_frame ticks
-        if (super.isTimeToUpdate()) {
+        if (super.ifTimeToUpdate()) {
             // return on investment = (gain from investment – cost of investment) / cost of investment
             // when trading above 1 for 1+x: roi == (1+x - 1)/1 => x == roi
             let SU_high_price_mETH = (1+this.roi) / market_mETHUSD.getCurrentValue();
@@ -709,7 +655,7 @@ class RandomTrader extends Trader {
     trade_frequency: number = 0.5;
     update() {
         super.update();
-        if (super.isTimeToUpdate()) {
+        if (super.ifTimeToUpdate()) {
             if (Math.random() < market_demand.getCurrentValue()) {
                 market_SUETH.newMarketBuyOrder(this, Utility.randomSuOrder());
             } else {
@@ -728,11 +674,10 @@ export class Simulation {
     market_demand: Market;
     traders: Traders = new Map();
 
-    // takes callBack funtions for visualisation
+    // takes callBack functions for visualisation
     constructor() {
 
         // init all instances of the simulation:
-        // blokchains,
         this.web4 = web4;
         // exchanges,
         this.market_ETHUSD = market_mETHUSD;
@@ -759,7 +704,7 @@ export class Simulation {
         //     "simple_bear_2",
         //     Utility.generateRandomPortfolio(),
         //     {type: "bear", time_frame: 1, roi: 0.1}));
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 10; i++) {
             traders.push(new SimpleTrader(
                 "simple_" + i,
                 Utility.generateRandomPortfolio(),
@@ -768,7 +713,7 @@ export class Simulation {
         }
         // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
         // traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 10; i++) {
             traders.push(new RandomTrader(
                 "random_" + i,
                 Utility.generateRandomPortfolio(),
