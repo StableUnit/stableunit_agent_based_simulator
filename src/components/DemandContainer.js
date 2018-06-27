@@ -38,8 +38,8 @@ class DemandContainer extends React.Component<Props, State> {
         <div>
           <Button
             onClick={() =>
-              player.simulation.market_demand.setNewPrice(
-                player.simulation.market_demand.getCurrentPrice() * 1.1
+              player.simulation.market_demand.setNewValue(
+                player.simulation.market_demand.getCurrentValue() * 1.1
               )
             }
           >
@@ -47,8 +47,8 @@ class DemandContainer extends React.Component<Props, State> {
           </Button>
           <Button
             onClick={() =>
-              player.simulation.market_demand.setNewPrice(
-                player.simulation.market_demand.getCurrentPrice() * 0.9
+              player.simulation.market_demand.setNewValue(
+                player.simulation.market_demand.getCurrentValue() * 0.9
               )
             }
           >

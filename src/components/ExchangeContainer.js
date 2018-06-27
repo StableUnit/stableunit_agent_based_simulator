@@ -40,8 +40,8 @@ class ExchangeContainer extends React.Component<Props, State> {
             <div style={{ textAlign: 'center' }}>
               <Button
                 onClick={() =>
-                  player.simulation.market_ETHUSD.setNewPrice(
-                    player.simulation.market_ETHUSD.getCurrentPrice() * 1.1
+                  player.simulation.market_ETHUSD.setNewValue(
+                    player.simulation.market_ETHUSD.getCurrentValue() * 1.1
                   )
                 }
               >
@@ -49,8 +49,8 @@ class ExchangeContainer extends React.Component<Props, State> {
               </Button>
               <Button
                 onClick={() =>
-                  player.simulation.market_ETHUSD.setNewPrice(
-                    player.simulation.market_ETHUSD.getCurrentPrice() * 0.9
+                  player.simulation.market_ETHUSD.setNewValue(
+                    player.simulation.market_ETHUSD.getCurrentValue() * 0.9
                   )
                 }
               >

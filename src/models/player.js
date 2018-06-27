@@ -114,6 +114,12 @@ export default {
       return state;
     },
 
+    cancelOrder: (state: SimulationState, order: Order):
+      SimulationState => {
+      state.simulation.market_SUETH.cancelOrder(order);
+      return state;
+    },
+
     updateStableUnitDeltas: (
       state: SimulationState,
       payload: { d1: string, d2: string, d3: string, d4: string, d5: string }

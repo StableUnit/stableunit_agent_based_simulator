@@ -34,7 +34,8 @@ type SingleTraderProps = {
   trader: Trader,
   expandAll: bool,
   cancelBuyOrder: Order => {},
-  cancelSellOrder: Order => {}
+  cancelSellOrder: Order => {},
+  cancelOrder: Order => {}
 };
 
 type SingleTraderState = {
@@ -52,7 +53,7 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
   }
 
   render() {
-    const { trader, expandAll, cancelBuyOrder, cancelSellOrder } = this.props;
+    const { trader, expandAll, cancelBuyOrder, cancelSellOrder, cancelOrder } = this.props;
     const { expanded } = this.state;
     const portfolio = trader.getPortfolio();
     const { total_USD, balance_SU, balance_mETH, balance_SHAREs, balance_BONDs } = portfolio;
@@ -79,27 +80,15 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
 
             <table style={{ width: '100%' }}>
               <tbody>
-                {Array.from(trader.buy_orders).map((order, orderIndex) => (
+                {Array.from(trader.orders).map((order, orderIndex) => (
                   <tr key={`buy${orderIndex}`}>
                     <td>{order.type}</td>
                     <td>{f(order.amount_SU)}</td>
                     <td>{f(order.amount_mETH)}</td>
                     <td>{f(order.price)}</td>
+                    <td>{f(order.ttl)}</td>
                     <td>
-                      <Button onClick={() => cancelBuyOrder(order)}>
-                        Cancel
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {Array.from(trader.sell_orders).map((order, orderIndex) => (
-                  <tr key={`sell${orderIndex}`}>
-                    <td>{order.type}</td>
-                    <td>{f(order.amount_SU)}</td>
-                    <td>{f(order.amount_mETH)}</td>
-                    <td>{f(order.price)}</td>
-                    <td>
-                      <Button onClick={() => cancelSellOrder(order)}>
+                      <Button onClick={() => cancelOrder(order)}>
                         Cancel
                       </Button>
                     </td>
@@ -120,7 +109,8 @@ type TradersContainerProps = {
   traders: Traders,
   tick: number,
   cancelBuyOrder: Order => {},
-  cancelSellOrder: Order => {}
+  cancelSellOrder: Order => {},
+  cancelOrder: Order => {},
 };
 
 type TradersContainerState = {
@@ -133,7 +123,7 @@ class TradersContainer extends React.Component<TradersContainerProps, TradersCon
   }
 
   render() {
-    const { traders, cancelBuyOrder, cancelSellOrder } = this.props;
+    const { traders, cancelBuyOrder, cancelSellOrder, cancelOrder } = this.props;
     const { expandAll } = this.state;
 
     const tradersArr = Array.from(traders.values());
@@ -149,6 +139,7 @@ class TradersContainer extends React.Component<TradersContainerProps, TradersCon
               trader={trader}
               cancelBuyOrder={cancelBuyOrder}
               cancelSellOrder={cancelSellOrder}
+              cancelOrder={cancelOrder}
               expandAll={expandAll}
               key={index}
             />
@@ -166,7 +157,8 @@ const mapState = state => ({
 
 const mapDispatch = dispatch => ({
   cancelBuyOrder: dispatch.player.cancelBuyOrder,
-  cancelSellOrder: dispatch.player.cancelSellOrder
+  cancelSellOrder: dispatch.player.cancelSellOrder,
+  cancelOrder: dispatch.player.cancelOrder
 });
 
 export default connect(mapState, mapDispatch)(TradersContainer);
