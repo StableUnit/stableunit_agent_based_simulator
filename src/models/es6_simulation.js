@@ -251,12 +251,12 @@ export class Market {
 const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD");
 
 export type Order = {
-  trader: Trader;
-  type: string; // buy, sell, buy_limit, sell_limit
-  amount_SU: number;
-  amount_mETH: number;
-  price: number; // ==SU/mETH
-  ttl?: number;   // time to live, in ticks, or NaN
+    trader: Trader;
+    type: string; // buy, sell, buy_limit, sell_limit
+    amount_SU: number;
+    amount_mETH: number;
+    price: number; // ==SU/mETH
+    ttl?: number;   // time to live, in ticks, or NaN
 }
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
@@ -433,40 +433,81 @@ export class Market_SUmETH extends Market {
         }
     }
 
+      // A market order is a buy or sell order to be executed immediately at current market prices.
+      // Like pacman it eats all available sell order until reach su_amount
+    newMarketBuyOrder(buyer: Trader, amount_SU: number) {
+      let status_prefix = "Order was not completed. ";
+      // if orderbook has sell orders and buyer is still wants to buy
+      while (this.sell_orders.length > 0 && amount_SU > Utility.EPS) {
+        // take the cheapest one
+        let sell_order = this.sell_orders.pop();
+        sell_order.trader.orders.delete(sell_order);
+        // calc the deal details
+        let deal_price = sell_order.price;
+        let deal_SU = Math.min(amount_SU, sell_order.amount_SU);
+        let deal_ETH = deal_SU*deal_price;
+        // try to make a deal
+        if (this.buySuForEth(buyer, sell_order.trader, deal_SU, deal_ETH)) {
+          status_prefix = "The order was partially completed. ";
+          amount_SU -= deal_SU;
+          sell_order.amount_SU -= deal_SU;
+          sell_order.amount_mETH -= deal_ETH;
+          // if the sell order is only partially completed - add reminder back
+          if (sell_order.amount_SU > Utility.EPS) {
+            // this.sell_orders.push(sell_order);
+            // sell_order.trader.sell_orders.add(sell_order);
+            this.newLimitSellOrder(sell_order.trader, sell_order.amount_SU, sell_order.amount_mETH);
+          }
+        }
+      }
+      if (amount_SU <= Utility.EPS) {
+        return "Market buy order was completed. ";
+      } else {
+        if (this.sell_orders.length === 0) {
+          return status_prefix + "Not enough sell orders in the queue. ";
+        } else {
+          return status_prefix + "Not enough ETH to buy. ";
+        }
+      }
+    }
+
     // A market order is a buy or sell order to be executed immediately at current market prices.
     // Like pacman it eats all available sell order until reach su_amount
-    newMarketBuyOrder(buyer: Trader, amount_SU: number) {
-        let status_prefix = "Order was not completed. ";
-        // if orderbook has sell orders and buyer is still wants to buy
-        while (this.sell_orders.length > 0 && amount_SU > Utility.EPS) {
-            // take the cheapest one
-            let sell_order = this.sell_orders.pop();
-            sell_order.trader.orders.delete(sell_order);
-            // calc the deal details
+    buyMarketOrder(buyer: Trader, amount_SU: number) {
+        while (amount_SU > Utility.EPS && buyer.balance_mETH > Utility.EPS && this.sell_orders.length > 0) {
+            let sell_order = this.sell_orders.slice(-1)[0];
+
             let deal_price = sell_order.price;
-            let deal_SU = Math.min(amount_SU, sell_order.amount_SU);
-            let deal_ETH = deal_SU*deal_price;
-            // try to make a deal
-            if (this.buySuForEth(buyer, sell_order.trader, deal_SU, deal_ETH)) {
-                status_prefix = "The order was partially completed. ";
+            let max_SU = Math.min(amount_SU, sell_order.amount_SU);
+            let max_mETH = max_SU * deal_price;
+            let deal_mETH = Math.min(buyer.balance_mETH, max_mETH);
+            let deal_SU = deal_mETH / deal_price;
+            assert( deal_price - deal_mETH/deal_SU < Utility.EPS  );
+            if (this.buySuForEth(buyer, sell_order.trader, deal_SU, deal_mETH)) {
                 amount_SU -= deal_SU;
                 sell_order.amount_SU -= deal_SU;
-                sell_order.amount_mETH -= deal_ETH;
-                // if the sell order is only partially completed - add reminder back
-                if (sell_order.amount_SU > Utility.EPS) {
-                    // this.sell_orders.push(sell_order);
-                    // sell_order.trader.sell_orders.add(sell_order);
-                    this.newLimitSellOrder(sell_order.trader, sell_order.amount_SU, sell_order.amount_mETH);
+                sell_order.amount_mETH -= deal_mETH;
+
+                if (sell_order.amount_mETH < Utility.EPS) {
+                    assert(sell_order.amount_SU < Utility.EPS);
+                    this.sell_orders.pop();
+                    sell_order.trader.deleteOrder(sell_order, "Order was complete");
+                } else {
+                    assert( sell_order.price - sell_order.amount_mETH /sell_order.amount_SU < Utility.EPS );
+                    sell_order.trader.log.push("Order was partially complete");
+                    break;
                 }
+            } else {
+                throw new Error("can't perform exchange");
             }
         }
         if (amount_SU <= Utility.EPS) {
             return "Market buy order was completed. ";
         } else {
             if (this.sell_orders.length === 0) {
-                return status_prefix + "Not enough sell orders in the queue. ";
+                return "Not enough sell orders in the queue. ";
             } else {
-                return status_prefix + "Not enough ETH to buy. ";
+                return "Not enough ETH to buy. ";
             }
         }
     }
@@ -532,6 +573,8 @@ export class Trader {
 
     orders: Set<Order> = new Set();
     ttl: Map<Order, number> = new Map();
+    log: Array<string> = [];
+    MAX_LOG_LENGTH = 10;
 
     constructor(name: string, portfolio: {balance_SU: number, balance_mETH: number}, dna: Object = {}, time_frame: number = 1) {
         this.name = name;
@@ -568,6 +611,24 @@ export class Trader {
 
     getDNA() {
         return this.dna;
+    }
+
+    addOrder(order: Order, ttl?: number) {
+        this.orders.add(order);
+        if (ttl) {
+            this.ttl.set(order, ttl);
+        }
+    }
+
+    deleteOrder(order: Order, status?: string) {
+        this.ttl.delete(order);
+        this.orders.delete(order);
+        if (status) {
+            this.log.push(status);
+            if (this.log.length > this.MAX_LOG_LENGTH) {
+                this.log = this.log.slice(-this.MAX_LOG_LENGTH);
+            }
+        }
     }
 
     update() {
@@ -636,7 +697,7 @@ class SimpleTrader extends Trader {
                 this.balance_mETH / SU_low_price_mETH,
                 this.balance_mETH,
                 this.time_frame);
-            // selling hight and believes that price will fall to peg to buy cheap again
+            // selling high and believes that price will fall to peg to buy cheap again
             market_SUETH.newLimitSellOrder(
                 this,
                 this.balance_SU,
@@ -657,9 +718,9 @@ class RandomTrader extends Trader {
         super.update();
         if (super.ifTimeToUpdate()) {
             if (Math.random() < market_demand.getCurrentValue()) {
-                market_SUETH.newMarketBuyOrder(this, Utility.randomSuOrder());
+                market_SUETH.buyMarketOrder(this, Utility.randomSuOrder());
             } else {
-                market_SUETH.newMarketSellOrder(this, Utility.randomSuOrder());
+                //market_SUETH.newMarketSellOrder(this, Utility.randomSuOrder());
             }
         }
     }
@@ -687,7 +748,7 @@ export class Simulation {
         // temporary array of traders
         let traders = [];
         traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 500}));
-        traders.push(new Trader("human_2",{balance_SU: 1000, balance_mETH: 1000}));
+        traders.push(new Trader("human_2",{balance_SU: 5000, balance_mETH: 5000}));
         // traders.push(new SimpleTrader(
         //     "simple_bull_1",
         //     Utility.generateRandomPortfolio(),

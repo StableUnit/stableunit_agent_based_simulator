@@ -81,7 +81,7 @@ export default {
         quantity: string
       }
     ) => {
-      const status = state.simulation.market_SUETH.newMarketBuyOrder(
+      const status = state.simulation.market_SUETH.buyMarketOrder(
         payload.trader,
         Number(payload.quantity)
       );
