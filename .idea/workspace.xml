@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="44ebb16e-4056-4455-8e1a-27cfd4d0cb6e" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.editorconfig" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models/es6_simulation.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/es6_simulation.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models/es6_simulation.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/es6_simulation.test.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models/player.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/player.js" afterDir="false" />
@@ -70,14 +67,13 @@
       <file leaf-file-name="es6_simulation.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/models/es6_simulation.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="338">
-              <caret line="850" column="44" selection-start-line="850" selection-start-column="44" selection-end-line="850" selection-end-column="44" />
+            <state relative-caret-position="265">
+              <caret line="412" column="73" selection-start-line="412" selection-start-column="73" selection-end-line="412" selection-end-column="73" />
               <folding>
                 <element signature="e#9959#10006#0" />
                 <element signature="e#10033#10172#0" />
                 <element signature="e#10200#10341#0" />
                 <element signature="e#10373#10728#0" />
-                <element signature="e#10811#11303#0" />
               </folding>
             </state>
           </provider>
@@ -255,7 +251,7 @@
       <workItem from="1529763426582" duration="377000" />
       <workItem from="1529990745227" duration="428000" />
       <workItem from="1530056833523" duration="30935000" />
-      <workItem from="1530367539355" duration="10623000" />
+      <workItem from="1530367539355" duration="12468000" />
     </task>
     <servers />
   </component>
@@ -292,7 +288,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="48893000" />
+    <option name="totallyTimeSpent" value="50738000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -309,10 +305,10 @@
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32969698" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="7" visible="true" weight="0.32948717" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.34666666" />
       <window_info id="npm" order="2" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.29102564" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.29102564" />
       <window_info anchor="bottom" id="Flow" order="8" weight="0.31923077" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2151994" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
@@ -333,6 +329,11 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/components/TradersContainer.js">
@@ -382,7 +383,6 @@
             <element signature="e#10033#10172#0" />
             <element signature="e#10200#10341#0" />
             <element signature="e#10373#10728#0" />
-            <element signature="e#10811#11303#0" />
           </folding>
         </state>
       </provider>
@@ -412,7 +412,6 @@
             <element signature="e#10033#10172#0" />
             <element signature="e#10200#10341#0" />
             <element signature="e#10373#10728#0" />
-            <element signature="e#10811#11303#0" />
           </folding>
         </state>
       </provider>
@@ -661,14 +660,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/models/es6_simulation.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="338">
-          <caret line="850" column="44" selection-start-line="850" selection-start-column="44" selection-end-line="850" selection-end-column="44" />
+        <state relative-caret-position="265">
+          <caret line="412" column="73" selection-start-line="412" selection-start-column="73" selection-end-line="412" selection-end-column="73" />
           <folding>
             <element signature="e#9959#10006#0" />
             <element signature="e#10033#10172#0" />
             <element signature="e#10200#10341#0" />
             <element signature="e#10373#10728#0" />
-            <element signature="e#10811#11303#0" />
           </folding>
         </state>
       </provider>
