@@ -25,6 +25,19 @@ function printObject(object) {
   ));
 }
 
+function printTraderLogs(logs) {
+  let text = "";
+  if (logs.length > 0) {
+    text = logs[0];
+  }
+  return (
+    <div>
+      <span>log: {text}</span>
+      <br/>
+    </div>
+  );
+}
+
 const Symbol = ({ children }) =>
   <span style={{ color: '#ccc', paddingRight: '10px' }}>{ children }</span>;
 
@@ -96,6 +109,11 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
                 ))}
               </tbody>
             </table>
+
+            <div className="traderLogs">
+              {printTraderLogs(trader.log)}
+            </div>
+
           </div>
         }
       </div>

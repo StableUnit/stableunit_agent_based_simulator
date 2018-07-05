@@ -42,6 +42,7 @@ export default {
         .set('simulation', simulation)
         .update('tick', tick => tick + 1);
     },
+
     placeLimitBuyOrder: (
       state: SimulationState,
       payload: {
@@ -95,7 +96,7 @@ export default {
         quantity: string
       }
     ) => {
-      const status = state.simulation.market_SUETH.newMarketSellOrder(
+      const status = state.simulation.market_SUETH.sellMarketOrder(
         payload.trader,
         Number(payload.quantity)
       );
@@ -103,19 +104,18 @@ export default {
     },
 
     cancelBuyOrder: (state: SimulationState, order: Order): SimulationState => {
-      state.simulation.market_SUETH.deleteLimitBuyOrder(order);
+      state.simulation.market_SUETH.cancelOrder(order);
       return state;
     },
     cancelSellOrder: (
       state: SimulationState,
       order: Order
     ): SimulationState => {
-      state.simulation.market_SUETH.deleteLimitSellOrder(order);
+      state.simulation.market_SUETH.cancelOrder(order);
       return state;
     },
 
-    cancelOrder: (state: SimulationState, order: Order):
-      SimulationState => {
+    cancelOrder: (state: SimulationState, order: Order): SimulationState => {
       state.simulation.market_SUETH.cancelOrder(order);
       return state;
     },
