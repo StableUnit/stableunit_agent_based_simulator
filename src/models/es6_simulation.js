@@ -69,10 +69,6 @@ class Ethereum {
         }
         return false;
     }
-
-    test() {
-
-    }
 }
 
 // StableUnit blockchain is an extension of Ethereum
@@ -83,6 +79,7 @@ export class StableUnit extends Ethereum {
     D3 = 0.15;
     D4 = 0.2;
     D5 = 0.25;
+    ORACLE_REWARD = 0.1;
 
     SUmETH_price: number;
     mETHUSD_price: number;
@@ -114,39 +111,41 @@ export class StableUnit extends Ethereum {
     }
 
     // Oracle smartcontract takes info from outside
-    callOracleSM(mETHUSD_price: number) {
+    callOracleSM(trader: Trader, mETHUSD_price: number) {
         this.mETHUSD_price = mETHUSD_price;
         this.reserve_ratio = this.reserve_mETH * mETHUSD_price / this.SU_circulation;
+        trader.balance_SU += this.ORACLE_REWARD;
+        this.SU_circulation += this.ORACLE_REWARD;
     }
 
     // Not sure yet whether we need SU/ETH or SU/USD as an input for oracle
-    callOracleSM2(SUmETH_price: number, mETHUSD_price: number) {
-        // reads info from outside world and brings it to the blockchain
-        // TODO: checks that prices haven't check too much so nobody is trying to compromize the System
-        this.callOracleSM(mETHUSD_price);
-        this.SUmETH_price = SUmETH_price;
-        const SU_price = SUmETH_price * this.mETHUSD_price;
-        this.SU_price = SU_price;
-
-        // expand supply via stabilization fund + reaping bonds
-        if (this.PEG + this.D1 <= SU_price) {
-        }
-        // market stabilization
-        if (this.PEG - this.D1 < SU_price && SU_price < this.PEG + this.D1) {
-        }
-        // stabilization fund
-        if (this.PEG - this.D2 < SU_price && SU_price <= this.PEG - this.D1) {
-        }
-        // bonds
-        if (this.PEG - this.D3 < SU_price && SU_price <= this.PEG - this.D2) {
-        }
-        // shares
-        if (this.PEG - this.D4 < SU_price && SU_price <= this.PEG - this.D3) {
-        }
-        // temporary parking
-        if (this.PEG - this.D5 < SU_price && SU_price <= this.PEG - this.D4) {
-        }
-    }
+    // callOracleSM2(SUmETH_price: number, mETHUSD_price: number) {
+    //     // reads info from outside world and brings it to the blockchain
+    //     // TODO: checks that prices haven't check too much so nobody is trying to compromize the System
+    //     this.callOracleSM(mETHUSD_price);
+    //     this.SUmETH_price = SUmETH_price;
+    //     const SU_price = SUmETH_price * this.mETHUSD_price;
+    //     this.SU_price = SU_price;
+    //
+    //     // expand supply via stabilization fund + reaping bonds
+    //     if (this.PEG + this.D1 <= SU_price) {
+    //     }
+    //     // market stabilization
+    //     if (this.PEG - this.D1 < SU_price && SU_price < this.PEG + this.D1) {
+    //     }
+    //     // stabilization fund
+    //     if (this.PEG - this.D2 < SU_price && SU_price <= this.PEG - this.D1) {
+    //     }
+    //     // bonds
+    //     if (this.PEG - this.D3 < SU_price && SU_price <= this.PEG - this.D2) {
+    //     }
+    //     // shares
+    //     if (this.PEG - this.D4 < SU_price && SU_price <= this.PEG - this.D3) {
+    //     }
+    //     // temporary parking
+    //     if (this.PEG - this.D5 < SU_price && SU_price <= this.PEG - this.D4) {
+    //     }
+    // }
 
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
     buySUfromReserveSM(buyer: Trader, amount_mETH: number) {
@@ -258,6 +257,7 @@ export type Order = {
     amount_SU: number;
     amount_mETH?: number;
     ttl?: number;   // time to live, in ticks, or NaN
+    isActive: bool;
 }
 
 // https://en.wikipedia.org/wiki/Order_(exchange)
@@ -311,6 +311,7 @@ export class Market_SUmETH extends Market {
     }
 
     removeOrder(order: Order, status?: string) {
+        order.isActive = false;
         order.trader.removeOrder(order, status);
         if (order.type === "buy") {
             let i = this.buy_orders.indexOf(order);
@@ -382,13 +383,14 @@ export class Market_SUmETH extends Market {
                 this.buy_orders.sort((a, b) => a.price - b.price);
             }
         } else {
-            this.removeOrder(buy_order, "Not enough balance to place the order.");
+            if (buy_order.isActive) {
+                this.removeOrder(buy_order, "Not enough balance to place the order.");
+            }
         }
     }
 
     addSellOrder(sell_order: Order) {
         while (sell_order.amount_SU > Utility.EPS && sell_order.trader.balance_SU > Utility.EPS && this.buy_orders.length > 0) {
-
             let buy_order = this.buy_orders.slice(-1)[0];
             if (buy_order.price + Utility.EPS > sell_order.price || isNaN(sell_order.price)) {
                 let deal_price = buy_order.price;
@@ -402,10 +404,12 @@ export class Market_SUmETH extends Market {
                 this.removeOrder(sell_order, "Not enough SU market demand.");
             } else {
                 this.sell_orders.push(sell_order);
-                this.sell_orders.sort((a,b) => b.price - a.price);
+                this.sell_orders.sort((a, b) => b.price - a.price);
             }
         } else {
-            this.removeOrder(sell_order, "Not enough balance to place the order.");
+            if (sell_order.isActive) {
+                this.removeOrder(sell_order, "Not enough balance to place the order.");
+            }
         }
     }
 
@@ -414,7 +418,8 @@ export class Market_SUmETH extends Market {
             trader: buyer,
             type: "buy",
             price: max_price,
-            amount_SU: amount_SU
+            amount_SU: amount_SU,
+            isActive: true,
         };
         buyer.addOrder(buy_order);
         this.addBuyOrder(buy_order);
@@ -426,7 +431,8 @@ export class Market_SUmETH extends Market {
             trader: seller,
             type: "sell",
             price: min_price,
-            amount_SU: amount_SU
+            amount_SU: amount_SU,
+            isActive: true,
         };
         seller.addOrder(sell_order);
         this.addSellOrder(sell_order);
@@ -670,10 +676,10 @@ export class Trader {
     name: string;
     // portfolio = {};
     // for access simplicity lets define balances outside of the portfolio dictionary
-    balance_SU: number;
-    balance_mETH: number;
-    balance_BONDs: number;
-    balance_SHAREs: number;
+    balance_SU: number = 0;
+    balance_mETH: number = 0;
+    balance_BONDs: number = 0;
+    balance_SHAREs: number = 0;
 
     dna = {};
     time_frame: number;
@@ -684,16 +690,22 @@ export class Trader {
     log: Array<string> = [];
     MAX_LOG_LENGTH = 10;
 
-    constructor(name: string, portfolio: { balance_SU: number, balance_mETH: number }, dna: Object = {}, time_frame: number = 1) {
+    constructor(name: string,
+                portfolio?: { balance_SU: number, balance_mETH: number, balance_BONDs?: number, balance_SHAREs?: number },
+                dna: Object = {time_frame: 1}
+    ) {
         this.name = name;
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.balance_SU);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.balance_mETH);
-        this.balance_SU = portfolio.balance_SU;
-        this.balance_mETH = portfolio.balance_mETH;
-        this.balance_BONDs = 0;
-        this.balance_SHAREs = 0;
+        if (portfolio) {
+            this.balance_SU = portfolio.balance_SU || 0;
+            this.balance_mETH = portfolio.balance_mETH || 0;
+            this.balance_BONDs = portfolio.balance_BONDs || 0;
+            this.balance_SHAREs = portfolio.balance_SHAREs || 0;
+        }
+
         this.dna = dna;
-        this.time_frame = time_frame;
+        this.time_frame = dna.time_frame;
         this.time_left_until_update = 0;
     }
 
@@ -790,7 +802,7 @@ class SimpleTrader extends Trader {
     time_frame: number;
 
     constructor(name: string, portfolio, dna: { time_frame: number, roi?: number }) {
-        super(name, portfolio, dna, dna.time_frame);
+        super(name, portfolio, dna);
         this.time_frame = dna.time_frame;
         this.roi = dna.roi || this.DEFAULT_ROI;
     }
@@ -833,6 +845,54 @@ class RandomTrader extends Trader {
     }
 }
 
+class OracleSpeculator extends Trader {
+    update() {
+        web4.su.callOracleSM(this, market_mETHUSD.getCurrentValue());
+    }
+}
+
+class BuyFDeeps extends Trader {
+    SU_DEEP = 0.01;
+    ROI = 10;
+
+    update() {
+        super.update();
+        // buy deeps
+        if (this.balance_mETH > Utility.EPS) {
+            let SU_buy_price = this.SU_DEEP;
+            let SU_buy_amount = this.balance_mETH / this.SU_DEEP;
+            this.addOrderTTL(market_SUETH.addBuyLimitOrder(this, SU_buy_amount, SU_buy_price), this.time_frame);
+        }
+        // sell peaks
+        if (this.balance_SU > Utility.EPS) {
+            let SU_sell_price = Math.max(market_SUETH.getCurrentValue(), this.SU_DEEP * this.ROI);
+            this.addOrderTTL(market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_sell_price), this.time_frame);
+        }
+    }
+}
+
+// // This trader earns on differences between market price and SU reserve price
+// class ArbitrageUpTrader extends Trader {
+//     min_deal_eth = 1;
+//     max_deal_eth = 10;
+//     marginality = 0.1;
+//
+//     update() {
+//         super.update();
+//         if (this.balance_mETH > this.min_deal_eth) {
+//             // buy SU from the reserve
+//             let deal_eth = Math.min(this.balance_mETH, this.max_deal_eth);
+//             let old_balance_SU = this.balance_SU;
+//             web4.su.buySUfromReserveSM(this, deal_eth);
+//             let deal_su = this.balance_SU - old_balance_SU;
+//             let deal_price = deal_eth / deal_su;
+//             // sell it more expensive on the market
+//             const ROI = 1 + this.marginality;
+//             market_SUETH.addSellLimitOrder(this, deal_su, deal_price * ROI);
+//         }
+//     }
+// }
+
 // main loop of the simulation
 export class Simulation {
     web4: Web4;
@@ -844,7 +904,6 @@ export class Simulation {
 
     // takes callBack functions for visualisation
     constructor() {
-
         // init all instances of the simulation:
         this.web4 = web4;
         // exchanges,
@@ -854,40 +913,38 @@ export class Simulation {
         this.market_demand = market_demand;
         // temporary array of traders
         let traders = [];
-        traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 500}));
-        traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 5000}));
-        // traders.push(new SimpleTrader(
-        //     "simple_bull_1",
-        //     Utility.generateRandomPortfolio(),
-        //     {type: "bull", time_frame: 2, roi: 0.2}));
-        // traders.push(new SimpleTrader(
-        //     "simple_bull_2",
-        //     Utility.generateRandomPortfolio(),
-        //     {type: "bull", time_frame: 1, roi: 0.1}));
-        // traders.push(new SimpleTrader(
-        //     "simple_bear_1",
-        //     Utility.generateRandomPortfolio(),
-        //     {type: "bear", time_frame: 2, roi: 0.2}));
-        // traders.push(new SimpleTrader(
-        //     "simple_bear_2",
-        //     Utility.generateRandomPortfolio(),
-        //     {type: "bear", time_frame: 1, roi: 0.1}));
-        for (let i = 0; i < 5; i++) {
+        traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
+        traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
+
+        for (let i = 0; i < 3; i++) {
             traders.push(new SimpleTrader(
                 "simple_" + i,
                 Utility.generateRandomPortfolio(),
                 {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
             ));
         }
-        // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
-        // traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
-        for (let i = 0; i < 5; i++) {
+
+        for (let i = 0; i < 10; i++) {
             traders.push(new RandomTrader(
                 "random_" + i,
                 Utility.generateRandomPortfolio(),
                 {time_frame: Math.round(1 + Math.random() * 5)}
             ));
         }
+
+        // for (let i = 0; i < 1; i++) {
+        //     traders.push(new ArbitrageUpTrader(
+        //         "Arbitrage_" + i,
+        //         Utility.generateRandomPortfolio(),
+        //         {time_frame: Math.round(1 + Math.random() * 5)}
+        //     ));
+        // }
+
+        traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
+
+        // Speculator who feeds SU with market data
+        traders.push(new OracleSpeculator("Oracles"));
+
         for (let trader of traders) {
             this.traders.set(trader.name, trader);
         }
@@ -908,7 +965,6 @@ export class Simulation {
         this.market_demand.setNewValue(this.market_demand.getCurrentValue());
 
         // simulation execution
-        web4.su.callOracleSM(market_mETHUSD.getCurrentValue());
         market_SUUSD.setNewValue(market_SUETH.getCurrentValue() * market_mETHUSD.getCurrentValue());
 
         for (let [, trader] of this.traders) {
@@ -921,28 +977,6 @@ export class Simulation {
         // console.log("r = " + market_SUETH.getOrderbookVolumeRatio().toFixed(3));
     }
 }
-
-// // This trader earns on differences between market price and SU reserve price
-// class ArbitrageUpTrader extends Trader {
-//     min_deal_eth = 1;
-//     max_deal_eth = 10;
-//     marginality = 0.1;
-
-//     update() {
-//         super.update();
-//         if (this.balance_mETH > this.min_deal_eth) {
-//             // buy SU from the reserve
-//             let deal_eth = Math.min(this.balance_mETH, this.max_deal_eth);
-//             let old_balance_SU = this.balance_SU;
-//             web4.su.buySUfromReserveSM(this, deal_eth);
-//             let deal_su = this.balance_SU - old_balance_SU;
-//             let deal_price = deal_eth / deal_su;
-//             // sell it more expensive on the market
-//             const ROI = 1 + this.marginality;
-//             market_SUETH.newLimitSellOrder(this, deal_su, deal_su*deal_price*ROI);
-//         }
-//     }
-// }
 
 // class ArbitrageDownTrader extends Trader {
 

@@ -91,15 +91,13 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
           <div>
             <ManualControl trader={trader} />
 
-            <table style={{ width: '100%' }}>
+            <table style={{ width: '60%' }}>
               <tbody>
                 {Array.from(trader.orders).map((order, orderIndex) => (
                   <tr key={`buy${orderIndex}`}>
                     <td>{order.type}</td>
-                    <td>{f(order.amount_SU)}</td>
-                    <td>{f(order.amount_mETH)}</td>
-                    <td>{f(order.price)}</td>
-                    <td>{f(order.ttl)}</td>
+                    <td>{f(order.amount_SU)} SU</td>
+                    <td>for {f(order.price)}</td>
                     <td>
                       <Button onClick={() => cancelOrder(order)}>
                         Cancel
