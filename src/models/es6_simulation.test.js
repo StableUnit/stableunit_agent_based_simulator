@@ -3,6 +3,7 @@ import {Simulation, Trader} from './es6_simulation';
 // https://facebook.github.io/jest/docs/en/expect.html
 
 const simulation = new Simulation();
+
 test('market to initialize', () => {
   expect(simulation.market_SUETH).toBeDefined();
   //expect(simulation.traders.size).toBe(7);
@@ -54,4 +55,20 @@ test("market works correct", () => {
   m.newLimitBuyOrder(trader_4, 90, 100);
   m.newLimitBuyOrder(trader_4, 80, 100);
   expect(m.checkInvariant()).toBe(true);
+});
+
+
+test('ethereum simulation', () => {
+    expect(simulation.web4.eth).toBeDefined();
+    let this_ = simulation.web4.eth;
+    const wallet_1 = this_.createWallet(17234);
+    const wallet_2 = this_.createWallet(0);
+    expect(this_.sendTransaction(wallet_1.address, 234, wallet_2.address)).toBe(true);
+    expect(this_.accounts.get(wallet_1.address)).toBe( 17000);
+    expect(this_.sendTransaction(wallet_2.address, 235, wallet_1.address)).toBe(false);
+    expect(this_.accounts.get(wallet_2.address)).toBe( 234);
+    this_.createTokens(wallet_1.address, "test_token", 17);
+    expect(this_.sendToken(wallet_1.address, "test_token", 7, wallet_2.address)).toBe(true);
+    // $FlowFixMe
+    expect(this_.erc20_tokens.get("test_token").get(wallet_2.address)).toBe(7);
 });

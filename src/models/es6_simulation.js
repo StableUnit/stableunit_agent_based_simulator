@@ -3,10 +3,14 @@ import assert from 'assert';
 
 const Utility = {
     EPS: 1e-6,
-    generateRandomPortfolio() {
+    DEFAULT_SUUSD_PRICE: 1,
+    DEFAULT_ETHUSD_PRICE: 500,
+    generateRandomPortfolio(worth_USD = 1000) {
+        let balance_SU_USD = worth_USD * Math.random();
+        let balance_ETH_USD = worth_USD - balance_SU_USD;
         return {
-            balance_SU: Math.round(1000 * Math.random()),
-            balance_mETH: Math.round(2000 * Math.random())
+            balance_SU: Math.round(balance_SU_USD / Utility.DEFAULT_SUUSD_PRICE),
+            balance_mETH: Math.round(balance_ETH_USD / Utility.DEFAULT_ETHUSD_PRICE * 1000),
         };
     },
     randomSuOrder() {
@@ -67,16 +71,7 @@ class Ethereum {
     }
 
     test() {
-        const wallet_1 = this.createWallet(17234);
-        const wallet_2 = this.createWallet(0);
-        assert.equal(this.sendTransaction(wallet_1.address, 234, wallet_2.address), true);
-        assert.equal(this.accounts.get(wallet_1.address), 17000);
-        assert.equal(this.sendTransaction(wallet_2.address, 235, wallet_1.address), false);
-        assert.equal(this.accounts.get(wallet_2.address), 234);
-        this.createTokens(wallet_1.address, "test_token", 17);
-        assert.equal(this.sendToken(wallet_1.address, "test_token", 7, wallet_2.address), true);
-        // $FlowFixMe
-        assert.equal(this.erc20_tokens.get("test_token").get(wallet_2.address), 7);
+
     }
 }
 
@@ -446,16 +441,6 @@ export class Market_SUmETH extends Market {
         return this.addSellLimitOrder(seller, amount_SU, NaN);
     }
 
-
-
-
-
-
-
-
-
-
-
     newLimitBuyOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl?: number) {
         // if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
         //     return "Incorrect order";
@@ -742,9 +727,6 @@ export class Trader {
         }
     }
 
-    updateTTLs() {
-    }
-
     addOrder(order: Order) {
         this.orders.add(order);
     }
@@ -805,12 +787,10 @@ export type Traders = Map<string, Trader>;
 class SimpleTrader extends Trader {
     DEFAULT_ROI = 0.1;
     roi: number;
-    type: string;
     time_frame: number;
 
-    constructor(name: string, portfolio, dna: { type: string, time_frame: number, roi?: number }) {
+    constructor(name: string, portfolio, dna: { time_frame: number, roi?: number }) {
         super(name, portfolio, dna, dna.time_frame);
-        this.type = dna.type;
         this.time_frame = dna.time_frame;
         this.roi = dna.roi || this.DEFAULT_ROI;
     }
@@ -825,28 +805,11 @@ class SimpleTrader extends Trader {
             // when trading below 1 for 1-y: roi == (1 - (1-y))/(1-y) == y/(1-y) => y == roi/(roi+1)
             let SU_low_price_mETH = (1 - this.roi / (1 + this.roi)) / market_mETHUSD.getCurrentValue();
             // buying cheap su and believes that price will rise to peg to sell more expensive
-            let buy_order = market_SUETH.addBuyLimitOrder(
-                this,
-                this.balance_mETH / SU_low_price_mETH,
-                SU_low_price_mETH);
+            let buy_order = market_SUETH.addBuyLimitOrder(this, this.balance_mETH / SU_low_price_mETH, SU_low_price_mETH);
             this.addOrderTTL(buy_order, this.time_frame);
-
-            // market_SUETH.newLimitBuyOrder(
-            //     this,
-            //     this.balance_mETH / SU_low_price_mETH,
-            //     this.balance_mETH,
-            //     this.time_frame);
-
             // selling high and believes that price will fall to peg to buy cheap again
             let sell_order = market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_high_price_mETH);
             this.addOrderTTL(sell_order, this.time_frame);
-
-            // market_SUETH.newLimitSellOrder(
-            //     this,
-            //     this.balance_SU,
-            //     this.balance_SU * SU_high_price_mETH,
-            //     this.time_frame);
-
             // ???
             // profit!
         }
@@ -856,9 +819,6 @@ class SimpleTrader extends Trader {
 // This trader randomly sells and buys some arbitrary amount of SU
 // Follows the mood of the market
 class RandomTrader extends Trader {
-    // trade_frequency
-    trade_frequency: number = 0.5;
-
     update() {
         super.update();
         if (super.ifTimeToUpdate()) {
@@ -912,7 +872,7 @@ export class Simulation {
         //     "simple_bear_2",
         //     Utility.generateRandomPortfolio(),
         //     {type: "bear", time_frame: 1, roi: 0.1}));
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             traders.push(new SimpleTrader(
                 "simple_" + i,
                 Utility.generateRandomPortfolio(),
@@ -921,7 +881,7 @@ export class Simulation {
         }
         // traders.push(new RandomTrader("random_t1", Utility.generateRandomPortfolio(), {}, 3));
         // traders.push(new RandomTrader("random_t2", Utility.generateRandomPortfolio(), {}, 5));
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             traders.push(new RandomTrader(
                 "random_" + i,
                 Utility.generateRandomPortfolio(),
