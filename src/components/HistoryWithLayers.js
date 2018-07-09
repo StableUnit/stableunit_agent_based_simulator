@@ -70,8 +70,8 @@ class History extends React.Component<Props, State> {
           position: 'left',
           guides,
           gridCount: 7,
-          minimum: 0.5,
-          maximum: 1.2,
+          //minimum: 0.5,
+          //maximum: 1.2,
           autoGridCount: false,
         }
       ],

@@ -34,7 +34,7 @@ class ExchangeContainer extends React.Component<Props, State> {
         >
           <div style={{ flex: 1 }}>
             <History
-              title="ETH-USD"
+              title="mETH-USD"
               market={player.simulation.market_ETHUSD}
             />
             <div style={{ textAlign: 'center' }}>
@@ -61,7 +61,7 @@ class ExchangeContainer extends React.Component<Props, State> {
         </div>
         <div style={{ marginTop: '2em' }}>
           <MarketWithOrderBook
-            title="SU-ETH"
+            title="SU-mETH"
             market={player.simulation.market_SUETH}
           />
         </div>

@@ -6,11 +6,19 @@ const Utility = {
     DEFAULT_SUUSD_PRICE: 1,
     DEFAULT_ETHUSD_PRICE: 500,
     generateRandomPortfolio(worth_USD = 1000) {
-        let balance_SU_USD = worth_USD * Math.random();
-        let balance_ETH_USD = worth_USD - balance_SU_USD;
+        //let balance_ETH_USD = worth_USD;
+        // let balance_ETH_USD = worth_USD* Math.random();
+        // let balance_SU_USD = worth_USD - balance_ETH_USD;
+        // //let balance_mETH = Math.round(balance_ETH_USD / Utility.DEFAULT_ETHUSD_PRICE * 1000);
+        // let balance_SU = Math.round(balance_SU_USD / Utility.DEFAULT_SUUSD_PRICE);
+        // convert USD into ETH
+        let balance_mETH = worth_USD / Utility.DEFAULT_ETHUSD_PRICE * 1000;
+        let deal_mETH = balance_mETH * Math.random();
+        let deal_SU = web4.su.createSU(deal_mETH);
+        balance_mETH -= deal_mETH;
         return {
-            balance_SU: Math.round(balance_SU_USD / Utility.DEFAULT_SUUSD_PRICE),
-            balance_mETH: Math.round(balance_ETH_USD / Utility.DEFAULT_ETHUSD_PRICE * 1000),
+            balance_SU: deal_SU,
+            balance_mETH: balance_mETH,
         };
     },
     randomSuOrder() {
@@ -82,14 +90,14 @@ export class StableUnit extends Ethereum {
     ORACLE_REWARD = 0.1;
 
     SUmETH_price: number;
-    mETHUSD_price: number;
+    mETHUSD_price: number = 0.5;
     SU_price: number;
-    SU_circulation: number;
+    SU_circulation: number = 0;
 
     //reserve_account = {};
     //fundation_account = {};
-    reserve_mETH: number;
-    reserve_ratio: number;
+    reserve_mETH: number = 0;
+    reserve_ratio: number = 0;
     BONDS_EMISSION = 0.1; // 10% of the SU in circulation
     BOND_circulation: number;
     BOND_price: number;
@@ -98,16 +106,21 @@ export class StableUnit extends Ethereum {
 
     constructor(ethereum: Ethereum) {
         super();
+        this.SU_circulation = 0;
         // init stabilisation fund with some existing funds (after ICO for example)
         //this.reserve_account = ethereum.createWallet(1000);
-        this.reserve_mETH = 1000;
+        this.reserve_mETH = 0;
         // create DAO
         //this.fundation_account = this.createWallet(1);
         //this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
-        this.SHARE_circulation = 1000;
+        this.SHARE_circulation = 0;
         // create Bonds as type of token
         //this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
         this.BOND_circulation = 0;
+    }
+
+    daico() {
+
     }
 
     // Oracle smartcontract takes info from outside
@@ -161,6 +174,14 @@ export class StableUnit extends Ethereum {
             return true;
         }
         return false;
+    }
+
+    createSU(amount_mETH: number) {
+        let deal_price = (1 + this.D1) / this.mETHUSD_price;
+        let deal_SU = amount_mETH / deal_price;
+        this.reserve_mETH += amount_mETH;
+        this.SU_circulation += deal_SU;
+        return deal_SU;
     }
 
     //sellSUtoReserveSM(su_addr, amount_su, txn_sign, eth_addr) {}
@@ -698,7 +719,7 @@ export class Trader {
         // this.portfolio.su_wallet = web4.su.createWallet(portfolio.balance_SU);
         // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.balance_mETH);
         if (portfolio) {
-            this.balance_SU = portfolio.balance_SU || 0;
+            this.balance_SU = (portfolio.balance_SU || 0);
             this.balance_mETH = portfolio.balance_mETH || 0;
             this.balance_BONDs = portfolio.balance_BONDs || 0;
             this.balance_SHAREs = portfolio.balance_SHAREs || 0;
@@ -871,27 +892,31 @@ class BuyFDeeps extends Trader {
     }
 }
 
-// // This trader earns on differences between market price and SU reserve price
-// class ArbitrageUpTrader extends Trader {
-//     min_deal_eth = 1;
-//     max_deal_eth = 10;
-//     marginality = 0.1;
-//
-//     update() {
-//         super.update();
-//         if (this.balance_mETH > this.min_deal_eth) {
-//             // buy SU from the reserve
-//             let deal_eth = Math.min(this.balance_mETH, this.max_deal_eth);
-//             let old_balance_SU = this.balance_SU;
-//             web4.su.buySUfromReserveSM(this, deal_eth);
-//             let deal_su = this.balance_SU - old_balance_SU;
-//             let deal_price = deal_eth / deal_su;
-//             // sell it more expensive on the market
-//             const ROI = 1 + this.marginality;
-//             market_SUETH.addSellLimitOrder(this, deal_su, deal_price * ROI);
-//         }
-//     }
-// }
+// This trader earns on differences between market price and SU_reserve price
+class ArbitrageUpTrader extends Trader {
+    min_deal_eth = 1;
+    max_deal_eth = 10;
+    marginality = 0.1;
+
+    update() {
+        super.update();
+        if (this.balance_mETH > this.min_deal_eth) {
+            // buy SU from the reserve
+            let deal_eth = Math.min(this.balance_mETH, this.max_deal_eth);
+            let old_balance_SU = this.balance_SU;
+            web4.su.buySUfromReserveSM(this, deal_eth);
+            let deal_su = this.balance_SU - old_balance_SU;
+            let deal_price = deal_eth / deal_su;
+            // sell it more expensive on the market
+            const ROI = 1 + this.marginality;
+            market_SUETH.addSellLimitOrder(this, deal_su, deal_price * ROI);
+        }
+    }
+}
+
+class ArbitrageDownTrader extends Trader {
+
+}
 
 // main loop of the simulation
 export class Simulation {
@@ -924,7 +949,7 @@ export class Simulation {
             ));
         }
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 100; i++) {
             traders.push(new RandomTrader(
                 "random_" + i,
                 Utility.generateRandomPortfolio(),
@@ -977,10 +1002,6 @@ export class Simulation {
         // console.log("r = " + market_SUETH.getOrderbookVolumeRatio().toFixed(3));
     }
 }
-
-// class ArbitrageDownTrader extends Trader {
-
-// }
 
 // class AlgoTrader extends Trader {
 //     marginality = 0.05;
