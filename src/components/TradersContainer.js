@@ -93,7 +93,7 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
 
             <table style={{ width: '60%' }}>
               <tbody>
-                {Array.from(trader.orders).map((order, orderIndex) => (
+                {Array.from(trader.orders).sort((a,b) => a.price - b.price).map((order, orderIndex) => (
                   <tr key={`buy${orderIndex}`}>
                     <td>{order.type}</td>
                     <td>{f(order.amount_SU)} SU</td>

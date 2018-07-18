@@ -59,7 +59,7 @@ class History extends React.Component<Props, State> {
 
     const style = {
       width: '100%',
-      height: 300
+      height: 400
     };
 
     const options = {
@@ -70,9 +70,10 @@ class History extends React.Component<Props, State> {
           position: 'left',
           guides,
           gridCount: 7,
-          //minimum: 0.5,
+          minimum: 0.0,
           //maximum: 1.2,
           autoGridCount: false,
+          includeGuidesInMinMax: true,
         }
       ],
       graphs: [
