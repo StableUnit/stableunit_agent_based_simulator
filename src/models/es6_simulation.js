@@ -483,203 +483,39 @@ export class Market_SUmETH extends Market {
         return this.addSellLimitOrder(seller, amount_SU, NaN);
     }
 
-    // legacy
+    // TODO: legacy
     newLimitBuyOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl?: number) {
-        // if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
-        //     return "Incorrect order";
-        // }
-        // // check that the trader can afford that
-        // if (trader.balance_mETH >= amount_mETH) {
-        //     const order: Order = {
-        //         trader: trader,
-        //         type: "buy",
-        //         price: amount_mETH / amount_SU,
-        //         amount_SU: amount_SU,
-        //         amount_mETH: amount_mETH,
-        //         ttl: ttl ? ttl : NaN,
-        //     };
-        //     // add to the trader
-        //     trader.orders.add(order);
-        //     if (ttl) {
-        //         trader.ttl.set(order, ttl);
-        //     }
-        //     // add to the market
-        //     this.buy_orders.push(order);
-        //     // the last item has the highest price
-        //     this.buy_orders.sort((a, b) => a.price - b.price);
-        //     //return {order: order, status: "Added limited buy order"};
-        //     return "Added limited buy order";
-        // } else {
-        //     //return {status: "No enough ETH"};
-        //     return "No enough ETH";
-        // }
+        let max_price = amount_SU / amount_mETH;
+        this.addBuyLimitOrder(trader, amount_SU, max_price);
         return "";
     }
 
-    // legacy
+    // TODO: legacy
     newLimitSellOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl: number = -1) {
-        // if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
-        //     return "Incorrect order";
-        // }
-        // if (trader.balance_SU >= amount_SU) {
-        //     const order: Order = {
-        //         trader: trader,
-        //         amount_SU: amount_SU,
-        //         amount_mETH: amount_mETH,
-        //         price: amount_mETH / amount_SU,
-        //         type: "sell",
-        //         ttl: ttl ? ttl : NaN,
-        //     };
-        //     trader.orders.add(order);
-        //     if (ttl > 0) {
-        //         trader.ttl.set(order, ttl);
-        //     }
-        //     this.sell_orders.push(order);
-        //     // the last item has the smallest price
-        //     this.sell_orders.sort((a, b) => b.price - a.price);
-        //     return "Added limited sell order";
-        // } else {
-        //     return "Not enough SU";
-        // }
+        let min_price = amount_SU / amount_mETH;
+        this.addSellLimitOrder(trader, amount_SU, min_price); 
         return "";
     }
 
-    // A market order is a buy or sell order to be executed immediately at current market prices.
-    // Like pacman it eats all available sell order until reach su_amount
+    // TODO: legacy
     buyMarketOrder(buyer: Trader, amount_SU: number) {
-        // let status = "was not completed.";
-        // while (amount_SU > Utility.EPS && buyer.balance_mETH > Utility.EPS && this.sell_orders.length > 0) {
-        //     let sell_order = this.sell_orders.slice(-1)[0];
-        //     let deal_price = sell_order.price;
-        //     let max_SU = Math.min(amount_SU, sell_order.amount_SU);
-        //     let max_mETH = max_SU * deal_price;
-        //     let deal_mETH = Math.min(buyer.balance_mETH, max_mETH);
-        //     let deal_SU = deal_mETH / deal_price;
-        //     assert(deal_price - deal_mETH / deal_SU < Utility.EPS);
-        //     if (this.atomicSuEthExchange(buyer, sell_order.trader, deal_SU, deal_mETH)) {
-        //         status = "was partially completed.";
-        //         amount_SU -= deal_SU;
-        //         sell_order.amount_SU -= deal_SU;
-        //         sell_order.amount_mETH -= deal_mETH;
-        //
-        //         if (sell_order.amount_mETH < Utility.EPS) {
-        //             assert(sell_order.amount_SU < Utility.EPS);
-        //             this.sell_orders.pop();
-        //             sell_order.trader.removeOrder(sell_order, "was completed");
-        //         } else {
-        //             assert(sell_order.price - sell_order.amount_mETH / sell_order.amount_SU < Utility.EPS);
-        //             sell_order.trader.log.push("was partially completed");
-        //             break;
-        //         }
-        //     } else {
-        //         throw new Error("can't perform exchange");
-        //     }
-        // }
-        // if (amount_SU <= Utility.EPS) {
-        //     status = "was completed.";
-        // } else {
-        //     if (this.sell_orders.length === 0) {
-        //         status += " Not enough sell orders in the queue.";
-        //     } else {
-        //         status += " Not enough ETH to buy.";
-        //     }
-        // }
-        // return "Buy Market Order " + status;
+        this.addBuyMarketOrder(buyer, amount_SU);
         return "";
     }
 
+    // TODO: legacy
     sellMarketOrder(seller: Trader, amount_SU: number) {
-        // let status = "was not completed. ";
-        // // if the orderbook has buy orders and seller still wants to sell
-        // while (amount_SU > Utility.EPS && seller.balance_SU > Utility.EPS && this.buy_orders.length > 0) {
-        //     // take the most expensive one
-        //     let buy_order = this.buy_orders.slice(-1)[0];
-        //     // calc the deal details
-        //     let deal_price = buy_order.price;
-        //     let max_SU = Math.min(amount_SU, seller.balance_SU);
-        //     let deal_SU = Math.min(max_SU, buy_order.amount_SU);
-        //     let deal_mETH = deal_SU * deal_price;
-        //     assert(deal_price - deal_mETH / deal_SU < Utility.EPS);
-        //     // try to make a deal
-        //     if (this.atomicSuEthExchange(buy_order.trader, seller, deal_SU, deal_mETH)) {
-        //         status = "was partially completed. ";
-        //         amount_SU -= deal_SU;
-        //         buy_order.amount_SU -= deal_SU;
-        //         buy_order.amount_mETH -= deal_mETH;
-        //         // if the buy order is only partially completed
-        //         if (buy_order.amount_SU > Utility.EPS) {
-        //             // check that we calculted everything correctly
-        //             assert(Math.abs(buy_order.price - buy_order.amount_mETH / buy_order.amount_SU) < Utility.EPS);
-        //             buy_order.trader.updateOrder(buy_order, "was partially compeleted. ");
-        //             break;
-        //         } else {
-        //             // check that order is really completed
-        //             assert(buy_order.amount_mETH < Utility.EPS);
-        //             this.buy_orders.pop();
-        //             buy_order.trader.removeOrder(buy_order, "was completed. ");
-        //         }
-        //     } else {
-        //         throw new Error("can't perform exchange");
-        //     }
-        // }
-        // if (amount_SU <= Utility.EPS) {
-        //     status = "was completed. ";
-        // } else {
-        //     status += this.buy_orders.length > 0 ? "Not enough SU to sell. " : "Not enough buy orders in the queue. ";
-        // }
-        // return "Sell Market Order " + status;
+        this.addSellMarketOrder(seller, amount_SU);
         return "";
     }
 
-    // legacy
+    // TODO: legacy
     cancelOrder(order: Order) {
         this.removeOrder(order);
     }
 
-    // This method is trying to complete all possible deals if any available
+    // TODO: legacy
     update() {
-        // // check is any limit orders are possible to complete
-        // while (this.getCurrentBuyPrice() >= this.getCurrentSellPrice()) {
-        //     // let buy_order = this.buy_orders.pop();
-        //     // buy_order.trader.orders.delete(buy_order);
-        //     // let sell_order = this.sell_orders.pop();
-        //     // sell_order.trader.orders.delete(sell_order);
-        //     let buy_order = this.buy_orders.slice(-1)[0];
-        //     let sell_order = this.sell_orders.slice(-1)[0];
-        //     // TODO: make fair exchange
-        //     // temp solution: market doesn't try to earn on this kind of deals
-        //     let max_SU = Math.min(buy_order.amount_SU, sell_order.amount_SU);
-        //     let deal_price = (buy_order.price + sell_order.price) / 2;
-        //     let deal_SU = Math.min(buy_order.amount_SU, sell_order.amount_SU);
-        //     let deal_mETH = deal_SU * deal_price;
-        //     // make a deal between buyer and seller
-        //     if (this.atomicSuEthExchange(buy_order.trader, sell_order.trader, deal_SU, deal_mETH)) {
-        //         buy_order.amount_SU -= deal_SU;
-        //         buy_order.amount_mETH -= deal_mETH;
-        //         sell_order.amount_SU -= deal_SU;
-        //         sell_order.amount_mETH -= deal_mETH;
-        //     } else {
-        //         //WTF
-        //         throw new Error("can't perform exchange");
-        //     }
-        //     // if the one of the orders is only partially completed - add reminder back
-        //     if (sell_order.amount_SU < Utility.EPS) {
-        //         //this.sell_orders.push(sell_order);
-        //         //sell_order.trader.sell_orders.add(sell_order);
-        //         //this.newLimitSellOrder(sell_order.trader, sell_order.amount_SU, sell_order.amount_mETH);
-        //         this.sell_orders.pop();
-        //         sell_order.trader.removeOrder(sell_order, "was completed by another Limit Order. ");
-        //     } else {
-        //
-        //     }
-        //     if (buy_order.amount_SU < Utility.EPS) {
-        //         // this.buy_orders.push(buy_order);
-        //         // buy_order.trader.buy_orders.add(buy_order);
-        //         //this.newLimitBuyOrder(buy_order.trader, buy_order.amount_SU, buy_order.amount_mETH, buy_order.ttl);
-        //         this.buy_orders.pop();
-        //         buy_order.trader.removeOrder(buy_order, "was completed by another Limit Order. ");
-        //     }
-        // }
     }
 
 }
