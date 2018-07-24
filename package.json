@@ -9,6 +9,7 @@
     "accounting": "^0.4.1",
     "amstock3": "^3.21.12",
     "babel-plugin-react-css-modules": "^3.3.3",
+    "babel-preset-env": "^1.7.0",
     "carbon-components": "^8.16.8",
     "carbon-components-react": "^5.29.4",
     "carbon-icons": "^6.3.2",
@@ -26,7 +27,7 @@
   "devDependencies": {
     "babel-preset-flow": "^6.23.0",
     "flow-bin": "^0.66.0",
-    "react-scripts": "1.1.1"
+    "react-scripts": "^1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

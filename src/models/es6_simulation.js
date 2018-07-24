@@ -276,7 +276,9 @@ export class Market {
     }
 
     addRandomValueMove() {
-        this.setNewValue(this.getCurrentValue() + (Math.random() - 1 / 2) * this.random_change);
+        let rand = Math.random() - 0.5; // liner [-½ .. ½]
+        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
+        this.setNewValue(newValue);
     }
 }
 
@@ -481,6 +483,7 @@ export class Market_SUmETH extends Market {
         return this.addSellLimitOrder(seller, amount_SU, NaN);
     }
 
+    // legacy
     newLimitBuyOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl?: number) {
         // if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
         //     return "Incorrect order";
@@ -513,6 +516,7 @@ export class Market_SUmETH extends Market {
         return "";
     }
 
+    // legacy
     newLimitSellOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl: number = -1) {
         // if (amount_mETH < Utility.EPS || amount_SU < Utility.EPS) {
         //     return "Incorrect order";
@@ -627,29 +631,9 @@ export class Market_SUmETH extends Market {
         return "";
     }
 
+    // legacy
     cancelOrder(order: Order) {
-        // delete ref to the order from the trader
-        order.trader.orders.delete(order);
-        if (order.type === "buy") {
-            // remove the order from the market queue
-            for (let i = 0; i < this.buy_orders.length; i++) {
-                if (this.buy_orders[i] === order) {
-                    this.buy_orders.splice(i, 1);
-                    return true;
-                }
-            }
-        } else if (order.type === "sell") {
-            // remove the order from the market queue
-            for (let i = 0; i < this.sell_orders.length; i++) {
-                if (this.sell_orders[i] === order) {
-                    this.sell_orders.splice(i, 1);
-                    return true;
-                }
-            }
-        } else {
-            throw new Error("Order doesn't have correct type");
-        }
-        return false;
+        this.removeOrder(order);
     }
 
     // This method is trying to complete all possible deals if any available
@@ -804,7 +788,7 @@ export class Trader {
             this.ttl.set(order, ttl - 1);
             if (--ttl <= 0) {
                 this.ttl.delete(order);
-                market_SUETH.cancelOrder(order);
+                market_SUETH.removeOrder(order);
             }
         }
     }
@@ -820,10 +804,102 @@ export class Trader {
         }
     }
 
+    rebalance_portfolio_SUETH() {
+        // want to hedge portfolio, such worth(SU) ~ worth(ETH)
+        let worth_SU = this.balance_SU * market_SUETH.getCurrentValue() ;
+        let worth_ETH = this.balance_mETH;
+        let ratio_SU = worth_SU / (worth_SU + worth_ETH);
+        if (ratio_SU < 0.03) {
+            let deal_mETH = this.balance_mETH / 2;
+            let deal_price = market_SUETH.getCurrentValue();
+            let deal_SU = deal_mETH * deal_price;
+            market_SUETH.addBuyMarketOrder(this, deal_SU);
+        } else if (ratio_SU > 0.97) {
+            market_SUETH.addSellMarketOrder(this, this.balance_SU/2);
+        }
+    }
 }
 
 // Pool of all trader instances for outside control
 export type Traders = Map<string, Trader>;
+
+// This trader randomly sells and buys some arbitrary amount of SU
+// Follows the mood of the market (market_demand)
+class RandomTrader extends Trader {
+    update() {
+        super.update();
+        if (super.ifTimeToUpdate()) {
+            let deal_mETH = this.balance_mETH * this.dna.risk;
+            let deal_price = market_SUETH.getCurrentValue();
+            let deal_SU = deal_mETH * deal_price;
+            if (Math.random() < market_demand.getCurrentValue()) {
+                market_SUETH.addBuyMarketOrder(this, deal_SU);
+            } else {
+                market_SUETH.addSellMarketOrder(this, deal_SU);
+            }
+        }
+    }
+}
+
+// This trader follows the trend by analysing the Buy/Sell volument ratio of the order book
+class TrendMaker extends Trader {
+    update() {
+        super.update();
+        if (this.ifTimeToUpdate()) {
+            let orderbook_ratio = market_SUETH.getNormalizedBuySellVolumeRatio();
+            if (isNaN(orderbook_ratio)) 
+                orderbook_ratio = 0.5; // when orderbook is empty
+
+            let deal_price = market_SUETH.getCurrentValue();
+            let max_mETH = this.balance_mETH;
+            let max_SU = Math.min(max_mETH / deal_price, this.balance_SU);
+            let deal_SU = max_SU * this.dna.risk;
+
+            // if there are more buy orders than sell order
+            if (orderbook_ratio > this.dna.r) {
+                // means there are more demand therefore we might expect the price go up 
+                // and benefit by placing selling order for higher price
+                let sell_price = deal_price * (1 + this.dna.margin);
+                this.addOrderTTL(market_SUETH.addSellLimitOrder(
+                    this,
+                    deal_SU,
+                    sell_price),
+                    this.time_frame * 2);
+            } else {
+                // looks like people tend to sell more than buy
+                // means there are more supply therefore the price might go down, so we can buy SU cheaper
+                let buy_price = deal_price * (1 - this.dna.margin);
+                this.addOrderTTL(market_SUETH.addBuyLimitOrder(
+                    this,
+                    deal_SU,
+                    Math.max(buy_price, 0.001)),
+                    this.time_frame * 2);
+            }
+            this.rebalance_portfolio_SUETH();
+        }
+    }
+}
+
+// This trader trying to buy SU during crash when it's very cheap and see it after for at least x10 of price
+class BuyFDeeps extends Trader {
+    SU_DEEP = 0.01;
+    ROI = 10;
+
+    update() {
+        super.update();
+        // buy f***ing deeps
+        if (this.balance_mETH > Utility.EPS) {
+            let SU_buy_price = this.SU_DEEP;
+            let SU_buy_amount = this.balance_mETH / this.SU_DEEP;
+            this.addOrderTTL(market_SUETH.addBuyLimitOrder(this, SU_buy_amount, SU_buy_price), this.time_frame);
+        }
+        // sell peaks
+        if (this.balance_SU > Utility.EPS) {
+            let SU_sell_price = Math.max(market_SUETH.getCurrentValue(), this.SU_DEEP * this.ROI);
+            this.addOrderTTL(market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_sell_price), this.time_frame);
+        }
+    }
+}
 
 // BasicTrader uses very simple logic to trade:
 // It knows that the SU price will always fluctuates around $1 so
@@ -862,50 +938,10 @@ class BasicTrader extends Trader {
     }
 }
 
-// This trader randomly sells and buys some arbitrary amount of SU
-// Follows the mood of the market
-class RandomTrader extends Trader {
-    update() {
-        super.update();
-        if (super.ifTimeToUpdate()) {
-            let deal_mETH = this.balance_mETH * this.dna.risk;
-            let deal_price = market_SUETH.getCurrentValue();
-            let deal_SU = deal_mETH * deal_price;
-            if (Math.random() < market_demand.getCurrentValue()) {
-                market_SUETH.addBuyMarketOrder(this, deal_SU);
-            } else {
-                market_SUETH.addSellMarketOrder(this, deal_SU);
-            }
-        }
-    }
-}
-
-
 // This is representation of all users who participate in the oracle smart contract
 class OracleSpeculator extends Trader {
     update() {
         web4.su.callOracleSM(this, market_mETHUSD.getCurrentValue());
-    }
-}
-
-
-class BuyFDeeps extends Trader {
-    SU_DEEP = 0.01;
-    ROI = 10;
-
-    update() {
-        super.update();
-        // buy f***ing deeps
-        if (this.balance_mETH > Utility.EPS) {
-            let SU_buy_price = this.SU_DEEP;
-            let SU_buy_amount = this.balance_mETH / this.SU_DEEP;
-            this.addOrderTTL(market_SUETH.addBuyLimitOrder(this, SU_buy_amount, SU_buy_price), this.time_frame);
-        }
-        // sell peaks
-        if (this.balance_SU > Utility.EPS) {
-            let SU_sell_price = Math.max(market_SUETH.getCurrentValue(), this.SU_DEEP * this.ROI);
-            this.addOrderTTL(market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_sell_price), this.time_frame);
-        }
     }
 }
 
@@ -950,45 +986,6 @@ class ArbitrageDownTrader extends Trader {
     }
 }
 
-let total_buy_orders = 0;
-let total_sell_orders = 0;
-
-class TrendMaker extends Trader {
-    update() {
-        super.update();
-        if (this.ifTimeToUpdate()) {
-            let orderbook_ratio = market_SUETH.getNormalizedBuySellVolumeRatio();
-            if (isNaN(orderbook_ratio)) orderbook_ratio = 0.5;
-            let deal_risk = this.dna.risk;
-            let deal_price = market_SUETH.getCurrentValue();
-            let max_mETH = this.balance_mETH;
-            let max_SU = max_mETH / deal_price;
-            let deal_SU = Math.min(max_SU, this.balance_SU) * deal_risk;
-            if (orderbook_ratio > this.dna.r) {
-                // more buy orders than sell order
-                // means there are more demand therefore we might benefit buy placing selling order for higher price
-                this.addOrderTTL(market_SUETH.addSellLimitOrder(
-                    this,
-                    deal_SU,
-                    deal_price + this.dna.margin),
-                    this.time_frame * 2);
-                total_sell_orders++;
-            } else {
-                // looks like people a tend to more sell than buy
-                // means there are more supply therefore the price might go down, so we can buy su cheaper
-
-                let severity = orderbook_ratio / (1 / 2);
-                this.addOrderTTL(market_SUETH.addBuyLimitOrder(
-                    this,
-                    deal_SU,
-                    Math.max(deal_price - this.dna.margin, 0.001)),
-                    this.time_frame * 2);
-                total_buy_orders++;
-            }
-        }
-    }
-}
-
 // main loop of the simulation
 export class Simulation {
     web4: Web4;
@@ -1009,28 +1006,21 @@ export class Simulation {
         this.market_demand = market_demand;
         // temporary array of traders
         let traders = [];
+        // UI traders to play around
         traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
         traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
-
-        // for (let i = 0; i < 5; i++) {
-        //     traders.push(new BasicTrader(
-        //         "basic_" + i,
-        //         Utility.generateRandomPortfolio(),
-        //         {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
-        //     ));
-        // }
-
+        
+        // general traders for any kind of markets
         for (let i = 0; i < 5; i++) {
             traders.push(new RandomTrader(
                 "random_" + i,
-                Utility.generateRandomPortfolio(),
-                {risk: Math.random() * 0.05, time_frame: Math.round(1 + Math.random() * 5)}
+                Utility.generateRandomPortfolio(3000),
+                {risk: Math.random() * 0.02, time_frame: Math.round(1 + Math.random() * 5)}
             ));
         }
-
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 15; i++) {
             traders.push(new TrendMaker(
-                "traderMaker_" + i,
+                "trandMaker_" + i,
                 Utility.generateRandomPortfolio(),
                 {
                     risk: Math.random() * 0.3,
@@ -1040,6 +1030,20 @@ export class Simulation {
                 }
             ));
         }
+        //traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
+
+        // Any stable-price specific traders
+        for (let i = 0; i < 5; i++) {
+            traders.push(new BasicTrader(
+                "basic_" + i,
+                Utility.generateRandomPortfolio(),
+                {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
+            ));
+        }
+
+        // StableUnit specific traders
+        // Speculator who feeds SU with market data
+        traders.push(new OracleSpeculator("Oracles"));
 
         // for (let i = 0; i < 1; i++) {
         //     traders.push(new ArbitrageUpTrader(
@@ -1056,12 +1060,6 @@ export class Simulation {
         //         {time_frame: Math.round(1 + Math.random() * 5)}
         //     ));
         // }
-
-
-        // traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
-
-        // Speculator who feeds SU with market data
-        traders.push(new OracleSpeculator("Oracles"));
 
         for (let trader of traders) {
             this.traders.set(trader.name, trader);
@@ -1092,17 +1090,19 @@ export class Simulation {
 
         // update the time
         Utility.simulation_tick += 1;
-        console.log("r = " + market_SUETH.getNormalizedBuySellVolumeRatio().toFixed(3));
-        console.log("b = " + market_SUETH.buy_orders.length + ", s = " + market_SUETH.sell_orders.length);
-        let i = 0;
-        let j = 0;
-        for (let [, trader] of this.traders) {
-            if (trader.dna.r) {
-                if (trader.dna.r < 0.5) i++; else j++;
-            }
-        }
-        console.log("i,j = " + i + ", " + j);
-        console.log("total_buy,total_sell = " + total_buy_orders + ", " + total_sell_orders);
+
+        // Debug output
+        // console.log("r = " + market_SUETH.getNormalizedBuySellVolumeRatio().toFixed(3));
+        // console.log("b = " + market_SUETH.buy_orders.length + ", s = " + market_SUETH.sell_orders.length);
+        // let i = 0;
+        // let j = 0;
+        // for (let [, trader] of this.traders) {
+        //     if (trader.dna.r) {
+        //         if (trader.dna.r < 0.5) i++; else j++;
+        //     }
+        // }
+        // console.log("i,j = " + i + ", " + j);
+        // console.log("total_buy,total_sell = " + total_buy_orders + ", " + total_sell_orders);
     }
 }
 

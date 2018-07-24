@@ -42,19 +42,15 @@ const Symbol = ({ children }) =>
   <span style={{ color: '#ccc', paddingRight: '10px' }}>{ children }</span>;
 
 
-
 type SingleTraderProps = {
   trader: Trader,
   expandAll: bool,
-  cancelBuyOrder: Order => {},
-  cancelSellOrder: Order => {},
   cancelOrder: Order => {}
 };
 
 type SingleTraderState = {
   expanded: bool
 };
-
 
 class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState> {
   state = {
@@ -66,7 +62,7 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
   }
 
   render() {
-    const { trader, expandAll, cancelBuyOrder, cancelSellOrder, cancelOrder } = this.props;
+    const { trader, expandAll, cancelOrder } = this.props;
     const { expanded } = this.state;
     const portfolio = trader.getPortfolio();
     const { total_USD, balance_SU, balance_mETH, balance_SHAREs, balance_BONDs } = portfolio;
@@ -119,13 +115,9 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
   }
 }
 
-
-
 type TradersContainerProps = {
   traders: Traders,
   tick: number,
-  cancelBuyOrder: Order => {},
-  cancelSellOrder: Order => {},
   cancelOrder: Order => {},
 };
 
@@ -139,7 +131,7 @@ class TradersContainer extends React.Component<TradersContainerProps, TradersCon
   }
 
   render() {
-    const { traders, cancelBuyOrder, cancelSellOrder, cancelOrder } = this.props;
+    const { traders, cancelOrder } = this.props;
     const { expandAll } = this.state;
 
     const tradersArr = Array.from(traders.values());
@@ -153,8 +145,6 @@ class TradersContainer extends React.Component<TradersContainerProps, TradersCon
           tradersArr.map((trader, index) =>
             <SingleTrader
               trader={trader}
-              cancelBuyOrder={cancelBuyOrder}
-              cancelSellOrder={cancelSellOrder}
               cancelOrder={cancelOrder}
               expandAll={expandAll}
               key={index}
@@ -172,8 +162,6 @@ const mapState = state => ({
 });
 
 const mapDispatch = dispatch => ({
-  cancelBuyOrder: dispatch.player.cancelBuyOrder,
-  cancelSellOrder: dispatch.player.cancelSellOrder,
   cancelOrder: dispatch.player.cancelOrder
 });
 
