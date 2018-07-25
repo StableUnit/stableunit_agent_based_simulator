@@ -7,7 +7,6 @@ import { Button } from 'carbon-components-react';
 import type { FullState, SimulationState } from '../models/player';
 
 import History from './History';
-import HistoryWithLayers from './HistoryWithLayers';
 import MarketWithOrderBook from './MarketWithOrderBook';
 
 type Props = {

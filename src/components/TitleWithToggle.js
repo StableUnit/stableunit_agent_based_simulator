@@ -6,7 +6,7 @@ import { Toggle } from 'carbon-components-react';
 type Props = {
   title: string,
   name: string,
-  showAll: bool,
+  showAll: boolean,
   toggleShowAll: Function
 };
 

@@ -45,7 +45,7 @@ class Ethereum {
 
     // this method is a simplification the real process
     // of creating a new wallet and buying some ETH for fiat
-    createWallet(initial_amount = 0) {
+    createWallet(initial_amount: number = 0) {
         // some random string which looks like eth address
         const public_key = Array(40).fill().map(() =>
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -59,7 +59,7 @@ class Ethereum {
     }
 
     // send transation to the network, accounts specify blockchain or tokens balances array
-    sendTransaction(address_sender, amount, address_recipient, accounts = this.accounts) {
+    sendTransaction(address_sender: string, amount: number, address_recipient: string, accounts: Map<string, number> = this.accounts) {
         if (accounts.has(address_sender)) {
             let balance_sender = accounts.get(address_sender) || 0;
             if (balance_sender >= amount) {
@@ -80,7 +80,7 @@ class Ethereum {
         this.erc20_tokens.set(token_name, new Map([[address_sender, amount_supply]]));
     }
 
-    sendToken(address_sender, token_name: string, amount, address_recipient) {
+    sendToken(address_sender: string, token_name: string, amount: number, address_recipient: string) {
         if (this.erc20_tokens.has(token_name)) {
             const token_accounts = this.erc20_tokens.get(token_name) || new Map();
             return this.sendTransaction(address_sender, amount, address_recipient, token_accounts);
