@@ -31,7 +31,7 @@ class DemandContainer extends React.Component<Props, State> {
           style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}
         >
           <History
-            title="Market demand"
+            title="Market demand [0..1], ½ - equilibrium"
             market={player.simulation.market_demand}
           />
         </div>

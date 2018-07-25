@@ -79,6 +79,8 @@ class StableUnitContainer extends Component<Props, State> {
             <p>SU in circulation = {(this.props.stableUnit.SU_circulation).toFixed(2)}</p>
             <p>Reserve (eth) = {(this.props.stableUnit.reserve_mETH/1000).toFixed(2)}</p>
             <p>Reserve ratio = {(this.props.stableUnit.reserve_ratio).toFixed(2) }</p>
+            <p>REPOs in circulation = {(this.props.stableUnit.REPO_circulation).toFixed(2) }</p>
+            <p>SU_DAO_Tokens in circulation = {(this.props.stableUnit.SU_DAO_TOKEN_circulation).toFixed(2) }</p>
         </div>
       </div>
     );

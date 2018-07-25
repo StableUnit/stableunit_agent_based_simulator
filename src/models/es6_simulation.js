@@ -109,9 +109,9 @@ export class StableUnit extends Ethereum {
     reserve_mETH: number = 0;
     reserve_ratio: number = 0;
     BONDS_EMISSION = 0.1; // 10% of the SU in circulation
-    BOND_circulation: number;
-    BOND_price: number;
-    SHARE_circulation: number;
+    REPO_circulation: number;
+    REPO_price: number;
+    SU_DAO_TOKEN_circulation: number;
     PARKING_current_ratio = 0.0;
 
     constructor(ethereum: Ethereum) {
@@ -123,10 +123,10 @@ export class StableUnit extends Ethereum {
         // create DAO
         //this.fundation_account = this.createWallet(1);
         //this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
-        this.SHARE_circulation = 0;
+        this.SU_DAO_TOKEN_circulation = 0;
         // create Bonds as type of token
         //this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
-        this.BOND_circulation = 0;
+        this.REPO_circulation = 0;
     }
 
     daico() {
@@ -217,7 +217,7 @@ export class StableUnit extends Ethereum {
     }
 
     unlockBonds() {
-        this.BOND_circulation = this.SU_circulation * this.BONDS_EMISSION;
+        this.REPO_circulation = this.SU_circulation * this.BONDS_EMISSION;
     }
 
     // bonds are erc20 tokens so can be store on the same addresses;
@@ -275,10 +275,18 @@ export class Market {
         return this.history[this.history.length - 1].price;
     }
 
-    addRandomValueMove() {
+    addValueRandomMove() {
         let rand = Math.random() - 0.5; // liner [-½ .. ½]
         let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
         this.setNewValue(newValue);
+    }
+
+    addValueNormRandomMove() {
+
+    }
+
+    addValueHistoricalData() {
+
     }
 }
 
@@ -913,7 +921,7 @@ export class Simulation {
     // execute one tick of the simulation
     update() {
         // generate inputs
-        market_mETHUSD.addRandomValueMove();
+        market_mETHUSD.addValueRandomMove();
         this.market_demand.setNewValue(this.market_demand.getCurrentValue());
 
         // simulation execution
