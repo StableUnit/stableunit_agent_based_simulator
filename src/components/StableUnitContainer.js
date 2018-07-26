@@ -77,12 +77,15 @@ class StableUnitContainer extends Component<Props, State> {
             ].map(renderInput)
           }
         </div>
-          <MultiHistory
-              title="SU Circulation/Reverse Ratio"
-              circulation={this.props.stableUnit.SU_circulation}
-              reverseRatio={this.props.stableUnit.reserve_ratio}
-          />
+
         <Button onClick={this.apply}>Apply</Button>
+
+        <MultiHistory
+            title="StableUnit system paramenters"
+            circulation={this.props.stableUnit.SU_circulation}
+            reverseRatio={this.props.stableUnit.reserve_ratio}
+        />
+
         <div>
             <p>SU in circulation = {(this.props.stableUnit.SU_circulation.getCurrentValue()).toFixed(2)}</p>
             <p>Reserve (eth) = {(this.props.stableUnit.reserve_mETH/1000).toFixed(2)}</p>

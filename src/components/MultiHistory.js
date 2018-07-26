@@ -55,20 +55,22 @@ class History extends React.Component<Props, State> {
       valueAxes: [
         {
           id: 'g1',
-          axisColor: '#FF6600',
+          axisColor: '#FF8800',
           position: 'left',
+          minimum: 0.0,
         },
         {
           id: 'g2',
           axisColor: '#FCD202',
           position: 'right',
+          minimum: 0.0,
         }
       ],
       graphs: [
         {
           valueAxis: 'g1',
           closeField: 'close',
-          lineColor: '#FF6600',
+          lineColor: '#FF8800',
           lineAlpha: 1,
           negativeFillColors: colors.red,
           negativeLineColor: colors.red,

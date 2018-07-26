@@ -21,17 +21,18 @@ const Utility = {
             balance_mETH: balance_mETH,
         };
     },
+    // random value [0..1] with normal distribution
     randn_bm() {
         var u = 0, v = 0;
-        while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+        while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
         while (v === 0) v = Math.random();
         let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
         num = num / 10.0 + 0.5; // Translate to 0 -> 1
         if (num > 1 || num < 0) return this.randn_bm(); // resample between 0 and 1
         return num;
     },
+    // maps r from [0..+inf] to [0..1]
     normalize_ratio(r: number) {
-        // map r in [0..+inf] ot [0..1]
         return 1 - (1/(1+r));
     },
     simulation_tick: 0
@@ -89,11 +90,12 @@ class Ethereum {
     }
 }
 
-// Generic class for generating, adding and storing values for market
+// Market - is a generic class for generating, adding and storing values for market
 // such as price history, market demand etc
+export type HistoryData = Array<{ datetime: number, price: number }>;
 export class Market {
     name: string;
-    history: Array<{ datetime: number, price: number }> = [];
+    history: HistoryData = [];
 
     volatility_factor = 0.05;
     random_change: number;
@@ -116,16 +118,21 @@ export class Market {
         this.setNewValue(this.getCurrentValue());
     }
 
+    // adds random value from range [-½ .. ½] with liner distribution
     addValueRandomMove() {
-        let rand = Math.random() - 0.5; // liner [-½ .. ½]
+        let rand = Math.random() - 0.5; 
         let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
         this.setNewValue(newValue);
     }
 
+    // adds random value from range [-½ .. ½] with normal distribution
     addValueNormRandomMove() {
-
+        let rand = Utility.randn_bm() - 0.5;
+        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
+        this.setNewValue(newValue);
     }
 
+    // TODO: add hostorical data of the price, possible three types: rise, crash and plateu
     addValueHistoricalData() {
 
     }
@@ -133,16 +140,23 @@ export class Market {
 
 // StableUnit blockchain is an extension of Ethereum
 export class StableUnit extends Ethereum {
+    // the target price for one unit. Might be function from {time, su in circulation} etc
     PEG = 1.0;
+
+    // ranges for multi-layer stabilisation
     D1 = 0.05;
     D2 = 0.1;
     D3 = 0.15;
     D4 = 0.2;
     D5 = 0.25;
-    ORACLE_REWARD = 0.1;
 
+    // reward in SU for one oracle voting term
+    ORACLE_REWARD = 0.1;
+    // last info provided by oracles
     SUmETH_price: number;
     mETHUSD_price: number = 0.5;
+
+
     SU_price: number;
     SU_circulation: Market = new Market(0);
 
@@ -150,11 +164,11 @@ export class StableUnit extends Ethereum {
     //fundation_account = {};
     reserve_mETH: number = 0;
     reserve_ratio: Market = new Market(0);
-    BONDS_EMISSION = 0.1; // 10% of the SU in circulation
+    REPOS_EMISSION = 0.1; // 10% of the SU in circulation
     REPO_circulation: number;
     REPO_price: number;
     SU_DAO_TOKEN_circulation: number;
-    PARKING_current_ratio = 0.0;
+    PARKING_ratio = 0.0;
 
     constructor(ethereum: Ethereum) {
         super();
@@ -262,7 +276,7 @@ export class StableUnit extends Ethereum {
     }
 
     unlockBonds() {
-        this.REPO_circulation = this.SU_circulation.getCurrentValue() * this.BONDS_EMISSION;
+        this.REPO_circulation = this.SU_circulation.getCurrentValue() * this.REPOS_EMISSION;
     }
 
     // bonds are erc20 tokens so can be store on the same addresses;
@@ -274,13 +288,19 @@ export class StableUnit extends Ethereum {
     sellBondsSM() {
     }
 
-    // during temporaty freeze only part of fund are avaliable for transaction
+    // This is overwrited Ethereum method to send transation
+    // During temporaty parking only part of funds are avaliable for transaction
     // so we have to reimplement basic transation logic
     sendTransaction(address_sender: string, amount: number, address_recipient: string) {
         // check that avaliable unparked balace is sufficient for transaction
-        if ((this.accounts.get(address_sender) || 0) * (1.0 - this.PARKING_current_ratio) >= amount) {
+        if ((this.accounts.get(address_sender) || 0) * (1.0 - this.PARKING_ratio) >= amount) {
             super.sendTransaction(address_sender, amount, address_recipient);
         }
+    }
+
+    // save current values of StableUnit system for printing statistics
+    updateHistory() {
+
     }
 }
 
@@ -311,6 +331,7 @@ export type Order = {
     isActive: bool;
 }
 
+// SU/ETH market which provides several methods to place an order
 // https://en.wikipedia.org/wiki/Order_(exchange)
 export class Market_SUmETH extends Market {
     buy_orders: Array<Order> = [];
@@ -540,7 +561,7 @@ const market_SUUSD = new Market(1, "SU/USD");
 // it's not a real market but control pannel for traders behaviour
 const market_demand = new Market(0.5, "SU demand");
 
-// Super class for the all trader bots with basic shared methods
+// Superclass for the all trader bots with basic shared methods
 export class Trader {
     name: string;
     // portfolio = {};
@@ -692,7 +713,7 @@ class RandomTrader extends Trader {
     }
 }
 
-// This trader follows the trend by analysing the Buy/Sell volument ratio of the order book
+// This trader follows the trend by analysing the Buy/Sell volume ratio of the order book
 class TrendMaker extends Trader {
     update() {
         super.update();
@@ -731,7 +752,8 @@ class TrendMaker extends Trader {
     }
 }
 
-// This trader trying to buy SU during crash when it's very cheap and see it after for at least x10 of price
+// This trader trying to buy SU during crash when it's very cheap 
+// and sell it after crash for at least x10 of price
 class BuyFDeeps extends Trader {
     SU_DEEP = 0.01;
     ROI = 10;
@@ -939,7 +961,6 @@ export class Simulation {
         }
         market_SUETH.update();
 
-        this.web4.su.SU_circulation.update();
 
         // update the time
         Utility.simulation_tick += 1;

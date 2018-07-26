@@ -36,7 +36,7 @@ class StableUnitChartContainer extends React.Component<Props, State> {
         >
           <div style={{ flex: 1 }}>
             <HistoryWithLayers
-              title="SU-USD"
+              title="SU/USD price"
               market={player.simulation.market_SUUSD}
               D1={D1}
               D2={D2}
