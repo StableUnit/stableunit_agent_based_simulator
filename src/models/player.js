@@ -135,21 +135,18 @@ export default {
   },
 
   effects: {
-    async start(payload: any, rootState: FullState) {
+    start(payload: any, rootState: FullState) {
       if (isInitialized) {
         return;
       }
       isInitialized = true;
 
-      // Making simulation global to be able to watch
-      // TODO: Remove later
       window.simulation = rootState.player.simulation;
 
-      while (true) {
+      setInterval(() => {
         rootState.player.simulation.update();
         this.updateSimulationState(rootState.player.simulation);
-        await delay(100);
-      }
+      }, 100);
     }
   }
 };

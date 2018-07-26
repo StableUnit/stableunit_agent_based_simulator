@@ -32,11 +32,10 @@ class History extends React.Component<Props, State> {
   render() {
     const { market, title } = this.props;
     const { showAll } = this.state;
-    const sliceLength = showAll ? 0 : -50;
 
     // Convert data for orderbook
     // const data = convertDataForChart(market.history);
-    const data: HistoryData = market.history.slice(sliceLength);
+    const data: HistoryData = showAll ? market.history : market.history.slice(-50);
 
     const style = {
       width: '100%',

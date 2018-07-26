@@ -4,7 +4,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
 import { Button, NumberInput } from 'carbon-components-react';
-import { StableUnit } from '../models/es6_simulation';
+import {StableUnit} from '../models/es6_simulation'
+import MultiHistory from "./MultiHistory"
+import type {SimulationState} from "../models/player"
 
 type State = {
   d1: string,
@@ -16,6 +18,7 @@ type State = {
 
 type Props = {
   stableUnit: StableUnit,
+  player: SimulationState,
   updateStableUnitDeltas: (State) => {}
 };
 
@@ -74,11 +77,16 @@ class StableUnitContainer extends Component<Props, State> {
             ].map(renderInput)
           }
         </div>
+          <MultiHistory
+              title="SU Circulation/Reverse Ratio"
+              circulation={this.props.stableUnit.SU_circulation}
+              reverseRatio={this.props.stableUnit.reserve_ratio}
+          />
         <Button onClick={this.apply}>Apply</Button>
         <div>
-            <p>SU in circulation = {(this.props.stableUnit.SU_circulation).toFixed(2)}</p>
+            <p>SU in circulation = {(this.props.stableUnit.SU_circulation.getCurrentValue()).toFixed(2)}</p>
             <p>Reserve (eth) = {(this.props.stableUnit.reserve_mETH/1000).toFixed(2)}</p>
-            <p>Reserve ratio = {(this.props.stableUnit.reserve_ratio).toFixed(2) }</p>
+            <p>Reserve ratio = {(this.props.stableUnit.reserve_ratio.getCurrentValue()).toFixed(2) }</p>
             <p>REPOs in circulation = {(this.props.stableUnit.REPO_circulation).toFixed(2) }</p>
             <p>SU_DAO_Tokens in circulation = {(this.props.stableUnit.SU_DAO_TOKEN_circulation).toFixed(2) }</p>
         </div>
@@ -88,6 +96,7 @@ class StableUnitContainer extends Component<Props, State> {
 }
 
 const mapState = state => ({
+  player: state.player,
   stableUnit: state.player.simulation.web4.su
 });
 

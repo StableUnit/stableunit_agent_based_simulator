@@ -89,6 +89,48 @@ class Ethereum {
     }
 }
 
+// Generic class for generating, adding and storing values for market
+// such as price history, market demand etc
+export class Market {
+    name: string;
+    history: Array<{ datetime: number, price: number }> = [];
+
+    volatility_factor = 0.05;
+    random_change: number;
+
+    constructor(initial_value: number, name: string = 'no_name') {
+        this.name = name;
+        this.setNewValue(initial_value);
+        this.random_change = initial_value * this.volatility_factor;
+    }
+
+    setNewValue(new_price: number) {
+        this.history.push({datetime: Utility.simulation_tick, price: new_price});
+    }
+
+    getCurrentValue() {
+        return this.history[this.history.length - 1].price;
+    }
+
+    update() {
+        this.setNewValue(this.getCurrentValue());
+    }
+
+    addValueRandomMove() {
+        let rand = Math.random() - 0.5; // liner [-½ .. ½]
+        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
+        this.setNewValue(newValue);
+    }
+
+    addValueNormRandomMove() {
+
+    }
+
+    addValueHistoricalData() {
+
+    }
+}
+
 // StableUnit blockchain is an extension of Ethereum
 export class StableUnit extends Ethereum {
     PEG = 1.0;
@@ -102,12 +144,12 @@ export class StableUnit extends Ethereum {
     SUmETH_price: number;
     mETHUSD_price: number = 0.5;
     SU_price: number;
-    SU_circulation: number = 0;
+    SU_circulation: Market = new Market(0);
 
     //reserve_account = {};
     //fundation_account = {};
     reserve_mETH: number = 0;
-    reserve_ratio: number = 0;
+    reserve_ratio: Market = new Market(0);
     BONDS_EMISSION = 0.1; // 10% of the SU in circulation
     REPO_circulation: number;
     REPO_price: number;
@@ -116,7 +158,6 @@ export class StableUnit extends Ethereum {
 
     constructor(ethereum: Ethereum) {
         super();
-        this.SU_circulation = 0;
         // init stabilisation fund with some existing funds (after ICO for example)
         //this.reserve_account = ethereum.createWallet(1000);
         this.reserve_mETH = 0;
@@ -135,10 +176,12 @@ export class StableUnit extends Ethereum {
 
     // Oracle smartcontract takes info from outside
     callOracleSM(trader: Trader, mETHUSD_price: number) {
+        const SU_circulation = this.SU_circulation.getCurrentValue();
+
         this.mETHUSD_price = mETHUSD_price;
-        this.reserve_ratio = this.reserve_mETH * mETHUSD_price / this.SU_circulation;
+        this.reserve_ratio.setNewValue(this.reserve_mETH * mETHUSD_price / SU_circulation);
         trader.balance_SU += this.ORACLE_REWARD;
-        this.SU_circulation += this.ORACLE_REWARD;
+        this.SU_circulation.setNewValue(SU_circulation + this.ORACLE_REWARD);
     }
 
     // Not sure yet whether we need SU/ETH or SU/USD as an input for oracle
@@ -181,7 +224,7 @@ export class StableUnit extends Ethereum {
             buyer.balance_mETH -= amount_mETH;
             buyer.balance_SU += deal_SU;
             this.reserve_mETH += amount_mETH;
-            this.SU_circulation += deal_SU;
+            this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() + deal_SU);
             return true;
         }
         return false;
@@ -191,7 +234,7 @@ export class StableUnit extends Ethereum {
         let deal_price = (1 + this.D1) / this.mETHUSD_price;
         let deal_SU = amount_mETH / deal_price;
         this.reserve_mETH += amount_mETH;
-        this.SU_circulation += deal_SU;
+        this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() + deal_SU);
         return deal_SU;
     }
 
@@ -209,15 +252,17 @@ export class StableUnit extends Ethereum {
             }
             seller.balance_mETH += deal_mETH;
             seller.balance_SU -= amount_SU;
-            this.SU_circulation -= amount_SU;
+
+            this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() - amount_SU);
             this.reserve_mETH -= deal_mETH;
+
             return true;
         }
         return false;
     }
 
     unlockBonds() {
-        this.REPO_circulation = this.SU_circulation * this.BONDS_EMISSION;
+        this.REPO_circulation = this.SU_circulation.getCurrentValue() * this.BONDS_EMISSION;
     }
 
     // bonds are erc20 tokens so can be store on the same addresses;
@@ -251,44 +296,6 @@ class Web4 {
 }
 
 const web4 = new Web4();
-
-// Generic class for generating, adding and storing values for market
-// such as price history, market demand etc
-export class Market {
-    name: string;
-    history: Array<{ datetime: number, price: number }> = [];
-
-    volatility_factor = 0.05;
-    random_change: number;
-
-    constructor(initial_value: number, name: string = 'no_name') {
-        this.name = name;
-        this.setNewValue(initial_value);
-        this.random_change = initial_value * this.volatility_factor;
-    }
-
-    setNewValue(new_price: number) {
-        this.history.push({datetime: Utility.simulation_tick, price: new_price});
-    }
-
-    getCurrentValue() {
-        return this.history[this.history.length - 1].price;
-    }
-
-    addValueRandomMove() {
-        let rand = Math.random() - 0.5; // liner [-½ .. ½]
-        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
-        this.setNewValue(newValue);
-    }
-
-    addValueNormRandomMove() {
-
-    }
-
-    addValueHistoricalData() {
-
-    }
-}
 
 // In this simulation we're going to use milliEther as the more convenient
 // unit of measurement for Ether value in SU/ETH exchange
@@ -501,7 +508,7 @@ export class Market_SUmETH extends Market {
     // TODO: legacy
     newLimitSellOrder(trader: Trader, amount_SU: number, amount_mETH: number, ttl: number = -1) {
         let min_price = amount_SU / amount_mETH;
-        this.addSellLimitOrder(trader, amount_SU, min_price); 
+        this.addSellLimitOrder(trader, amount_SU, min_price);
         return "";
     }
 
@@ -691,7 +698,7 @@ class TrendMaker extends Trader {
         super.update();
         if (this.ifTimeToUpdate()) {
             let orderbook_ratio = market_SUETH.getNormalizedBuySellVolumeRatio();
-            if (isNaN(orderbook_ratio)) 
+            if (isNaN(orderbook_ratio))
                 orderbook_ratio = 0.5; // when orderbook is empty
 
             let deal_price = market_SUETH.getCurrentValue();
@@ -701,7 +708,7 @@ class TrendMaker extends Trader {
 
             // if there are more buy orders than sell order
             if (orderbook_ratio > this.dna.r) {
-                // means there are more demand therefore we might expect the price go up 
+                // means there are more demand therefore we might expect the price go up
                 // and benefit by placing selling order for higher price
                 let sell_price = deal_price * (1 + this.dna.margin);
                 this.addOrderTTL(market_SUETH.addSellLimitOrder(
@@ -853,7 +860,7 @@ export class Simulation {
         // UI traders to play around
         traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
         traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
-        
+
         // general traders for any kind of markets
         for (let i = 0; i < 5; i++) {
             traders.push(new RandomTrader(
@@ -922,7 +929,7 @@ export class Simulation {
     update() {
         // generate inputs
         market_mETHUSD.addValueRandomMove();
-        this.market_demand.setNewValue(this.market_demand.getCurrentValue());
+        this.market_demand.update();
 
         // simulation execution
         market_SUUSD.setNewValue(market_SUETH.getCurrentValue() * market_mETHUSD.getCurrentValue());
@@ -931,6 +938,8 @@ export class Simulation {
             trader.update();
         }
         market_SUETH.update();
+
+        this.web4.su.SU_circulation.update();
 
         // update the time
         Utility.simulation_tick += 1;

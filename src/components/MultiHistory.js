@@ -7,13 +7,9 @@ import { colors } from '../theme';
 import { Market } from '../models/es6_simulation';
 
 type Props = {
-  market: Market,
-  title: string,
-  D1: number,
-  D2: number,
-  D3: number,
-  D4: number,
-  D5: number
+  circulation: Market,
+  reverseRatio: Market,
+  title: string
 };
 
 type State = {
@@ -35,30 +31,22 @@ class History extends React.Component<Props, State> {
   };
 
   render() {
-    const { market, title, D1, D2, D3, D4, D5 } = this.props;
+    const { circulation, reverseRatio, title } = this.props;
     const { showAll } = this.state;
-
-    const guides = [
-      { value: 1 + D1, label: 'market stabilization', lineColor: "#660000", },
-      { value: 1 - D1, label: 'Δs: stabilization fund', lineColor: "#990000", },
-      { value: 1 - D2, label: 'Δb: bonds', lineColor: "#CC0000", },
-      { value: 1 - D3, label: 'Δd: shares dilution', lineColor: "#FF0000", },
-      { value: 1 - D4, label: 'Δp: temporary parking', lineColor: "#FF0000", },
-    ].map(guide => ({
-      ...guide,
-      lineAlpha: 1,
-      dashLength: 2,
-      inside: true,
-      labelRotation: 90,
-    }))
 
     // Convert data for orderbook
     // const data = convertDataForChart(market.history);
-    const data: HistoryData = showAll ? market.history : market.history.slice(-50);
+    const circulationData: HistoryData = showAll ? circulation.history : circulation.history.slice(-50);
+    const reverseRatioData: HistoryData = showAll ? reverseRatio.history : reverseRatio.history.slice(-50);
+    const data = circulationData.map((item, index) => ({
+      datetime: item.datetime,
+      circulation: item.price,
+      reverseRatio: (reverseRatioData[index] || {}).price
+    }));
 
     const style = {
       width: '100%',
-      height: 400
+      height: 200
     };
 
     const options = {
@@ -66,28 +54,39 @@ class History extends React.Component<Props, State> {
       theme: 'light',
       valueAxes: [
         {
+          id: 'g1',
+          axisColor: '#FF6600',
           position: 'left',
-          guides,
-          gridCount: 7,
-          minimum: 0.0,
-          //maximum: 1.2,
-          autoGridCount: false,
-          includeGuidesInMinMax: true,
+        },
+        {
+          id: 'g2',
+          axisColor: '#FCD202',
+          position: 'right',
         }
       ],
       graphs: [
         {
-          id: 'g1',
-          // balloonText:
-          //   'Open:<b>[[open]]</b><br>Low:<b>[[low]]</b><br>High:<b>[[high]]</b><br>Close:<b>[[close]]</b><br>',
+          valueAxis: 'g1',
           closeField: 'close',
-          lineColor: colors.green,
+          lineColor: '#FF6600',
           lineAlpha: 1,
           negativeFillColors: colors.red,
           negativeLineColor: colors.red,
-          title: 'Price:',
+          title: 'SU Circulation:',
           type: 'line',
-          valueField: 'price',
+          valueField: 'circulation',
+          labelsEnabled: false
+        },
+        {
+          valueAxis: 'g2',
+          closeField: 'close',
+          lineColor: '#FCD202',
+          lineAlpha: 1,
+          negativeFillColors: colors.red,
+          negativeLineColor: colors.red,
+          title: 'Reverse ratio:',
+          type: 'line',
+          valueField: 'reverseRatio',
           labelsEnabled: false
         }
       ],
@@ -110,7 +109,7 @@ class History extends React.Component<Props, State> {
     return (
       <div style={{ flex: 1 }}>
         <TitleWithToggle
-          name={market.name}
+          name={circulation.name}
           title={title}
           showAll={showAll}
           toggleShowAll={this.toggleShowAll}
