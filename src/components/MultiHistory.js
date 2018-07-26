@@ -4,24 +4,16 @@ import React from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 import TitleWithToggle from './TitleWithToggle';
 import { colors } from '../theme';
-import { Market } from '../models/es6_simulation';
+import type { StableUnitSystemHistory } from '../models/es6_simulation';
 
 type Props = {
-  circulation: Market,
-  reverseRatio: Market,
+  historyData: StableUnitSystemHistory,
   title: string
 };
 
 type State = {
   showAll: boolean
 };
-
-type Entry = {
-  datetime: number,
-  price: number
-};
-
-type HistoryData = Array<Entry>;
 
 class History extends React.Component<Props, State> {
   state = { showAll: false };
@@ -31,18 +23,10 @@ class History extends React.Component<Props, State> {
   };
 
   render() {
-    const { circulation, reverseRatio, title } = this.props;
+    const { historyData, title } = this.props;
     const { showAll } = this.state;
 
-    // Convert data for orderbook
-    // const data = convertDataForChart(market.history);
-    const circulationData: HistoryData = showAll ? circulation.history : circulation.history.slice(-50);
-    const reverseRatioData: HistoryData = showAll ? reverseRatio.history : reverseRatio.history.slice(-50);
-    const data = circulationData.map((item, index) => ({
-      datetime: item.datetime,
-      circulation: item.price,
-      reverseRatio: (reverseRatioData[index] || {}).price
-    }));
+    const data: StableUnitSystemHistory = showAll ? historyData : historyData.slice(-50);
 
     const style = {
       width: '100%',
@@ -76,7 +60,7 @@ class History extends React.Component<Props, State> {
           negativeLineColor: colors.red,
           title: 'SU Circulation:',
           type: 'line',
-          valueField: 'circulation',
+          valueField: 'SU_circulation',
           labelsEnabled: false
         },
         {
@@ -88,9 +72,23 @@ class History extends React.Component<Props, State> {
           negativeLineColor: colors.red,
           title: 'Reverse ratio:',
           type: 'line',
-          valueField: 'reverseRatio',
+          valueField: 'reserve_ratio',
+          labelsEnabled: false,
+          balloonText: 'rr: <b>[[reserve_ratio]]</b> <br> reserve(mETH):<b>[[reserve_mETH]]</b><br>',
+        },
+        {
+          valueAxis: 'g1',
+          closeField: 'close',
+          lineColor: '#660000',
+          lineAlpha: 2,
+          negativeFillColors: colors.red,
+          negativeLineColor: colors.red,
+          title: 'Reverse:',
+          type: 'line',
+          valueField: 'REPO_circulation',
           labelsEnabled: false
-        }
+        },
+
       ],
       categoryAxis: {
 
@@ -111,7 +109,7 @@ class History extends React.Component<Props, State> {
     return (
       <div style={{ flex: 1 }}>
         <TitleWithToggle
-          name={circulation.name}
+          name={"circulation"} //TODO: what's this field?
           title={title}
           showAll={showAll}
           toggleShowAll={this.toggleShowAll}

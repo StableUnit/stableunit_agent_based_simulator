@@ -92,10 +92,9 @@ class Ethereum {
 
 // Market - is a generic class for generating, adding and storing values for market
 // such as price history, market demand etc
-export type HistoryData = Array<{ datetime: number, price: number }>;
 export class Market {
     name: string;
-    history: HistoryData = [];
+    history: Array<{ datetime: number, price: number }> = [];
 
     volatility_factor = 0.05;
     random_change: number;
@@ -138,6 +137,16 @@ export class Market {
     }
 }
 
+export type StableUnitSystemHistory = Array<{ 
+    datetime: number, 
+    SU_circulation: number,
+    reserve_mETH: number,
+    reserve_ratio: number,
+    REPO_circulation: number,
+    SU_DAO_TOKEN_circulation: number,
+    PARKING_ratio: number
+}>;
+
 // StableUnit blockchain is an extension of Ethereum
 export class StableUnit extends Ethereum {
     // the target price for one unit. Might be function from {time, su in circulation} etc
@@ -152,36 +161,45 @@ export class StableUnit extends Ethereum {
 
     // reward in SU for one oracle voting term
     ORACLE_REWARD = 0.1;
-    // last info provided by oracles
+    // the last info provided by oracles
     SUmETH_price: number;
     mETHUSD_price: number = 0.5;
 
-
+    // 5 types of assets
     SU_price: number;
-    SU_circulation: Market = new Market(0);
+    SU_circulation: number;
 
-    //reserve_account = {};
-    //fundation_account = {};
-    reserve_mETH: number = 0;
-    reserve_ratio: Market = new Market(0);
+    reserve_mETH: number;
+    reserve_ratio: number;
+
     REPOS_EMISSION = 0.1; // 10% of the SU in circulation
     REPO_circulation: number;
     REPO_price: number;
+
     SU_DAO_TOKEN_circulation: number;
-    PARKING_ratio = 0.0;
+
+    PARKING_ratio: number;
 
     constructor(ethereum: Ethereum) {
         super();
+
+        this.SU_circulation = 0;
+
         // init stabilisation fund with some existing funds (after ICO for example)
         //this.reserve_account = ethereum.createWallet(1000);
         this.reserve_mETH = 0;
+        this.reserve_ratio = 0;
+
+        // create REPOs as type of token
+        //this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
+        this.REPO_circulation = 0;
+
         // create DAO
         //this.fundation_account = this.createWallet(1);
         //this.createTokens(this.fundation_account.address, "SU_DAO", 1000);
         this.SU_DAO_TOKEN_circulation = 0;
-        // create Bonds as type of token
-        //this.createTokens(this.fundation_account.address, "SU_BONDS", 0);
-        this.REPO_circulation = 0;
+
+        this.PARKING_ratio = 0;
     }
 
     daico() {
@@ -190,12 +208,11 @@ export class StableUnit extends Ethereum {
 
     // Oracle smartcontract takes info from outside
     callOracleSM(trader: Trader, mETHUSD_price: number) {
-        const SU_circulation = this.SU_circulation.getCurrentValue();
-
         this.mETHUSD_price = mETHUSD_price;
-        this.reserve_ratio.setNewValue(this.reserve_mETH * mETHUSD_price / SU_circulation);
+        this.reserve_ratio = (this.reserve_mETH * mETHUSD_price) / this.SU_circulation;
+        
         trader.balance_SU += this.ORACLE_REWARD;
-        this.SU_circulation.setNewValue(SU_circulation + this.ORACLE_REWARD);
+        this.SU_circulation = this.SU_circulation + this.ORACLE_REWARD;
     }
 
     // Not sure yet whether we need SU/ETH or SU/USD as an input for oracle
@@ -238,7 +255,7 @@ export class StableUnit extends Ethereum {
             buyer.balance_mETH -= amount_mETH;
             buyer.balance_SU += deal_SU;
             this.reserve_mETH += amount_mETH;
-            this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() + deal_SU);
+            this.SU_circulation = this.SU_circulation + deal_SU;
             return true;
         }
         return false;
@@ -248,7 +265,7 @@ export class StableUnit extends Ethereum {
         let deal_price = (1 + this.D1) / this.mETHUSD_price;
         let deal_SU = amount_mETH / deal_price;
         this.reserve_mETH += amount_mETH;
-        this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() + deal_SU);
+        this.SU_circulation = this.SU_circulation + deal_SU;
         return deal_SU;
     }
 
@@ -267,7 +284,7 @@ export class StableUnit extends Ethereum {
             seller.balance_mETH += deal_mETH;
             seller.balance_SU -= amount_SU;
 
-            this.SU_circulation.setNewValue(this.SU_circulation.getCurrentValue() - amount_SU);
+            this.SU_circulation = this.SU_circulation - amount_SU;
             this.reserve_mETH -= deal_mETH;
 
             return true;
@@ -276,7 +293,7 @@ export class StableUnit extends Ethereum {
     }
 
     unlockBonds() {
-        this.REPO_circulation = this.SU_circulation.getCurrentValue() * this.REPOS_EMISSION;
+        this.REPO_circulation += this.SU_circulation * this.REPOS_EMISSION;
     }
 
     // bonds are erc20 tokens so can be store on the same addresses;
@@ -298,9 +315,20 @@ export class StableUnit extends Ethereum {
         }
     }
 
+    //variables and methonds for rendering statistics
+    history: StableUnitSystemHistory = [];
+
     // save current values of StableUnit system for printing statistics
     updateHistory() {
-
+        this.history.push({
+            datetime: Utility.simulation_tick,
+            SU_circulation: this.SU_circulation,
+            reserve_mETH: this.reserve_mETH,
+            reserve_ratio: this.reserve_ratio,
+            REPO_circulation: this.REPO_circulation,
+            SU_DAO_TOKEN_circulation: this.SU_DAO_TOKEN_circulation,
+            PARKING_ratio: this.PARKING_ratio
+        });
     }
 }
 
@@ -961,6 +989,7 @@ export class Simulation {
         }
         market_SUETH.update();
 
+        this.web4.su.updateHistory();
 
         // update the time
         Utility.simulation_tick += 1;
