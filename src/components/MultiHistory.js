@@ -39,21 +39,36 @@ class History extends React.Component<Props, State> {
       theme: 'light',
       valueAxes: [
         {
-          id: 'g1',
+          id: 'SU_circulation',
           axisColor: '#FF8800',
           position: 'left',
           minimum: 0.0,
         },
         {
-          id: 'g2',
+          id: 'reserve_mETH',
+          axisColor: '#ff0011',
+          position: 'left',
+          offset: 60,
+          minimum: 0.0,
+        },
+        {
+          id: 'reserve_ratio',
           axisColor: '#FCD202',
           position: 'right',
           minimum: 0.0,
+        },
+        {
+          id: 'REPO_circulation',
+          axisColor: '#660000',
+          position: 'left',
+          offset: 120,
+          minimum: -1,
+          maximum: 1,
         }
       ],
       graphs: [
         {
-          valueAxis: 'g1',
+          valueAxis: 'SU_circulation',
           closeField: 'close',
           lineColor: '#FF8800',
           lineAlpha: 1,
@@ -62,10 +77,24 @@ class History extends React.Component<Props, State> {
           title: 'SU Circulation:',
           type: 'line',
           valueField: 'SU_circulation',
-          labelsEnabled: false
+          labelsEnabled: false,
+          balloonFunction: item => `SU in circulation: <b>${parseFloat(item.values.value).toFixed(2)}</b>`
         },
         {
-          valueAxis: 'g2',
+          valueAxis: 'reserve_mETH',
+          closeField: 'close',
+          lineColor: '#ff0011',
+          lineAlpha: 2,
+          negativeFillColors: colors.red,
+          negativeLineColor: colors.red,
+          title: 'Reverse:',
+          type: 'line',
+          valueField: 'reserve_mETH',
+          labelsEnabled: false,
+          balloonText: 'Reserve (eth): <b>[[reserve_mETH]]</b>'
+        },
+        {
+          valueAxis: 'reserve_ratio',
           closeField: 'close',
           lineColor: '#FCD202',
           lineAlpha: 1,
@@ -75,10 +104,10 @@ class History extends React.Component<Props, State> {
           type: 'line',
           valueField: 'reserve_ratio',
           labelsEnabled: false,
-          balloonText: 'rr: <b>[[reserve_ratio]]</b> <br> reserve(mETH):<b>[[reserve_mETH]]</b><br>',
+          balloonFunction: item => `Reserve ratio: <b>${parseFloat(item.values.value).toFixed(2)}</b>`
         },
         {
-          valueAxis: 'g1',
+          valueAxis: 'REPO_circulation',
           closeField: 'close',
           lineColor: '#660000',
           lineAlpha: 2,
@@ -87,7 +116,8 @@ class History extends React.Component<Props, State> {
           title: 'Reverse:',
           type: 'line',
           valueField: 'REPO_circulation',
-          labelsEnabled: false
+          labelsEnabled: false,
+          balloonText: 'REPOs in circulation: <b>[[REPO_circulation]]</b>'
         },
 
       ],
