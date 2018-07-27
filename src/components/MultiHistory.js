@@ -25,8 +25,9 @@ class History extends React.Component<Props, State> {
   render() {
     const { historyData, title } = this.props;
     const { showAll } = this.state;
+    const sliceLength = showAll ? 0 : -50;
 
-    const data: StableUnitSystemHistory = showAll ? historyData : historyData.slice(-50);
+    const data: StableUnitSystemHistory = historyData.slice(sliceLength);
 
     const style = {
       width: '100%',

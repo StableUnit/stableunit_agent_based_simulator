@@ -1,16 +1,16 @@
 // @flow
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { Button } from 'carbon-components-react';
-
-import type { FullState, SimulationState } from '../models/player';
-
 import History from './History';
 import MarketWithOrderBook from './MarketWithOrderBook';
+import type {Market} from "../models/es6_simulation"
+import withSimulation from "../util/simulationUpdateHOC"
+import {Market_SUmETH} from "../models/es6_simulation"
 
 type Props = {
-  player: SimulationState,
+  market_ETHUSD: Market,
+  market_SUETH: Market_SUmETH
 };
 
 type State = {
@@ -18,13 +18,10 @@ type State = {
 };
 
 class ExchangeContainer extends React.Component<Props, State> {
-  constructor(props) {
-    super(props);
-    this.state = { selectedMarketIndex: 0 };
-  }
+  state = { selectedMarketIndex: 0 };
 
   render() {
-    const { player } = this.props;
+    const { market_ETHUSD, market_SUETH } = this.props;
 
     return (
       <div>
@@ -34,13 +31,13 @@ class ExchangeContainer extends React.Component<Props, State> {
           <div style={{ flex: 1 }}>
             <History
               title="mETH-USD"
-              market={player.simulation.market_ETHUSD}
+              market={market_ETHUSD}
             />
             <div style={{ textAlign: 'center' }}>
               <Button
                 onClick={() =>
-                  player.simulation.market_ETHUSD.setNewValue(
-                    player.simulation.market_ETHUSD.getCurrentValue() * 1.1
+                  market_ETHUSD.setNewValue(
+                    market_ETHUSD.getCurrentValue() * 1.1
                   )
                 }
               >
@@ -48,8 +45,8 @@ class ExchangeContainer extends React.Component<Props, State> {
               </Button>
               <Button
                 onClick={() =>
-                  player.simulation.market_ETHUSD.setNewValue(
-                    player.simulation.market_ETHUSD.getCurrentValue() * 0.9
+                  market_ETHUSD.setNewValue(
+                    market_ETHUSD.getCurrentValue() * 0.9
                   )
                 }
               >
@@ -61,7 +58,7 @@ class ExchangeContainer extends React.Component<Props, State> {
         <div style={{ marginTop: '2em' }}>
           <MarketWithOrderBook
             title="SU-mETH"
-            market={player.simulation.market_SUETH}
+            market={market_SUETH}
           />
         </div>
       </div>
@@ -69,8 +66,13 @@ class ExchangeContainer extends React.Component<Props, State> {
   }
 }
 
-const mapState = (state: FullState) => ({
-  player: state.player
-});
+const mapPlayerToProps = player => {
+  const { market_ETHUSD, market_SUETH } = player.simulation;
 
-export default connect(mapState)(ExchangeContainer);
+  return {
+    market_ETHUSD,
+    market_SUETH
+  };
+}
+
+export default withSimulation(mapPlayerToProps)(ExchangeContainer);

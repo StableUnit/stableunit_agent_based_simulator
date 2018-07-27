@@ -1,6 +1,4 @@
 // @flow
-import assert from 'assert';
-
 const Utility = {
     EPS: 1e-6,
     DEFAULT_SUUSD_PRICE: 1,
@@ -119,7 +117,7 @@ export class Market {
 
     // adds random value from range [-½ .. ½] with liner distribution
     addValueRandomMove() {
-        let rand = Math.random() - 0.5; 
+        let rand = Math.random() - 0.5;
         let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
         this.setNewValue(newValue);
     }
@@ -137,8 +135,8 @@ export class Market {
     }
 }
 
-export type StableUnitSystemHistory = Array<{ 
-    datetime: number, 
+export type StableUnitSystemHistory = Array<{
+    datetime: number,
     SU_circulation: number,
     reserve_mETH: number,
     reserve_ratio: number,
@@ -210,7 +208,7 @@ export class StableUnit extends Ethereum {
     callOracleSM(trader: Trader, mETHUSD_price: number) {
         this.mETHUSD_price = mETHUSD_price;
         this.reserve_ratio = (this.reserve_mETH * mETHUSD_price) / this.SU_circulation;
-        
+
         trader.balance_SU += this.ORACLE_REWARD;
         this.SU_circulation = this.SU_circulation + this.ORACLE_REWARD;
     }
@@ -780,7 +778,7 @@ class TrendMaker extends Trader {
     }
 }
 
-// This trader trying to buy SU during crash when it's very cheap 
+// This trader trying to buy SU during crash when it's very cheap
 // and sell it after crash for at least x10 of price
 class BuyFDeeps extends Trader {
     SU_DEEP = 0.01;

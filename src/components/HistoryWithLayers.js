@@ -35,8 +35,9 @@ class History extends React.Component<Props, State> {
   };
 
   render() {
-    const { market, title, D1, D2, D3, D4, D5 } = this.props;
+    const { market, title, D1, D2, D3, D4 } = this.props;
     const { showAll } = this.state;
+    const sliceLength = showAll ? 0 : -50;
 
     const guides = [
       { value: 1 + D1, label: 'market stabilization', lineColor: "#660000", },
@@ -52,9 +53,7 @@ class History extends React.Component<Props, State> {
       labelRotation: 90,
     }))
 
-    // Convert data for orderbook
-    // const data = convertDataForChart(market.history);
-    const data: HistoryData = showAll ? market.history : market.history.slice(-50);
+    const data: HistoryData = market.history.slice(sliceLength);
 
     const style = {
       width: '100%',

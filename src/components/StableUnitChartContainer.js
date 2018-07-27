@@ -1,18 +1,18 @@
 // @flow
-
 import React from 'react';
-import { connect } from 'react-redux';
-import { Button } from 'carbon-components-react';
 
-import type { FullState, SimulationState } from '../models/player';
-import { StableUnit } from '../models/es6_simulation';
-
-import History from './History';
 import HistoryWithLayers from './HistoryWithLayers';
+import withSimulation from '../util/simulationUpdateHOC';
+
+import type {Market} from '../models/es6_simulation';
 
 type Props = {
-  player: SimulationState,
-  stableUnit: StableUnit,
+  D1: number,
+  D2: number,
+  D3: number,
+  D4: number,
+  D5: number,
+  market_SUUSD: Market
 };
 
 type State = {
@@ -20,14 +20,8 @@ type State = {
 };
 
 class StableUnitChartContainer extends React.Component<Props, State> {
-  constructor(props) {
-    super(props);
-    this.state = { selectedMarketIndex: 0 };
-  }
-
   render() {
-    const { player, stableUnit } = this.props;
-    const { D1, D2, D3, D4, D5 } = stableUnit;
+    const { D1, D2, D3, D4, D5, market_SUUSD } = this.props;
 
     return (
       <div>
@@ -37,7 +31,7 @@ class StableUnitChartContainer extends React.Component<Props, State> {
           <div style={{ flex: 1 }}>
             <HistoryWithLayers
               title="SU/USD price"
-              market={player.simulation.market_SUUSD}
+              market={market_SUUSD}
               D1={D1}
               D2={D2}
               D3={D3}
@@ -51,9 +45,10 @@ class StableUnitChartContainer extends React.Component<Props, State> {
   }
 }
 
-const mapState = (state: FullState) => ({
-  player: state.player,
-  stableUnit: state.player.simulation.web4.su
-});
+const mapPlayerToProps = player => {
+  const { market_SUUSD, web4: { su: { D1, D2, D3, D4, D5 } } } = player.simulation;
 
-export default connect(mapState)(StableUnitChartContainer);
+  return { D1, D2, D3, D4, D5, market_SUUSD };
+};
+
+export default withSimulation(mapPlayerToProps)(StableUnitChartContainer);

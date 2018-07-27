@@ -1,38 +1,25 @@
 //@flow
 
-import React, { Fragment } from 'react';
+import React from 'react';
 
-import { connect } from 'react-redux';
 import { Button } from 'carbon-components-react';
 import { Trader } from '../models/es6_simulation';
+import withSimulation from "../util/simulationUpdateHOC"
+import type { BuySellOrder } from '../models/player'
 
 type Props = {
   trader: Trader,
-  placeLimitBuyOrder: (payload: {
-    trader: Trader,
-    price: string,
-    quantity: string
-  }) => {},
-  placeLimitSellOrder: (payload: {
-    trader: Trader,
-    price: string,
-    quantity: string
-  }) => {},
-  placeMarketBuyOrder: (payload: {
-    trader: Trader,
-    quantity: string
-  }) => {},
-  placeMarketSellOrder: (payload: {
-    trader: Trader,
-    quantity: string
-  }) => {}
+  placeLimitBuyOrder: BuySellOrder => void,
+  placeMarketBuyOrder: BuySellOrder => void,
+  placeLimitSellOrder: BuySellOrder => void,
+  placeMarketSellOrder: BuySellOrder => void
 };
 
 type State = {
-  buy_price_in_eth: string,
-  buy_su_quantity: string,
-  sell_price_in_eth: string,
-  sell_su_quantity: string
+  buy_price_in_eth?: string,
+  buy_su_quantity?: string,
+  sell_price_in_eth?: string,
+  sell_su_quantity?: string
 };
 
 class ManualControl extends React.Component<Props, State> {
@@ -43,12 +30,12 @@ class ManualControl extends React.Component<Props, State> {
     sell_su_quantity: '',
   };
 
-  update = data => {
+  update = (data: State) => {
     this.setState(data);
   };
 
   render() {
-    const { placeLimitBuyOrder, placeLimitSellOrder, placeMarketBuyOrder, placeMarketSellOrder, trader } = this.props;
+    const { trader, placeLimitBuyOrder, placeLimitSellOrder, placeMarketBuyOrder, placeMarketSellOrder } = this.props;
 
     const {
       buy_price_in_eth,
@@ -140,11 +127,11 @@ class ManualControl extends React.Component<Props, State> {
   }
 }
 
-const mapDispatch = dispatch => ({
-  placeLimitBuyOrder: dispatch.player.placeLimitBuyOrder,
-  placeLimitSellOrder: dispatch.player.placeLimitSellOrder,
-  placeMarketBuyOrder: dispatch.player.placeMarketBuyOrder,
-  placeMarketSellOrder: dispatch.player.placeMarketSellOrder
+const mapPlayerMethodsToProps = player => ({
+  placeLimitBuyOrder: player.placeLimitBuyOrder,
+  placeMarketBuyOrder: player.placeMarketBuyOrder,
+  placeLimitSellOrder: player.placeLimitSellOrder,
+  placeMarketSellOrder: player.placeMarketSellOrder
 });
 
-export default connect(null, mapDispatch)(ManualControl);
+export default withSimulation(null, mapPlayerMethodsToProps)(ManualControl);

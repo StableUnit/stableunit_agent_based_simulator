@@ -1,15 +1,14 @@
 // @flow
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { Button } from 'carbon-components-react';
 
-import type { FullState, SimulationState } from '../models/player';
-
 import History from './History';
+import withSimulation from "../util/simulationUpdateHOC"
+import type {Market} from "../models/es6_simulation"
 
 type Props = {
-  player: SimulationState
+  market_demand: Market
 };
 
 type State = {
@@ -17,13 +16,10 @@ type State = {
 };
 
 class DemandContainer extends React.Component<Props, State> {
-  constructor(props) {
-    super(props);
-    this.state = { selectedMarketIndex: 0 };
-  }
+  state = { selectedMarketIndex: 0 };
 
   render() {
-    const { player } = this.props;
+    const { market_demand } = this.props;
 
     return (
       <div>
@@ -32,14 +28,14 @@ class DemandContainer extends React.Component<Props, State> {
         >
           <History
             title="Market demand [0..1], ½ - equilibrium"
-            market={player.simulation.market_demand}
+            market={market_demand}
           />
         </div>
         <div>
           <Button
             onClick={() =>
-              player.simulation.market_demand.setNewValue(
-                player.simulation.market_demand.getCurrentValue() * 1.1
+              market_demand.setNewValue(
+                market_demand.getCurrentValue() * 1.1
               )
             }
           >
@@ -47,8 +43,8 @@ class DemandContainer extends React.Component<Props, State> {
           </Button>
           <Button
             onClick={() =>
-              player.simulation.market_demand.setNewValue(
-                player.simulation.market_demand.getCurrentValue() * 0.9
+              market_demand.setNewValue(
+                market_demand.getCurrentValue() * 0.9
               )
             }
           >
@@ -60,8 +56,8 @@ class DemandContainer extends React.Component<Props, State> {
   }
 }
 
-const mapState = (state: FullState) => ({
-  player: state.player
+const mapPlayerToProps = player => ({
+  market_demand: player.simulation.market_demand
 });
 
-export default connect(mapState)(DemandContainer);
+export default withSimulation(mapPlayerToProps)(DemandContainer);

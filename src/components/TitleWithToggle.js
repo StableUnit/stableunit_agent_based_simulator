@@ -12,7 +12,6 @@ type Props = {
 
 const TitleWithToggle = (props: Props) => {
   const { title, name, showAll, toggleShowAll } = props;
-  const sliceLength = showAll ? 0 : -50;
 
   return (
     <h3 style={{ position: 'relative'}}>
