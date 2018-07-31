@@ -27,7 +27,7 @@ const withSimulation = (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToP
       }
 
       componentDidMount() {
-        if (player) {
+        if (mapPlayerToProps && player) {
           player.subscribe(player => {
             this.setState({player});
           });
@@ -37,14 +37,18 @@ const withSimulation = (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToP
       render() {
         const { player: currentPlayer } = this.state;
 
-        if (!player || !currentPlayer) {
+        if (!player) {
+          return null;
+        }
+
+        if (mapPlayerToProps && !currentPlayer) {
           return null;
         }
 
         let props = {};
         let methods = {};
 
-        if (mapPlayerToProps) {
+        if (mapPlayerToProps && currentPlayer) {
           props = mapPlayerToProps(currentPlayer);
         }
 
