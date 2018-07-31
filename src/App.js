@@ -1,6 +1,6 @@
 // @flow
 
-import * as React from 'react';
+import React, { Fragment } from 'react';
 import styled from 'styled-components';
 import { Module, ModuleHeader, ModuleBody, Button } from 'carbon-components-react';
 
@@ -34,7 +34,7 @@ const player: Player = configurePlayer({
 });
 
 const App = () => (
-  <div>
+  <Fragment>
     <Header />
     <Wrap>
       <PanelLeft>
@@ -81,7 +81,7 @@ const App = () => (
       </PanelRight>
     </Wrap>
     <Status />
-  </div>
+  </Fragment>
 );
 
 export default App;

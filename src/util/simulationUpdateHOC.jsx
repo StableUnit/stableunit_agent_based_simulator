@@ -16,48 +16,47 @@ export type MapPlayerToProps = Player => {}
 export type mapPlayerMethodsToProps = Player => {}
 
 type WrapperState = {
-  player: ?Player
+  data: ?{}
 };
 
-const withSimulation = (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToProps: ?mapPlayerMethodsToProps) =>
+const getDisplayName = WrappedComponent => WrappedComponent.displayName || WrappedComponent.name || 'Component';
+
+export default (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToProps?: mapPlayerMethodsToProps) =>
   (WrappedComponent: ComponentType<any>) =>
     class Wrapper extends PureComponent<any, WrapperState> {
       state = {
-        player: null
+        data: null
       }
 
       componentDidMount() {
-        if (mapPlayerToProps && player) {
+        if (player && mapPlayerToProps) {
           player.subscribe(player => {
-            this.setState({player});
+            if (mapPlayerToProps) {
+              this.setState({data: mapPlayerToProps(player)});
+            }
           });
         }
       }
 
+      static displayName = `withSimulation(${getDisplayName(WrappedComponent)})`
+
       render() {
-        const { player: currentPlayer } = this.state;
+        const { data } = this.state;
 
         if (!player) {
           return null;
         }
 
-        if (mapPlayerToProps && !currentPlayer) {
+        if (mapPlayerToProps && !data) {
           return null;
         }
 
-        let props = {};
         let methods = {};
-
-        if (mapPlayerToProps && currentPlayer) {
-          props = mapPlayerToProps(currentPlayer);
-        }
 
         if (mapPlayerMethodsToProps) {
           methods = mapPlayerMethodsToProps(player);
         }
 
-        return <WrappedComponent {...props} {...methods} {...this.props} />;
+        return <WrappedComponent {...data} {...methods} {...this.props} />;
       }
     }
-
-export default withSimulation;
