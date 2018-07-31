@@ -49,39 +49,39 @@ class Player {
     this.tick += 1
   }
 
-  placeLimitBuyOrder(order: BuySellOrder) {
+  placeLimitBuyOrder = (order: BuySellOrder) => {
     this.status = this.simulation.market_SUETH.newLimitBuyOrder(
       order.trader,
       Number(order.quantity),
       Number(order.price) * Number(order.quantity)
     )
-  }
+  };
 
-  placeLimitSellOrder(order: BuySellOrder) {
+  placeLimitSellOrder = (order: BuySellOrder) => {
     this.status = this.simulation.market_SUETH.newLimitSellOrder(
       order.trader,
       Number(order.quantity),
       Number(order.price) * Number(order.quantity)
     )
-  }
+  };
 
-  placeMarketBuyOrder(order: BuySellOrder) {
+  placeMarketBuyOrder = (order: BuySellOrder) => {
     this.status = this.simulation.market_SUETH.buyMarketOrder(
       order.trader,
       Number(order.quantity)
     )
-  }
+  };
 
-  placeMarketSellOrder(order: BuySellOrder) {
+  placeMarketSellOrder = (order: BuySellOrder) => {
     this.status = this.simulation.market_SUETH.sellMarketOrder(
       order.trader,
       Number(order.quantity)
     )
-  }
+  };
 
-  cancelOrder(order: Order) {
+  cancelOrder = (order: Order) => {
     this.simulation.market_SUETH.cancelOrder(order)
-  }
+  };
 
   cancelBuyOrder = (order: Order) => {
     this.simulation.market_SUETH.cancelOrder(order)

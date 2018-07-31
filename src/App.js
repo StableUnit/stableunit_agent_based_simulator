@@ -29,7 +29,7 @@ const PanelRight = styled.div`
 `;
 
 const player: Player = configurePlayer({
-  interval: 500,
+  interval: 100,
   autoStart: true
 });
 

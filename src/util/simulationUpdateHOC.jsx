@@ -27,7 +27,7 @@ const withSimulation = (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToP
       }
 
       componentDidMount() {
-        if (mapPlayerToProps && player) {
+        if (player) {
           player.subscribe(player => {
             this.setState({player});
           });
