@@ -108,7 +108,7 @@ class Player {
 
     this.playing = true
 
-    // window.simulation = this.simulation
+    window.simulation = this.simulation
 
     this.intervalId = setInterval(() => {
       this.simulation.update()
