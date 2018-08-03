@@ -94,12 +94,20 @@ export class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
 
+    static TYPE_NONE = "none";
+    static TYPE_LINER = "liner";
+    static TYPE_GBM = "gbm";
+    static TYPE_HISTORICAL = "historical";
+    movement_type: string;
+
     volatility_factor = 0.05;
     random_change: number;
 
-    constructor(initial_value: number, name: string = 'no_name') {
+    constructor(initial_value: number, name: string = 'no_name', movement_type: string = Market.TYPE_NONE) {
         this.name = name;
+        this.movement_type = movement_type;
         this.setNewValue(initial_value);
+
         this.random_change = initial_value * this.volatility_factor;
     }
 
@@ -112,25 +120,36 @@ export class Market {
     }
 
     update() {
-        this.setNewValue(this.getCurrentValue());
+        if (this.movement_type === Market.TYPE_NONE) {
+            this.setNewValue(this.getCurrentValue());
+        } else if (this.movement_type === Market.TYPE_LINER) {
+            this.addRandomValue();
+        } else if (this.movement_type === Market.TYPE_GBM) {
+            this.addGbmValue();
+        } else if (this.movement_type === Market.TYPE_HISTORICAL) {
+            this.addHistoricalValue();
+        } else {
+            throw new Error("Incorrect movement type!");
+        }
     }
 
     // adds random value from range [-½ .. ½] with liner distribution
-    addValueRandomMove() {
+    addRandomValue() {
         let rand = Math.random() - 0.5;
         let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
-        this.setNewValue(newValue);
+        this.setNewValue(Math.max(newValue, 0));
     }
 
+    // Geometric Brownian Motion
     // adds random value from range [-½ .. ½] with normal distribution
-    addValueNormRandomMove() {
+    addGbmValue() {
         let rand = Utility.randn_bm() - 0.5;
-        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
-        this.setNewValue(newValue);
+        let newValue = this.getCurrentValue()*(rand);
+        this.setNewValue(Math.max(newValue, 0));
     }
 
     // TODO: add hostorical data of the price, possible three types: rise, crash and plateu
-    addValueHistoricalData() {
+    addHistoricalValue() {
 
     }
 }
@@ -976,7 +995,7 @@ export class Simulation {
     // execute one tick of the simulation
     update() {
         // generate inputs
-        market_mETHUSD.addValueRandomMove();
+        market_mETHUSD.addRandomValue();
         this.market_demand.update();
 
         // simulation execution
