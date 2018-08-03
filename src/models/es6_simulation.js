@@ -97,6 +97,7 @@ export class Market {
     static TYPE_NONE = "none";
     static TYPE_LINER = "liner";
     static TYPE_GBM = "gbm";
+    static TYPE_LBM = "lbm";
     static TYPE_HISTORICAL = "historical";
     movement_type: string;
 
@@ -124,6 +125,8 @@ export class Market {
             this.setNewValue(this.getCurrentValue());
         } else if (this.movement_type === Market.TYPE_LINER) {
             this.addRandomValue();
+        } else if (this.movement_type === Market.TYPE_LBM) {
+            this.addLbmValue();
         } else if (this.movement_type === Market.TYPE_GBM) {
             this.addGbmValue();
         } else if (this.movement_type === Market.TYPE_HISTORICAL) {
@@ -133,10 +136,19 @@ export class Market {
         }
     }
 
+    // TODO: make the research about stochastics process deistributions for finantial markets
+
     // adds random value from range [-½ .. ½] with liner distribution
     addRandomValue() {
         let rand = Math.random() - 0.5;
-        let newValue = Math.max(this.getCurrentValue() + rand * this.random_change, 0);
+        let newValue = this.getCurrentValue() + rand * this.random_change;
+        this.setNewValue(Math.max(newValue, 0));
+    }
+
+    // simulate random walk ?Liner Brownian Motion
+    addLbmValue() {
+        let rand = Math.random() - 0.5;
+        let newValue = this.getCurrentValue()*(1 + rand * this.volatility_factor);
         this.setNewValue(Math.max(newValue, 0));
     }
 
@@ -144,7 +156,7 @@ export class Market {
     // adds random value from range [-½ .. ½] with normal distribution
     addGbmValue() {
         let rand = Utility.randn_bm() - 0.5;
-        let newValue = this.getCurrentValue()*(rand);
+        let newValue = this.getCurrentValue()* (1 + rand * this.volatility_factor);
         this.setNewValue(Math.max(newValue, 0));
     }
 
@@ -362,9 +374,14 @@ class Web4 {
 
 const web4 = new Web4();
 
-// In this simulation we're going to use milliEther as the more convenient
-// unit of measurement for Ether value in SU/ETH exchange
-const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD");
+// In this simulation we're going to use milliEther 
+// as the more convenient unit of measurement for Ether value in SU/ETH exchange
+const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
+
+// market_demand shows market demand for SU. 
+// Traders (bots) use it as an input for desicion making whether buy or sell SU
+const market_demand = new Market(0.5, "SU demand", Market.TYPE_NONE);
+
 
 export type Order = {
     trader: Trader;
@@ -601,10 +618,9 @@ export class Market_SUmETH extends Market {
 
 }
 
-const market_SUETH = new Market_SUmETH(2/* mETH per SU */);
-const market_SUUSD = new Market(1, "SU/USD");
-// it's not a real market but control pannel for traders behaviour
-const market_demand = new Market(0.5, "SU demand");
+const market_SUETH = new Market_SUmETH(2 /* mETH per SU */);
+// market_SUUSD is market_SUETH where all prices recalculated in USD (using market_mETHUSD) for simple visulisation
+const market_SUUSD = new Market(1, "SU-USD");
 
 // Superclass for the all trader bots with basic shared methods
 export class Trader {
@@ -995,7 +1011,7 @@ export class Simulation {
     // execute one tick of the simulation
     update() {
         // generate inputs
-        market_mETHUSD.addRandomValue();
+        this.market_ETHUSD.update();
         this.market_demand.update();
 
         // simulation execution
