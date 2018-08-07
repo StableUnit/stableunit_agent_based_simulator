@@ -1,9 +1,8 @@
 //@flow
 
 import React from 'react';
-
-import { connect } from 'react-redux';
 import styled from 'styled-components';
+import withSimulation from "../util/simulationUpdateHOC"
 
 const Wrap = styled.div`
   position: fixed;
@@ -17,16 +16,12 @@ type Props = {
   status: string
 };
 
-class Status extends React.Component<Props> {
-  render() {
-    const { status } = this.props;
+const Status = ({ status }: Props) => (
+  <Wrap>{status}</Wrap>
+);
 
-    return <Wrap>{status}</Wrap>;
-  }
-}
-
-const mapState = state => ({
-  status: state.player.status
+const mapPlayerToProps = player => ({
+  status: player.status
 });
 
-export default connect(mapState)(Status);
+export default withSimulation(mapPlayerToProps)(Status);

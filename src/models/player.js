@@ -1,155 +1,141 @@
 // @flow
-import { Record } from 'immutable';
+import {Simulation, Trader} from './es6_simulation'
+import type {Order} from './es6_simulation'
 
-import type { RecordOf, RecordFactory } from 'immutable';
-import type { Order } from './es6_simulation';
-import { Simulation, Trader } from './es6_simulation';
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export type SimulationStateShape = {
-  simulation: Simulation,
-  status: string,
-  tick: number
+export type BuySellOrder = {
+  trader: Trader,
+  price?: string,
+  quantity?: string
 };
 
-export type FullState = {
-  player: SimulationStateShape
+export type PlayerOptions = {
+  interval?: number,
+  autoStart?: boolean
 };
 
-export type SimulationState = RecordOf<SimulationStateShape>;
+type CallbackFunction = {} => void;
 
-const makeSimulationState: RecordFactory<SimulationStateShape> = Record({
-  simulation: new Simulation(),
-  status: '',
-  tick: 0
-});
+export type MapPlayerToProps<T> = T => {};
 
-const initialState = makeSimulationState();
+type EventPayload<T> = {
+  mapPlayerToProps: MapPlayerToProps<T>,
+  callback: CallbackFunction
+};
 
-let isInitialized = false;
+class Player {
+  simulation: Simulation = new Simulation()
+  status: string = ''
+  tick: number = 0
+  playing: boolean = false
+  intervalId: ?IntervalID = null
+  events: EventPayload<Player>[] = []
+  options: PlayerOptions = {
+    interval: 500,
+    autoStart: false
+  }
 
-export default {
-  state: initialState,
-  reducers: {
-    updateSimulationState: (
-      state: SimulationState,
-      simulation: Simulation
-    ): SimulationState => {
-      return state
-        .set('simulation', simulation)
-        .update('tick', tick => tick + 1);
-    },
+  constructor(options?: PlayerOptions = {}) {
+    this.options = Object.assign({}, this.options, options);
 
-    placeLimitBuyOrder: (
-      state: SimulationState,
-      payload: {
-        trader: Trader,
-        price: string,
-        quantity: string
-      }
-    ) => {
-      const status = state.simulation.market_SUETH.newLimitBuyOrder(
-        payload.trader,
-        Number(payload.quantity),
-        Number(payload.price) * Number(payload.quantity)
-      );
-      return state.set('status', status);
-    },
-
-    placeLimitSellOrder: (
-      state: SimulationState,
-      payload: {
-        trader: Trader,
-        price: string,
-        quantity: string
-      }
-    ) => {
-      const status = state.simulation.market_SUETH.newLimitSellOrder(
-        payload.trader,
-        Number(payload.quantity),
-        Number(payload.price) * Number(payload.quantity)
-      );
-      return state.set('status', status);
-    },
-
-    placeMarketBuyOrder: (
-      state: SimulationState,
-      payload: {
-        trader: Trader,
-        quantity: string
-      }
-    ) => {
-      const status = state.simulation.market_SUETH.buyMarketOrder(
-        payload.trader,
-        Number(payload.quantity)
-      );
-      return state.set('status', status);
-    },
-
-    placeMarketSellOrder: (
-      state: SimulationState,
-      payload: {
-        trader: Trader,
-        quantity: string
-      }
-    ) => {
-      const status = state.simulation.market_SUETH.sellMarketOrder(
-        payload.trader,
-        Number(payload.quantity)
-      );
-      return state.set('status', status);
-    },
-
-    cancelBuyOrder: (state: SimulationState, order: Order): SimulationState => {
-      state.simulation.market_SUETH.cancelOrder(order);
-      return state;
-    },
-    cancelSellOrder: (
-      state: SimulationState,
-      order: Order
-    ): SimulationState => {
-      state.simulation.market_SUETH.cancelOrder(order);
-      return state;
-    },
-
-    cancelOrder: (state: SimulationState, order: Order): SimulationState => {
-      state.simulation.market_SUETH.cancelOrder(order);
-      return state;
-    },
-
-    updateStableUnitDeltas: (
-      state: SimulationState,
-      payload: { d1: string, d2: string, d3: string, d4: string, d5: string }
-    ): SimulationState => {
-      const su = state.simulation.web4.su;
-      su.D1 = Number(payload.d1);
-      su.D2 = Number(payload.d2);
-      su.D3 = Number(payload.d3);
-      su.D4 = Number(payload.d4);
-      su.D5 = Number(payload.d5);
-      return state;
-    }
-  },
-
-  effects: {
-    async start(payload: any, rootState: FullState) {
-      if (isInitialized) {
-        return;
-      }
-      isInitialized = true;
-
-      // Making simulation global to be able to watch
-      // TODO: Remove later
-      window.simulation = rootState.player.simulation;
-
-      while (true) {
-        rootState.player.simulation.update();
-        this.updateSimulationState(rootState.player.simulation);
-        await delay(100);
-      }
+    if (this.options.autoStart) {
+      this.start()
     }
   }
-};
+
+  subscribe(mapPlayerToProps: MapPlayerToProps<Player>, callback: CallbackFunction) {
+    this.events.push({
+      mapPlayerToProps,
+      callback
+    })
+    callback(mapPlayerToProps(this))
+  }
+
+  dispatch() {
+    this.events.forEach(event => {
+      event.callback(event.mapPlayerToProps(this));
+    })
+  }
+
+  updateSimulation(simulation: Simulation) {
+    this.simulation = simulation
+    this.tick += 1
+  }
+
+  placeLimitBuyOrder = (order: BuySellOrder) => {
+    this.status = this.simulation.market_SUETH.newLimitBuyOrder(
+      order.trader,
+      Number(order.quantity),
+      Number(order.price) * Number(order.quantity)
+    )
+  };
+
+  placeLimitSellOrder = (order: BuySellOrder) => {
+    this.status = this.simulation.market_SUETH.newLimitSellOrder(
+      order.trader,
+      Number(order.quantity),
+      Number(order.price) * Number(order.quantity)
+    )
+  };
+
+  placeMarketBuyOrder = (order: BuySellOrder) => {
+    this.status = this.simulation.market_SUETH.buyMarketOrder(
+      order.trader,
+      Number(order.quantity)
+    )
+  };
+
+  placeMarketSellOrder = (order: BuySellOrder) => {
+    this.status = this.simulation.market_SUETH.sellMarketOrder(
+      order.trader,
+      Number(order.quantity)
+    )
+  };
+
+  cancelOrder = (order: Order) => {
+    this.simulation.market_SUETH.cancelOrder(order)
+  };
+
+  cancelBuyOrder = (order: Order) => {
+    this.simulation.market_SUETH.cancelOrder(order)
+  }
+
+  cancelSellOrder = (order: Order) => {
+    this.simulation.market_SUETH.cancelOrder(order)
+  }
+
+  updateStableUnitDeltas = (deltas: { d1: string, d2: string, d3: string, d4: string, d5: string }) => {
+    const su = this.simulation.web4.su
+
+    su.D1 = Number(deltas.d1)
+    su.D2 = Number(deltas.d2)
+    su.D3 = Number(deltas.d3)
+    su.D4 = Number(deltas.d4)
+    su.D5 = Number(deltas.d5)
+  }
+
+  start() {
+    if (this.playing) {
+      return
+    }
+
+    this.playing = true
+
+    window.simulation = this.simulation
+
+    this.intervalId = setInterval(() => {
+      this.simulation.update()
+      this.updateSimulation(this.simulation)
+      this.dispatch()
+    }, this.options.interval)
+  }
+
+  stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+    }
+
+    this.playing = false
+  }
+}
+
+export default Player

@@ -1,15 +1,14 @@
 //@flow
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { Button } from 'carbon-components-react';
-import { colors } from '../theme';
 import accounting from 'accounting';
 
 import type { Traders, Order } from '../models/es6_simulation';
-import { Trader } from '../models/es6_simulation';
+import {Trader} from '../models/es6_simulation'
 
 import ManualControl from './ManualControl';
+import withSimulation from "../util/simulationUpdateHOC"
 
 const f = num => accounting.formatNumber(num, 2);
 
@@ -18,7 +17,7 @@ const format = value => typeof value === 'number' ?
 
 function printObject(object) {
   return Object.entries(object).map(([ name, value], index) => (
-    <span style={{ paddingRight: '20px' }}>
+    <span style={{ paddingRight: '20px' }} key={index}>
       <strong>{name}</strong>: { ' ' }
       <span>{format(value)}</span>
     </span>
@@ -44,12 +43,12 @@ const Symbol = ({ children }) =>
 
 type SingleTraderProps = {
   trader: Trader,
-  expandAll: bool,
-  cancelOrder: Order => {}
+  expandAll: boolean,
+  cancelOrder: Order => void
 };
 
 type SingleTraderState = {
-  expanded: bool
+  expanded: boolean
 };
 
 class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState> {
@@ -65,7 +64,7 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
     const { trader, expandAll, cancelOrder } = this.props;
     const { expanded } = this.state;
     const portfolio = trader.getPortfolio();
-    const { total_USD, balance_SU, balance_mETH, balance_SHAREs, balance_BONDs } = portfolio;
+    const { total_USD, balance_SU, balance_mETH } = portfolio;
 
     return (
       <div key={trader.name} style={{ marginTop: '2em' }}>
@@ -117,12 +116,11 @@ class SingleTrader extends React.Component<SingleTraderProps, SingleTraderState>
 
 type TradersContainerProps = {
   traders: Traders,
-  tick: number,
-  cancelOrder: Order => {},
+  cancelOrder: Order => void,
 };
 
 type TradersContainerState = {
-  expandAll: bool
+  expandAll: boolean
 };
 
 class TradersContainer extends React.Component<TradersContainerProps, TradersContainerState> {
@@ -154,15 +152,14 @@ class TradersContainer extends React.Component<TradersContainerProps, TradersCon
       </div>
     );
   }
-};
+}
 
-const mapState = state => ({
-  traders: state.player.simulation.traders,
-  tick: state.player.tick
+const mapPlayerToProps = player => ({
+  traders: player.simulation.traders
 });
 
-const mapDispatch = dispatch => ({
-  cancelOrder: dispatch.player.cancelOrder
+const mapPlayerMethodsToProps = player => ({
+  cancelOrder: player.cancelOrder
 });
 
-export default connect(mapState, mapDispatch)(TradersContainer);
+export default withSimulation(mapPlayerToProps, mapPlayerMethodsToProps)(TradersContainer);

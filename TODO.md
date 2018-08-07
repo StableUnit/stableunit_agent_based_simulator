@@ -1,4 +1,4 @@
-#1 chart for stableUnit
+#1 chart for stableUnit (DONE)
 ---
 instead of:
 ```
@@ -40,7 +40,8 @@ and after the the list of them
 
 #3.1 Traders "isActive" switcher
 ---
-Make a checkbox which enable/disable particular group of traders.
+Make a checkbox which enable/disable particular group of traders. 
+Reflect active/noactive traders with color (like nonactive are grey or something)
 
 #4 Write code of Trader bots on the page
 ---
@@ -52,5 +53,15 @@ in a additional block. Make a .js syntax highlight.
 ---
 Right now it's complicated to use, there are 4 input fields etc.
 The task is to make it more compact with two fields.
+(using non-legacy functions of `Market_SUmETH`)
 
+#6* Add uglify/hidecode modele/pipeline stage for the production build
+---
+The idea is to hide logic from from potential outsider.
+This simulation inevinatebly will leak to our competitiors 
+so showing code gives them an advantage which we would like to avoid.
 
+#7* Add logging
+---
+if simulation in the producation will crash - it would be usefull to get log this info and get notifyed. 
+This will help us to see pains of investors and fix it asap.
