@@ -1,9 +1,11 @@
 // @flow
-const Utility = {
+import {TraderPool} from './traders';
+
+export const Utility = {
     EPS: 1e-6,
     DEFAULT_SUUSD_PRICE: 1,
     DEFAULT_ETHUSD_PRICE: 500,
-    generateRandomPortfolio(worth_USD = 1000) {
+    generateRandomPortfolio(worth_USD: number = 1000) {
         //let balance_ETH_USD = worth_USD;
         // let balance_ETH_USD = worth_USD* Math.random();
         // let balance_SU_USD = worth_USD - balance_ETH_USD;
@@ -180,16 +182,15 @@ export type StableUnitSystemHistory = Array<{
 export class StableUnit extends Ethereum {
     // the target price for one unit. Might be function from {time, su in circulation} etc
     PEG = 1.0;
-
     // ranges for multi-layer stabilisation
     D1 = 0.05;
     D2 = 0.1;
     D3 = 0.15;
     D4 = 0.2;
     D5 = 0.25;
-
     // reward in SU for one oracle voting term
     ORACLE_REWARD = 0.1;
+
     // the last info provided by oracles
     SUmETH_price: number;
     mETHUSD_price: number = 0.5;
@@ -198,15 +199,19 @@ export class StableUnit extends Ethereum {
     SU_price: number;
     SU_circulation: number;
 
+    // stabilization reserve
     reserve_mETH: number;
     reserve_ratio: number;
 
+    // repurchaseable agreement
     REPOS_EMISSION = 0.1; // 10% of the SU in circulation
     REPO_circulation: number;
     REPO_price: number;
 
+    // tokens of ownership for decentralized autonomous organization
     SU_DAO_TOKEN_circulation: number;
 
+    // how much fund is parking (frozen) on each account
     PARKING_ratio: number;
 
     constructor(ethereum: Ethereum) {
@@ -372,15 +377,15 @@ class Web4 {
     }
 }
 
-const web4 = new Web4();
+export const web4 = new Web4();
 
 // In this simulation we're going to use milliEther 
 // as the more convenient unit of measurement for Ether value in SU/ETH exchange
-const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
+export const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
 
 // market_demand shows market demand for SU. 
 // Traders (bots) use it as an input for desicion making whether buy or sell SU
-const market_demand = new Market(0.5, "SU demand", Market.TYPE_NONE);
+export const market_demand = new Market(0.5, "SU demand", Market.TYPE_NONE);
 
 
 export type Order = {
@@ -618,13 +623,14 @@ export class Market_SUmETH extends Market {
 
 }
 
-const market_SUETH = new Market_SUmETH(2 /* mETH per SU */);
+export const market_SUETH = new Market_SUmETH(2 /* mETH per SU */);
 // market_SUUSD is market_SUETH where all prices recalculated in USD (using market_mETHUSD) for simple visulisation
-const market_SUUSD = new Market(1, "SU-USD");
+export const market_SUUSD = new Market(1, "SU-USD");
 
 // Superclass for the all trader bots with basic shared methods
 export class Trader {
     name: string;
+
     // portfolio = {};
     // for access simplicity lets define balances outside of the portfolio dictionary
     balance_SU: number = 0;
@@ -635,6 +641,7 @@ export class Trader {
     dna = {};
     time_frame: number;
     time_left_until_update: number;
+    isActive: boolean = true;
 
     orders: Set<Order> = new Set();
     ttl: Map<Order, number> = new Map();
@@ -731,12 +738,13 @@ export class Trader {
         this.time_left_until_update -= 1;
         if (this.time_left_until_update <= 0) {
             this.time_left_until_update = this.time_frame;
-            return true;
+            return true && this.isActive;
         } else {
             return false;
         }
     }
 
+    // TODO: rewrite
     rebalance_portfolio_SUETH() {
         // want to hedge portfolio, such worth(SU) ~ worth(ETH)
         let worth_SU = this.balance_SU * market_SUETH.getCurrentValue() ;
@@ -938,73 +946,77 @@ export class Simulation {
         this.market_SUETH = market_SUETH;
         this.market_SUUSD = market_SUUSD;
         this.market_demand = market_demand;
-        // temporary array of traders
-        let traders = [];
-        // UI traders to play around
-        traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
-        traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
 
-        // general traders for any kind of markets
-        for (let i = 0; i < 5; i++) {
-            traders.push(new RandomTrader(
-                "random_" + i,
-                Utility.generateRandomPortfolio(3000),
-                {risk: Math.random() * 0.02, time_frame: Math.round(1 + Math.random() * 5)}
-            ));
-        }
-        for (let i = 0; i < 15; i++) {
-            traders.push(new TrendMaker(
-                "trandMaker_" + i,
-                Utility.generateRandomPortfolio(),
-                {
-                    risk: Math.random() * 0.3,
-                    r: Utility.randn_bm(),
-                    margin: Math.random() * 0.1,
-                    time_frame: Math.round(1 + Math.random() * 5)
-                }
-            ));
-        }
-        //traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
+        const traderPool = new TraderPool();
+        this.traders = traderPool.traders;
 
-        // Any stable-price specific traders
-        for (let i = 0; i < 5; i++) {
-            traders.push(new BasicTrader(
-                "basic_" + i,
-                Utility.generateRandomPortfolio(),
-                {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
-            ));
-        }
+        // // temporary array of traders
+        // let traders = [];
+        // // UI traders to play around
+        // traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
+        // traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
 
-        // StableUnit specific traders
-        // Speculator who feeds SU with market data
-        traders.push(new OracleSpeculator("Oracles"));
-
-        // for (let i = 0; i < 1; i++) {
-        //     traders.push(new ArbitrageUpTrader(
-        //         "ArbitrageUp_" + i,
-        //         Utility.generateRandomPortfolio(),
-        //         {time_frame: Math.round(1 + Math.random() * 5)}
+        // // general traders for any kind of markets
+        // for (let i = 0; i < 5; i++) {
+        //     traders.push(new RandomTrader(
+        //         "random_" + i,
+        //         Utility.generateRandomPortfolio(3000),
+        //         {risk: Math.random() * 0.02, time_frame: Math.round(1 + Math.random() * 5)}
         //     ));
         // }
-        //
-        // for (let i = 0; i < 1; i++) {
-        //     traders.push(new ArbitrageDownTrader(
-        //         "ArbitrageDown_" + i,
+        // for (let i = 0; i < 15; i++) {
+        //     traders.push(new TrendMaker(
+        //         "trandMaker_" + i,
         //         Utility.generateRandomPortfolio(),
-        //         {time_frame: Math.round(1 + Math.random() * 5)}
+        //         {
+        //             risk: Math.random() * 0.3,
+        //             r: Utility.randn_bm(),
+        //             margin: Math.random() * 0.1,
+        //             time_frame: Math.round(1 + Math.random() * 5)
+        //         }
+        //     ));
+        // }
+        // //traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
+
+        // // Any stable-price specific traders
+        // for (let i = 0; i < 5; i++) {
+        //     traders.push(new BasicTrader(
+        //         "basic_" + i,
+        //         Utility.generateRandomPortfolio(),
+        //         {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
         //     ));
         // }
 
-        for (let trader of traders) {
-            this.traders.set(trader.name, trader);
-        }
-        //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
-        //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
-        // tests
-        //market_SUETH.test();
-        // for (let [, trader] of this.traders) {
-        //     trader.test();
+        // // StableUnit specific traders
+        // // Speculator who feeds SU with market data
+        // traders.push(new OracleSpeculator("Oracles"));
+
+        // // for (let i = 0; i < 1; i++) {
+        // //     traders.push(new ArbitrageUpTrader(
+        // //         "ArbitrageUp_" + i,
+        // //         Utility.generateRandomPortfolio(),
+        // //         {time_frame: Math.round(1 + Math.random() * 5)}
+        // //     ));
+        // // }
+        // //
+        // // for (let i = 0; i < 1; i++) {
+        // //     traders.push(new ArbitrageDownTrader(
+        // //         "ArbitrageDown_" + i,
+        // //         Utility.generateRandomPortfolio(),
+        // //         {time_frame: Math.round(1 + Math.random() * 5)}
+        // //     ));
+        // // }
+
+        // for (let trader of traders) {
+        //     this.traders.set(trader.name, trader);
         // }
+        // //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
+        // //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
+        // // tests
+        // //market_SUETH.test();
+        // // for (let [, trader] of this.traders) {
+        // //     trader.test();
+        // // }
 
     }
 
