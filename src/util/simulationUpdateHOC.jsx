@@ -2,7 +2,7 @@
 import React, {PureComponent} from 'react'
 import Player from '../models/player'
 import type { ComponentType } from 'react';
-import type {PlayerOptions} from "../models/player"
+import type {PlayerOptions, MapPlayerToProps} from "../models/player"
 
 let player: ?Player = null;
 
@@ -12,8 +12,7 @@ export const configurePlayer = (options?: PlayerOptions) => {
   return player;
 }
 
-export type MapPlayerToProps = Player => {}
-export type mapPlayerMethodsToProps = Player => {}
+export type MapPlayerMethodsToProps = Player => {}
 
 type WrapperState = {
   data: ?{}
@@ -21,7 +20,7 @@ type WrapperState = {
 
 const getDisplayName = WrappedComponent => WrappedComponent.displayName || WrappedComponent.name || 'Component';
 
-export default (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToProps?: mapPlayerMethodsToProps) =>
+export default (mapPlayerToProps: ?MapPlayerToProps<Player>, mapPlayerMethodsToProps?: MapPlayerMethodsToProps) =>
   (WrappedComponent: ComponentType<any>) =>
     class Wrapper extends PureComponent<any, WrapperState> {
       state = {
@@ -30,11 +29,7 @@ export default (mapPlayerToProps: ?MapPlayerToProps, mapPlayerMethodsToProps?: m
 
       componentDidMount() {
         if (player && mapPlayerToProps) {
-          player.subscribe(player => {
-            if (mapPlayerToProps) {
-              this.setState({data: mapPlayerToProps(player)});
-            }
-          });
+          player.subscribe(mapPlayerToProps, data => this.setState({data}));
         }
       }
 

@@ -9,23 +9,32 @@ export type BuySellOrder = {
 };
 
 export type PlayerOptions = {
-  interval: number,
-  autoStart: boolean
+  interval?: number,
+  autoStart?: boolean
+};
+
+type CallbackFunction = {} => void;
+
+export type MapPlayerToProps<T> = T => {};
+
+type EventPayload<T> = {
+  mapPlayerToProps: MapPlayerToProps<T>,
+  callback: CallbackFunction
 };
 
 class Player {
-  simulation = new Simulation()
-  status = ''
-  tick = 0
-  playing = false
+  simulation: Simulation = new Simulation()
+  status: string = ''
+  tick: number = 0
+  playing: boolean = false
   intervalId: ?IntervalID = null
-  events: Function[] = []
+  events: EventPayload<Player>[] = []
   options: PlayerOptions = {
     interval: 500,
     autoStart: false
   }
 
-  constructor(options?: PlayerOptions = this.options) {
+  constructor(options?: PlayerOptions = {}) {
     this.options = Object.assign({}, this.options, options);
 
     if (this.options.autoStart) {
@@ -33,14 +42,17 @@ class Player {
     }
   }
 
-  subscribe(callbackFn: Function) {
-    this.events.push(callbackFn)
-    callbackFn.call(this, {simulation: this.simulation, status: this.status, tick: this.tick})
+  subscribe(mapPlayerToProps: MapPlayerToProps<Player>, callback: CallbackFunction) {
+    this.events.push({
+      mapPlayerToProps,
+      callback
+    })
+    callback(mapPlayerToProps(this))
   }
 
   dispatch() {
     this.events.forEach(event => {
-      event.call(this, {simulation: this.simulation, status: this.status, tick: this.tick})
+      event.callback(event.mapPlayerToProps(this));
     })
   }
 
@@ -108,7 +120,7 @@ class Player {
 
     this.playing = true
 
-    // window.simulation = this.simulation
+    window.simulation = this.simulation
 
     this.intervalId = setInterval(() => {
       this.simulation.update()
@@ -120,8 +132,9 @@ class Player {
   stop() {
     if (this.intervalId) {
       clearInterval(this.intervalId)
-      this.playing = false
     }
+
+    this.playing = false
   }
 }
 
