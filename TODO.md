@@ -40,7 +40,8 @@ and after the the list of them
 
 #3.1 Traders "isActive" switcher
 ---
-Make a checkbox which enable/disable particular group of traders.
+Make a checkbox which enable/disable particular group of traders. 
+Reflect active/noactive traders with color (like nonactive are grey or something)
 
 #4 Write code of Trader bots on the page
 ---
