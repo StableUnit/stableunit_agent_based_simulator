@@ -1,6 +1,7 @@
 // @flow
-import {Simulation, Trader} from './es6_simulation'
+import {Simulation} from './es6_simulation'
 import type {Order} from './es6_simulation'
+import type {Trader} from './traders'
 
 export type BuySellOrder = {
   trader: Trader,

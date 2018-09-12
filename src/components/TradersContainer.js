@@ -5,7 +5,7 @@ import { Button } from 'carbon-components-react';
 import accounting from 'accounting';
 
 import type { Traders, Order } from '../models/es6_simulation';
-import {Trader} from '../models/es6_simulation'
+import {Trader} from '../models/traders'
 
 import ManualControl from './ManualControl';
 import withSimulation from "../util/simulationUpdateHOC"

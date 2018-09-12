@@ -1,6 +1,6 @@
 // @flow
-import {Utility, Trader} from './es6_simulation';
-import {web4, market_SUETH, market_mETHUSD, market_demand} from './es6_simulation';
+import {Utility, web4, market_SUETH, market_mETHUSD, market_demand} from './es6_simulation';
+import type {Order} from './es6_simulation';
 
 // TODO: Interfaces descriptions
 // 
@@ -14,6 +14,140 @@ import {web4, market_SUETH, market_mETHUSD, market_demand} from './es6_simulatio
 // web4 - provies methods for working with Ethereum and StableUnit blockchains
 // market_SUETH, market_mETHUSD, market_demand, 
 // 
+
+// Superclass for the all trader bots with basic shared methods
+export class Trader {
+    name: string;
+
+    // portfolio = {};
+    // for access simplicity lets define balances outside of the portfolio dictionary
+    balance_SU: number = 0;
+    balance_mETH: number = 0;
+    balance_BONDs: number = 0;
+    balance_SHAREs: number = 0;
+
+    dna = {};
+    time_frame: number;
+    time_left_until_update: number;
+    isActive: boolean = true;
+
+    orders: Set<Order> = new Set();
+    ttl: Map<Order, number> = new Map();
+    log: Array<string> = [];
+    MAX_LOG_LENGTH = 10;
+
+    constructor(name: string,
+                portfolio?: { balance_SU: number, balance_mETH: number, balance_BONDs?: number, balance_SHAREs?: number },
+                dna: Object = {time_frame: 1}
+    ) {
+        this.name = name;
+        // this.portfolio.su_wallet = web4.su.createWallet(portfolio.balance_SU);
+        // this.portfolio.eth_wallet = web4.eth.createWallet(portfolio.balance_mETH);
+        if (portfolio) {
+            this.balance_SU = (portfolio.balance_SU || 0);
+            this.balance_mETH = portfolio.balance_mETH || 0;
+            this.balance_BONDs = portfolio.balance_BONDs || 0;
+            this.balance_SHAREs = portfolio.balance_SHAREs || 0;
+        }
+
+        this.dna = dna;
+        this.time_frame = dna.time_frame;
+        this.time_left_until_update = 0;
+    }
+
+    getPortfolio() {
+        let portfolio = {};
+        portfolio.total_USD = 0;
+        if (this.balance_SU > 0) {
+            portfolio.balance_SU = this.balance_SU;
+            portfolio.total_USD += this.balance_SU * market_SUETH.getCurrentValue() * market_mETHUSD.getCurrentValue();
+        }
+        if (this.balance_mETH > 0) {
+            portfolio.balance_mETH = this.balance_mETH;
+            portfolio.total_USD += this.balance_mETH * market_mETHUSD.getCurrentValue();
+        }
+        if (this.balance_BONDs > 0) {
+            portfolio.balance_BONDs = this.balance_BONDs;
+        }
+        if (this.balance_SHAREs > 0) {
+            portfolio.balance_SHAREs = this.balance_SHAREs;
+        }
+        return portfolio;
+    }
+
+    getDNA() {
+        return this.dna;
+    }
+
+    addOrderTTL(order: Order, ttl: number) {
+        if (ttl) {
+            this.ttl.set(order, ttl);
+        }
+    }
+
+    addOrder(order: Order) {
+        this.orders.add(order);
+    }
+
+    updateOrder(order: Order, status?: string) {
+        if (status) {
+            this.addLog(order.type + " " + status);
+        }
+    }
+
+    removeOrder(order: Order, status?: string) {
+        this.ttl.delete(order);
+        this.orders.delete(order);
+        if (status) {
+            this.addLog(order.type + " " + status);
+        }
+    }
+
+    addLog(text: string) {
+        if (this.log.length > this.MAX_LOG_LENGTH) {
+            this.log = []; // this.log.slice(-this.MAX_LOG_LENGTH);
+        }
+        this.log.push(text);
+    }
+
+    update() {
+        // update orders ttl and remove expired
+        for (let [order, ttl] of this.ttl) {
+            this.ttl.set(order, ttl - 1);
+            if (--ttl <= 0) {
+                this.ttl.delete(order);
+                market_SUETH.removeOrder(order);
+            }
+        }
+    }
+
+    ifTimeToUpdate() {
+        // return true is there's time to update
+        this.time_left_until_update -= 1;
+        if (this.time_left_until_update <= 0) {
+            this.time_left_until_update = this.time_frame;
+            return true && this.isActive;
+        } else {
+            return false;
+        }
+    }
+
+    // TODO: rewrite
+    rebalance_portfolio_SUETH() {
+        // want to hedge portfolio, such worth(SU) ~ worth(ETH)
+        let worth_SU = this.balance_SU * market_SUETH.getCurrentValue() ;
+        let worth_ETH = this.balance_mETH;
+        let ratio_SU = worth_SU / (worth_SU + worth_ETH);
+        if (ratio_SU < 0.03) {
+            let deal_mETH = this.balance_mETH / 2;
+            let deal_price = market_SUETH.getCurrentValue();
+            let deal_SU = deal_mETH * deal_price;
+            market_SUETH.addBuyMarketOrder(this, deal_SU);
+        } else if (ratio_SU > 0.97) {
+            market_SUETH.addSellMarketOrder(this, this.balance_SU/2);
+        }
+    }
+}
 
 // This trader randomly sells and buys some arbitrary amount of SU
 // Follows the mood of the market (market_demand)
