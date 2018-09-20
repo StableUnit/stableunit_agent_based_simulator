@@ -8,9 +8,7 @@ type SourceCodeState = {
 };
 
 const highlighterStyles = {
-    fontFamily: 'monospace',
-    maxHeight: '471px',
-    overflow: 'auto'
+    fontFamily: 'monospace'
 };
 
 class SourceCode extends PureComponent<any, SourceCodeState> {
