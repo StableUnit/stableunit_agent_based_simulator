@@ -1,4 +1,5 @@
-import {Simulation, Trader} from './es6_simulation';
+import {Simulation} from './es6_simulation';
+import {Trader} from './traders'
 
 // https://facebook.github.io/jest/docs/en/expect.html
 

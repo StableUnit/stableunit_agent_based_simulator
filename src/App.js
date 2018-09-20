@@ -11,6 +11,7 @@ import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
 import Status from './components/Status';
 import StableUnitContainer from './components/StableUnitContainer';
+import SourceCodeContainer from './components/SourceCode';
 import { configurePlayer } from "./util/simulationUpdateHOC";
 import type Player from "./models/player"
 
@@ -64,6 +65,12 @@ const App = () => (
             </div>
           </ModuleBody>
         </Module>
+          <Module>
+            <ModuleHeader>Traders source code</ModuleHeader>
+            <ModuleBody>
+                <SourceCodeContainer />
+            </ModuleBody>
+          </Module>
       </PanelLeft>
       <PanelRight>
         <Module>

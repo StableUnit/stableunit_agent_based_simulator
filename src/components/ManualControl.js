@@ -3,7 +3,7 @@
 import React from 'react';
 
 import { Button } from 'carbon-components-react';
-import { Trader } from '../models/es6_simulation';
+import { Trader } from '../models/traders';
 import withSimulation from "../util/simulationUpdateHOC"
 import type { BuySellOrder } from '../models/player'
 
