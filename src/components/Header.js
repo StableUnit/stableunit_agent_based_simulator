@@ -5,7 +5,6 @@ import styled from 'styled-components';
 
 import logo from '../logo.svg';
 import { colors } from '../theme';
-import Subscribe from './Subscribe';
 import Share from './Share';
 
 type Props = {};
@@ -32,12 +31,8 @@ const DescriptionContainer = styled.div`
   max-width: 29em;
   padding-right: 40px;
 `;
-const SubscribeContainer = styled.div`
-  padding-right: 40px;
-`;
 const ShareContainer = styled.div`
   padding-right: 10px;
-  padding-top: 20px;
   display: flex;
   align-items: center;
 `;
@@ -60,14 +55,11 @@ class Header extends Component<Props> {
           shows mechanics that StableUnit uses to keep it's price pegged to US
           dollar in a trustless way
         </DescriptionContainer>
-        <SubscribeContainer>
-          <Subscribe />
-        </SubscribeContainer>
-        <TimeContainer>
-        </TimeContainer>
         <ShareContainer>
           <Share />
         </ShareContainer>
+        <TimeContainer>
+        </TimeContainer>
       </Wrap>
     );
   }
