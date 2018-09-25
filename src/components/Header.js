@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import logo from '../logo.svg';
 import { colors } from '../theme';
 import Subscribe from './Subscribe';
+import Share from './Share';
 
 type Props = {};
 
@@ -34,6 +35,12 @@ const DescriptionContainer = styled.div`
 const SubscribeContainer = styled.div`
   padding-right: 40px;
 `;
+const ShareContainer = styled.div`
+  padding-right: 10px;
+  padding-top: 20px;
+  display: flex;
+  align-items: center;
+`;
 const TimeContainer = styled.div`
   text-align: right;
   flex-grow: 1;
@@ -58,6 +65,9 @@ class Header extends Component<Props> {
         </SubscribeContainer>
         <TimeContainer>
         </TimeContainer>
+        <ShareContainer>
+          <Share />
+        </ShareContainer>
       </Wrap>
     );
   }
