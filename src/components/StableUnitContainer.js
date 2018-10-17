@@ -1,6 +1,7 @@
 // @flow
 
 import React, { Component } from 'react';
+import styled from 'styled-components';
 
 import { Button, NumberInput } from 'carbon-components-react';
 import MultiHistory from "./MultiHistory"
@@ -32,6 +33,10 @@ type Props = {
 
 const STEP = 0.01;
 
+const FlexDiv = styled.div`
+  display: flex;
+`;
+
 class StableUnitContainer extends Component<Props, State> {
   state = { d1: '', d2: '', d3: '', d4: '', d5: '' };
 
@@ -60,32 +65,32 @@ class StableUnitContainer extends Component<Props, State> {
     this.props.updateStableUnitDeltas(this.state);
   }
 
-  render() {
-    const renderInput = ({ name, label }) =>
-      <NumberInput
-        id={name}
-        style={{ minWidth: '5em' }}
-        key={name}
-        label={label}
-        value={Number(this.state[name])}
-        step={STEP}
-        onChange={this.updateValue(name)}
-      />
+  renderInput = ({ name, label }) =>
+    <NumberInput
+      id={name}
+      style={{ minWidth: '5em' }}
+      key={name}
+      label={label}
+      value={Number(this.state[name])}
+      step={STEP}
+      onChange={this.updateValue(name)}
+    />
 
+  render() {
     const {history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation} = this.props;
 
     return (
       <div>
-        <div style={{ display: 'flex' }}>
+        <FlexDiv>
           {
             [
               { name: 'd1', label: 'Δs' },
               { name: 'd2', label: 'Δb' },
               { name: 'd3', label: 'Δd' },
               { name: 'd4', label: 'Δp' },
-            ].map(renderInput)
+            ].map(this.renderInput)
           }
-        </div>
+        </FlexDiv>
 
         <Button onClick={this.apply}>Apply</Button>
 
@@ -97,9 +102,9 @@ class StableUnitContainer extends Component<Props, State> {
         <div>
             <p>SU in circulation = {(SU_circulation).toFixed(2)}</p>
             <p>Reserve (eth) = {(reserve_mETH/1000).toFixed(2)}</p>
-            <p>Reserve ratio = {(reserve_ratio).toFixed(2) }</p>
+            <p>Reserve ratio = {(reserve_ratio).toFixed(2)}</p>
             <p>REPOs in circulation = {(REPO_circulation).toFixed(2) }</p>
-            <p>SU_DAO_Tokens in circulation = {(SU_DAO_TOKEN_circulation).toFixed(2) }</p>
+            <p>SU_DAO_Tokens in circulation = {(SU_DAO_TOKEN_circulation).toFixed(2)}</p>
         </div>
       </div>
     );

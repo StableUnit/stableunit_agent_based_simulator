@@ -1,6 +1,7 @@
 // @flow
 
 import React from 'react';
+import styled from 'styled-components';
 import { Toggle } from 'carbon-components-react';
 
 type Props = {
@@ -10,13 +11,23 @@ type Props = {
   toggleShowAll: Function
 };
 
+const ToggleContainer = styled.div`
+  position: absolute;
+  right: 10px;
+  top: -10px;
+`;
+
+const RelativeHeading = styled.h3`
+  position: relative;
+`;
+
 const TitleWithToggle = (props: Props) => {
   const { title, name, showAll, toggleShowAll } = props;
 
   return (
-    <h3 style={{ position: 'relative'}}>
+    <RelativeHeading>
       {title}
-      <div style={{ position: 'absolute', right: '10px', top: '-10px' }}>
+      <ToggleContainer>
         <Toggle
           id={`${name}-toggle`}
           toggled={showAll}
@@ -24,8 +35,8 @@ const TitleWithToggle = (props: Props) => {
           labelB="All"
           onToggle={toggleShowAll}
         />
-      </div>
-    </h3>
+      </ToggleContainer>
+    </RelativeHeading>
   );
 }
 

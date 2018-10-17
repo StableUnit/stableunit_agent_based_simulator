@@ -24,23 +24,15 @@ class StableUnitChartContainer extends React.Component<Props, State> {
     const { D1, D2, D3, D4, D5, market_SUUSD } = this.props;
 
     return (
-      <div>
-        <div
-          style={{ display: 'flex', width: '100%', justifyContent: 'stretch' }}
-        >
-          <div style={{ flex: 1 }}>
-            <HistoryWithLayers
-              title="SU/USD price"
-              market={market_SUUSD}
-              D1={D1}
-              D2={D2}
-              D3={D3}
-              D4={D4}
-              D5={D5}
-            />
-          </div>
-        </div>
-      </div>
+      <HistoryWithLayers
+        title="SU/USD price"
+        market={market_SUUSD}
+        D1={D1}
+        D2={D2}
+        D3={D3}
+        D4={D4}
+        D5={D5}
+      />
     );
   }
 }

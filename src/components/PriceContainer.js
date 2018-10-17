@@ -9,7 +9,7 @@ import withSimulation from "../util/simulationUpdateHOC"
 import type {Market} from "../models/es6_simulation"
 
 type Props = {
-  market_demand: Market
+  market_ETHUSD: Market
 };
 
 type State = {
@@ -20,23 +20,23 @@ const ButtonsWrapper = styled.div`
   text-align: center;
 `;
 
-class DemandContainer extends React.Component<Props, State> {
+class PriceContainer extends React.Component<Props, State> {
   state = { selectedMarketIndex: 0 };
 
   render() {
-    const { market_demand } = this.props;
+    const { market_ETHUSD } = this.props;
 
     return (
       <Fragment>
         <History
-          title="Market demand [0..1], ½ - equilibrium"
-          market={market_demand}
+          title="mETH-USD"
+          market={market_ETHUSD}
         />
         <ButtonsWrapper>
           <Button
             onClick={() =>
-              market_demand.setNewValue(
-                market_demand.getCurrentValue() * 1.1
+              market_ETHUSD.setNewValue(
+                market_ETHUSD.getCurrentValue() * 1.1
               )
             }
           >
@@ -44,8 +44,8 @@ class DemandContainer extends React.Component<Props, State> {
           </Button>
           <Button
             onClick={() =>
-              market_demand.setNewValue(
-                market_demand.getCurrentValue() * 0.9
+              market_ETHUSD.setNewValue(
+                market_ETHUSD.getCurrentValue() * 0.9
               )
             }
           >
@@ -57,8 +57,12 @@ class DemandContainer extends React.Component<Props, State> {
   }
 }
 
-const mapPlayerToProps = player => ({
-  market_demand: player.simulation.market_demand
-});
+const mapPlayerToProps = player => {
+  const { market_ETHUSD } = player.simulation;
 
-export default withSimulation(mapPlayerToProps)(DemandContainer);
+  return {
+    market_ETHUSD
+  };
+}
+
+export default withSimulation(mapPlayerToProps)(PriceContainer);
