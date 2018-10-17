@@ -319,6 +319,7 @@ class ArbitrageDownTrader extends Trader {
     }
 }
 
+// 
 export class TraderPool {
     traders: Map<string, Trader> = new Map();
 
@@ -373,6 +374,7 @@ export class TraderPool {
                 {time_frame: Math.round(1 + Math.random() * 5)}
             ));
         }
+        // Arbitrage player who move assets from/to reserve and exchange.
         for (let i = 0; i < 0; i++) {
             traders.push(new ArbitrageDownTrader(
                 "ArbitrageDown_" + i,

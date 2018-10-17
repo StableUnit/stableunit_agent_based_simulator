@@ -168,6 +168,7 @@ export class Market {
     }
 }
 
+// Helper data type to store statistics and send it for rendering
 export type StableUnitSystemHistory = Array<{
     datetime: number,
     SU_circulation: number,
@@ -178,41 +179,65 @@ export type StableUnitSystemHistory = Array<{
     PARKING_ratio: number
 }>;
 
-// StableUnit blockchain is an extension of Ethereum
+// StableUnit blockchain is an extension of Ethereum blockchain 
 export class StableUnit extends Ethereum {
-    // the target price for one unit. Might be function from {time, su in circulation} etc
-    PEG = 1.0;
-    // ranges for multi-layer stabilisation
+    // StableUnit has three types of internal values:
+    // 1: [Settings]. Contants of the system which can be change only via DAO referendum. 
+    // 2: [Assets]. SU, REPO, SHARE, Stabilization Reserve which keeps Ether.
+    // 3: [Variable]. Statitics, helpers and other internal variables nessesary for the implementation.
+
+    //
+    //    CONSTANTS
+    //
+    // The target price for one StableUnit(SU). 
+    // Generally, it might be a function from {time, SU in circulation} aka adoption metric
+    PEG() {
+        return 1.0;
+    }
+    // Constants for for stabilisation layer's ranges
     D1 = 0.05;
-    D2 = 0.1;
+    D2 = 0.10;
     D3 = 0.15;
-    D4 = 0.2;
+    D4 = 0.20;
     D5 = 0.25;
-    // reward in SU for one oracle voting term
-    ORACLE_REWARD = 0.1;
-
-    // the last info provided by oracles
-    SUmETH_price: number;
-    mETHUSD_price: number = 0.5;
-
-    // 5 types of assets
-    SU_price: number;
-    SU_circulation: number;
-
-    // stabilization reserve
-    reserve_mETH: number;
-    reserve_ratio: number;
-
-    // repurchaseable agreement
+    // Repurchaseable Agreement
     REPOS_EMISSION = 0.1; // 10% of the SU in circulation
-    REPO_circulation: number;
-    REPO_price: number;
+    // Shares which are both shares and governence token
+    SHARES_LIMIT = 1e9;
+    // Reward for one oracle voting term [in SHAREs]
+    ORACLE_REWARD = 0.1;
+    // Miner's Reward for one block [in SHAREs]
+    MINER_REWARD(n_block: number) {
+        return 1/n_block;
+    }
 
+    //
+    //  ASSETS
+    // 
+    // SU - core token of the system and unit of accounting
+    // In this version of simulation, assets implemented as variables at Traders portfolio, so 
+    // SU_circulation == SUM(Trader.balance_SU for_each(Trader in TraderPool))
+    SU_circulation: number;
+    // Stabilization Reserve - smartcontract which stores Ether
+    reserve_mETH: number;
+    // 
+    REPO_circulation: number;
     // tokens of ownership for decentralized autonomous organization
     SU_DAO_TOKEN_circulation: number;
-
-    // how much fund is parking (frozen) on each account
+    // How much fund is parking (frozen) on each account
     PARKING_ratio: number;
+
+    //
+    //  VARIABLES
+    //
+    // the last info provided by oracles
+    mETHUSD_price: number = 0.5;
+    SUmETH_price: number;
+    // additional variables
+    SU_price: number;    
+    reserve_ratio: number;
+    REPO_price: number;
+    
 
     constructor(ethereum: Ethereum) {
         super();
@@ -236,10 +261,11 @@ export class StableUnit extends Ethereum {
         this.PARKING_ratio = 0;
     }
 
-    daico() {
-
+    // Security token offering
+    STO() {
+        // 
     }
-
+ 
     // Oracle smartcontract takes info from outside
     callOracleSM(trader: Trader, mETHUSD_price: number) {
         this.mETHUSD_price = mETHUSD_price;
@@ -249,35 +275,9 @@ export class StableUnit extends Ethereum {
         this.SU_circulation = this.SU_circulation + this.ORACLE_REWARD;
     }
 
-    // Not sure yet whether we need SU/ETH or SU/USD as an input for oracle
-    // callOracleSM2(SUmETH_price: number, mETHUSD_price: number) {
-    //     // reads info from outside world and brings it to the blockchain
-    //     // TODO: checks that prices haven't check too much so nobody is trying to compromize the System
-    //     this.callOracleSM(mETHUSD_price);
-    //     this.SUmETH_price = SUmETH_price;
-    //     const SU_price = SUmETH_price * this.mETHUSD_price;
-    //     this.SU_price = SU_price;
     //
-    //     // expand supply via stabilization fund + reaping bonds
-    //     if (this.PEG + this.D1 <= SU_price) {
-    //     }
-    //     // market stabilization
-    //     if (this.PEG - this.D1 < SU_price && SU_price < this.PEG + this.D1) {
-    //     }
-    //     // stabilization fund
-    //     if (this.PEG - this.D2 < SU_price && SU_price <= this.PEG - this.D1) {
-    //     }
-    //     // bonds
-    //     if (this.PEG - this.D3 < SU_price && SU_price <= this.PEG - this.D2) {
-    //     }
-    //     // shares
-    //     if (this.PEG - this.D4 < SU_price && SU_price <= this.PEG - this.D3) {
-    //     }
-    //     // temporary parking
-    //     if (this.PEG - this.D5 < SU_price && SU_price <= this.PEG - this.D4) {
-    //     }
-    // }
-
+    //  Stabilizarion Reserve
+    //
     //buySUfromReserveSM(eth_address, amount_eth, txn_sign, su_addr) {
     buySUfromReserveSM(buyer: Trader, amount_mETH: number) {
         // check that sender is owed that money
@@ -325,6 +325,7 @@ export class StableUnit extends Ethereum {
         }
         return false;
     }
+
 
     unlockBonds() {
         this.REPO_circulation += this.SU_circulation * this.REPOS_EMISSION;
@@ -376,20 +377,20 @@ class Web4 {
         this.su = new StableUnit(this.eth);
     }
 }
-
 export const web4 = new Web4();
 
 // In this simulation we're going to use milliEther 
 // as the more convenient unit of measurement for Ether value in SU/ETH exchange
 export const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
 
+// TODO: make it in [-1 .. +1]
 // market_demand shows market demand for SU. 
 // Traders (bots) use it as an input for desicion making whether buy or sell SU
 export const market_demand = new Market(0.5, "SU demand", Market.TYPE_NONE);
 
-
+// Type for the exhange order book:
 export type Order = {
-    trader: Trader;
+    trader: Trader; // to whom this Order belong to
     type: string; // buy, sell
     price: number; // ==SU/mETH
     amount_SU: number;
@@ -631,155 +632,6 @@ export const market_SUUSD = new Market(1, "SU-USD");
 // Pool of all trader instances for outside control
 export type Traders = Map<string, Trader>;
 
-// This trader randomly sells and buys some arbitrary amount of SU
-// Follows the mood of the market (market_demand)
-
-// // This trader follows the trend by analysing the Buy/Sell volume ratio of the order book
-// class TrendMaker extends Trader {
-//     update() {
-//         super.update();
-//         if (this.ifTimeToUpdate()) {
-//             let orderbook_ratio = market_SUETH.getNormalizedBuySellVolumeRatio();
-//             if (isNaN(orderbook_ratio))
-//                 orderbook_ratio = 0.5; // when orderbook is empty
-
-//             let deal_price = market_SUETH.getCurrentValue();
-//             let max_mETH = this.balance_mETH;
-//             let max_SU = Math.min(max_mETH / deal_price, this.balance_SU);
-//             let deal_SU = max_SU * this.dna.risk;
-
-//             // if there are more buy orders than sell order
-//             if (orderbook_ratio > this.dna.r) {
-//                 // means there are more demand therefore we might expect the price go up
-//                 // and benefit by placing selling order for higher price
-//                 let sell_price = deal_price * (1 + this.dna.margin);
-//                 this.addOrderTTL(market_SUETH.addSellLimitOrder(
-//                     this,
-//                     deal_SU,
-//                     sell_price),
-//                     this.time_frame * 2);
-//             } else {
-//                 // looks like people tend to sell more than buy
-//                 // means there are more supply therefore the price might go down, so we can buy SU cheaper
-//                 let buy_price = deal_price * (1 - this.dna.margin);
-//                 this.addOrderTTL(market_SUETH.addBuyLimitOrder(
-//                     this,
-//                     deal_SU,
-//                     Math.max(buy_price, 0.001)),
-//                     this.time_frame * 2);
-//             }
-//             this.rebalance_portfolio_SUETH();
-//         }
-//     }
-// }
-
-// // This trader trying to buy SU during crash when it's very cheap
-// // and sell it after crash for at least x10 of price
-// class BuyFDeeps extends Trader {
-//     SU_DEEP = 0.01;
-//     ROI = 10;
-
-//     update() {
-//         super.update();
-//         // buy f***ing deeps
-//         if (this.balance_mETH > Utility.EPS) {
-//             let SU_buy_price = this.SU_DEEP;
-//             let SU_buy_amount = this.balance_mETH / this.SU_DEEP;
-//             this.addOrderTTL(market_SUETH.addBuyLimitOrder(this, SU_buy_amount, SU_buy_price), this.time_frame);
-//         }
-//         // sell peaks
-//         if (this.balance_SU > Utility.EPS) {
-//             let SU_sell_price = Math.max(market_SUETH.getCurrentValue(), this.SU_DEEP * this.ROI);
-//             this.addOrderTTL(market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_sell_price), this.time_frame);
-//         }
-//     }
-// }
-
-// // BasicTrader uses very simple logic to trade:
-// // It knows that the SU price will always fluctuates around $1 so
-// // it buys SU cheaper than $1 and sells it back at $1
-// // it sells SU for higher than $1 and buys it back at $1
-// // the trader would like to earn dna.roi from this trade and acts every dna.time_frame ticks
-// class BasicTrader extends Trader {
-//     DEFAULT_ROI = 0.1;
-//     roi: number;
-//     time_frame: number;
-
-//     constructor(name: string, portfolio, dna: { time_frame: number, roi?: number }) {
-//         super(name, portfolio, dna);
-//         this.time_frame = dna.time_frame;
-//         this.roi = dna.roi || this.DEFAULT_ROI;
-//     }
-
-//     update() {
-//         super.update();
-//         // execute update ones in time_frame ticks
-//         if (super.ifTimeToUpdate()) {
-//             // return on investment = (gain from investment – cost of investment) / cost of investment
-//             // when trading above 1 for 1+x: roi == (1+x - 1)/1 => x == roi
-//             let SU_high_price_mETH = (1 + this.roi) / market_mETHUSD.getCurrentValue();
-//             // when trading below 1 for 1-y: roi == (1 - (1-y))/(1-y) == y/(1-y) => y == roi/(roi+1)
-//             let SU_low_price_mETH = (1 - this.roi / (1 + this.roi)) / market_mETHUSD.getCurrentValue();
-//             // buying cheap su and believes that price will rise to peg to sell more expensive
-//             let buy_order = market_SUETH.addBuyLimitOrder(this, this.balance_mETH / SU_low_price_mETH, SU_low_price_mETH);
-//             this.addOrderTTL(buy_order, this.time_frame);
-//             // selling high and believes that price will fall to peg to buy cheap again
-//             let sell_order = market_SUETH.addSellLimitOrder(this, this.balance_SU, SU_high_price_mETH);
-//             this.addOrderTTL(sell_order, this.time_frame);
-//             // ???
-//             // profit!
-//         }
-//     }
-// }
-
-// // This is representation of all users who participate in the oracle smart contract
-// class OracleSpeculator extends Trader {
-//     update() {
-//         web4.su.callOracleSM(this, market_mETHUSD.getCurrentValue());
-//     }
-// }
-
-// // This trader earns on differences between market price and SU_reserve price
-// class ArbitrageUpTrader extends Trader {
-//     min_deal_eth = 1;
-//     max_deal_eth = 10;
-//     margin = 0.1;
-
-//     update() {
-//         super.update();
-//         if (this.balance_mETH > this.min_deal_eth) {
-//             // buy SU from the reserve
-//             let deal_eth = Math.min(this.balance_mETH, this.max_deal_eth);
-//             let old_balance_SU = this.balance_SU;
-//             web4.su.buySUfromReserveSM(this, deal_eth);
-//             let deal_su = this.balance_SU - old_balance_SU;
-//             let deal_price = deal_eth / deal_su;
-//             // sell it more expensive on the market
-//             const ROI = 1 + this.margin;
-//             this.addOrderTTL(market_SUETH.addSellLimitOrder(this, deal_su, deal_price * ROI), this.time_frame);
-//         }
-//     }
-// }
-
-// class ArbitrageDownTrader extends Trader {
-//     min_deal_su = 10;
-//     max_su = 10;
-//     marginality = 0.01; // su
-//     update() {
-//         super.update();
-//         if (this.ifTimeToUpdate()) {
-//             let deal_mETH = this.balance_mETH; // play hard
-//             let deal_price_USD = 1.0 - web4.su.D1 - this.marginality;
-//             let deal_price_ETH = deal_price_USD / market_mETHUSD.getCurrentValue();
-//             let deal_su = deal_mETH * deal_price_ETH;
-//             this.addOrderTTL(market_SUETH.addBuyLimitOrder(this, deal_su, deal_price_ETH), this.time_frame);
-//             if (this.balance_SU > this.max_su) {
-//                 web4.su.sellSUtoReserveSM(this, this.balance_SU);
-//             }
-//         }
-//     }
-// }
-
 // main loop of the simulation
 export class Simulation {
     web4: Web4;
@@ -793,83 +645,15 @@ export class Simulation {
     constructor() {
         // init all instances of the simulation:
         this.web4 = web4;
-        // exchanges,
+        // exchanges, inputs
         this.market_ETHUSD = market_mETHUSD;
+        this.market_demand = market_demand;
+        // exchanges, output
         this.market_SUETH = market_SUETH;
         this.market_SUUSD = market_SUUSD;
-        this.market_demand = market_demand;
 
         const traderPool = new TraderPool();
         this.traders = traderPool.traders;
-
-        // // temporary array of traders
-        // let traders = [];
-        // // UI traders to play around
-        // traders.push(new Trader("human_1", {balance_SU: 500, balance_mETH: 1000}));
-        // traders.push(new Trader("human_2", {balance_SU: 5000, balance_mETH: 10000}));
-
-        // // general traders for any kind of markets
-        // for (let i = 0; i < 5; i++) {
-        //     traders.push(new RandomTrader(
-        //         "random_" + i,
-        //         Utility.generateRandomPortfolio(3000),
-        //         {risk: Math.random() * 0.02, time_frame: Math.round(1 + Math.random() * 5)}
-        //     ));
-        // }
-        // for (let i = 0; i < 15; i++) {
-        //     traders.push(new TrendMaker(
-        //         "trandMaker_" + i,
-        //         Utility.generateRandomPortfolio(),
-        //         {
-        //             risk: Math.random() * 0.3,
-        //             r: Utility.randn_bm(),
-        //             margin: Math.random() * 0.1,
-        //             time_frame: Math.round(1 + Math.random() * 5)
-        //         }
-        //     ));
-        // }
-        // //traders.push(new BuyFDeeps("BuyDeeps", Utility.generateRandomPortfolio(10)));
-
-        // // Any stable-price specific traders
-        // for (let i = 0; i < 5; i++) {
-        //     traders.push(new BasicTrader(
-        //         "basic_" + i,
-        //         Utility.generateRandomPortfolio(),
-        //         {type: "none", time_frame: Math.round(1 + Math.random() * 5), roi: 0.1 * Math.random()}
-        //     ));
-        // }
-
-        // // StableUnit specific traders
-        // // Speculator who feeds SU with market data
-        // traders.push(new OracleSpeculator("Oracles"));
-
-        // // for (let i = 0; i < 1; i++) {
-        // //     traders.push(new ArbitrageUpTrader(
-        // //         "ArbitrageUp_" + i,
-        // //         Utility.generateRandomPortfolio(),
-        // //         {time_frame: Math.round(1 + Math.random() * 5)}
-        // //     ));
-        // // }
-        // //
-        // // for (let i = 0; i < 1; i++) {
-        // //     traders.push(new ArbitrageDownTrader(
-        // //         "ArbitrageDown_" + i,
-        // //         Utility.generateRandomPortfolio(),
-        // //         {time_frame: Math.round(1 + Math.random() * 5)}
-        // //     ));
-        // // }
-
-        // for (let trader of traders) {
-        //     this.traders.set(trader.name, trader);
-        // }
-        // //this.traders.set("arbitrage_1", new ArbitrageUpTrader(Utility.generateRandomPortfolio()));
-        // //this.traders.set("algo_1", new AlgoTrader(Utility.generateRandomPortfolio()));
-        // // tests
-        // //market_SUETH.test();
-        // // for (let [, trader] of this.traders) {
-        // //     trader.test();
-        // // }
-
     }
 
     // execute one tick of the simulation
@@ -878,87 +662,17 @@ export class Simulation {
         this.market_ETHUSD.update();
         this.market_demand.update();
 
-        // simulation execution
-        market_SUUSD.setNewValue(market_SUETH.getCurrentValue() * market_mETHUSD.getCurrentValue());
-
+        // exec logic of all bots which interact with markets
         for (let [, trader] of this.traders) {
             trader.update();
         }
+        // update market date based of bot's transaction
         market_SUETH.update();
-
+        market_SUUSD.setNewValue(market_SUETH.getCurrentValue() * market_mETHUSD.getCurrentValue());
         this.web4.su.updateHistory();
 
         // update the time
         Utility.simulation_tick += 1;
-
-        // Debug output
-        // console.log("r = " + market_SUETH.getNormalizedBuySellVolumeRatio().toFixed(3));
-        // console.log("b = " + market_SUETH.buy_orders.length + ", s = " + market_SUETH.sell_orders.length);
-        // let i = 0;
-        // let j = 0;
-        // for (let [, trader] of this.traders) {
-        //     if (trader.dna.r) {
-        //         if (trader.dna.r < 0.5) i++; else j++;
-        //     }
-        // }
-        // console.log("i,j = " + i + ", " + j);
-        // console.log("total_buy,total_sell = " + total_buy_orders + ", " + total_sell_orders);
     }
 }
 
-// class AlgoTrader extends Trader {
-//     margin = 0.05;
-//     max_deal_eth = 1;
-//     max_deal_su = 1000;
-//     update() {
-//         super.update();
-//         // lets calc current prices in USD
-//         // const eth_price = market_ETHUSD.getCurrentValue();
-//         // const su_peg_price = 1;
-//         // const su_price = market_SUETH.getCurrentValue() * eth_price;
-//         // // some prices might be NaN if there are not enought liquidity
-//         // const su_sell_price = market_SUETH.getCurrentSellPrice() * eth_price;
-//         // const su_buy_price = market_SUETH.getCurrentBuyPrice() * eth_price;
-
-//         // if we can buy cheap SU (cheaper than 1-margin)
-//         // we can sell it later for the peg price and get profit (ROI = 1+marginaliry)
-//         // let calc price in ETH for SU/ETH market
-//         let good_su_sell_price = (1 - this.margin) / market_ETHUSD.getCurrentValue();
-//         if (market_SUETH.getCurrentSellPrice() < good_su_sell_price ) {
-//             // maximum eth we can afford to stake
-//             let max_deal_eth = Math.min(this.max_deal_eth, this.balance_mETH);
-//             // calc avaliable cheap su
-//             let available_cheap_su = 0;
-//             let nessesary_eth = 0;
-//             for (let i = market_SUETH.sellOrders.length-1; i >= 0; --i) {
-//                 const sellOrder = market_SUETH.sellOrders[i];
-//                 if (sellOrder.price < good_su_sell_price) {
-//                     if (nessesary_eth + sellOrder.eth_amount <= max_deal_eth) {
-//                         nessesary_eth += sellOrder.eth_amount;
-//                         available_cheap_su += sellOrder.su_amount;
-//                     } else {
-//                         let deal_eth = max_deal_eth - nessesary_eth;
-//                         let deal_su = deal_eth / sellOrder.price - Utility.EPS;
-//                         nessesary_eth += deal_eth;
-//                         available_cheap_su += deal_su;
-//                         break;
-//                     }
-//                 } else break;
-//             }
-//             let deal_su = available_cheap_su;
-//             market_SUETH.newMarketBuyOrder(this, deal_su);
-//             // lets sell it expensive
-//             let deal_eth = deal_su / market_ETHUSD.getCurrentValue();
-//             market_SUETH.newLimitSellOrder(this, deal_su, deal_eth);
-//         }
-
-//         // // if we can sell SU more than (1+margin), lets do that
-//         // // we will buy it again aroun 1 USD for SU because the System deisgned to be stable
-//         // let good_su_buy_price = (1 + this.margin) / market_ETHUSD.getCurrentValue();
-//         // if (market_SUETH.getCurrentBuyPrice() > good_su_buy_price) {
-//         //     let max_deal_su = Math.min(this.max_deal_su, this.balance_SU);
-//         //     // calc how much su we can sell with profit
-
-//         // }
-//     }
-// }
