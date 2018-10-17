@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Component, Fragment } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 import TitleWithToggle from './TitleWithToggle';
 import { colors } from '../theme';
@@ -22,7 +22,7 @@ type Entry = {
 
 type HistoryData = Array<Entry>;
 
-class History extends React.Component<Props, State> {
+class History extends Component<Props, State> {
   state = { showAll: false };
 
   toggleShowAll = () => {
@@ -84,7 +84,7 @@ class History extends React.Component<Props, State> {
     };
 
     return (
-      <div style={{ flex: 1 }}>
+      <Fragment>
         <TitleWithToggle
           name={market.name}
           title={title}
@@ -93,7 +93,7 @@ class History extends React.Component<Props, State> {
         />
 
         <AmCharts.React style={style} options={options} />
-      </div>
+      </Fragment>
     );
   }
 }

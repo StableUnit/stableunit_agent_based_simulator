@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Component, Fragment } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 import TitleWithToggle from './TitleWithToggle';
 import { colors } from '../theme';
@@ -15,7 +15,7 @@ type State = {
   showAll: boolean
 };
 
-class History extends React.Component<Props, State> {
+class History extends Component<Props, State> {
   state = { showAll: false };
 
   toggleShowAll = () => {
@@ -53,7 +53,7 @@ class History extends React.Component<Props, State> {
         },
         {
           id: 'reserve_ratio',
-          axisColor: '#FCD202',
+          axisColor: '#003dfc',
           position: 'right',
           minimum: 0.0,
         },
@@ -96,7 +96,7 @@ class History extends React.Component<Props, State> {
         {
           valueAxis: 'reserve_ratio',
           closeField: 'close',
-          lineColor: '#FCD202',
+          lineColor: '#003dfc',
           lineAlpha: 1,
           negativeFillColors: colors.red,
           negativeLineColor: colors.red,
@@ -138,16 +138,16 @@ class History extends React.Component<Props, State> {
     };
 
     return (
-      <div style={{ flex: 1 }}>
+      <Fragment>
         <TitleWithToggle
-          name={"circulation"} //TODO: what's this field?
+          name="circulation" //TODO: what's this field?
           title={title}
           showAll={showAll}
           toggleShowAll={this.toggleShowAll}
         />
 
         <AmCharts.React style={style} options={options} />
-      </div>
+      </Fragment>
     );
   }
 }

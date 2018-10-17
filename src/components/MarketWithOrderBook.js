@@ -21,7 +21,7 @@ const Wrap = styled.div`
 `;
 
 const Half = styled.div`
-  width: 50%;
+  width: 100%;
 `;
 
 const MarketWithOrderBook = (props: Props) => {

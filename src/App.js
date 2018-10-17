@@ -1,18 +1,19 @@
 // @flow
 
-import React, { Fragment } from 'react';
+import React, {Fragment} from 'react';
 import styled from 'styled-components';
-import { Module, ModuleHeader, ModuleBody, Button } from 'carbon-components-react';
+import {Module, ModuleHeader, ModuleBody, Button} from 'carbon-components-react';
 
 import ExchangeContainer from './components/ExchangeContainer';
 import StableUnitChartContainer from './components/StableUnitChartContainer';
 import DemandContainer from './components/DemandContainer';
+import PriceContainer from './components/PriceContainer';
 import Header from './components/Header';
 import TradersContainer from './components/TradersContainer';
 import Status from './components/Status';
 import StableUnitContainer from './components/StableUnitContainer';
 import SourceCodeContainer from './components/SourceCode';
-import { configurePlayer } from "./util/simulationUpdateHOC";
+import {configurePlayer} from "./util/simulationUpdateHOC";
 import type Player from "./models/player"
 
 const Wrap = styled.div`
@@ -47,9 +48,18 @@ const App = () => (
           </ModuleBody>
         </Module>
         <Module>
-          <ModuleHeader>Exchange Simulation</ModuleHeader>
+          <ModuleHeader>Traders source code</ModuleHeader>
           <ModuleBody>
-            <ExchangeContainer />
+            <SourceCodeContainer/>
+          </ModuleBody>
+        </Module>
+      </PanelLeft>
+      <PanelRight>
+        <Module>
+          <ModuleHeader>Simulation inputs</ModuleHeader>
+          <ModuleBody>
+            <DemandContainer />
+            <PriceContainer />
           </ModuleBody>
         </Module>
         <Module>
@@ -65,18 +75,10 @@ const App = () => (
             </div>
           </ModuleBody>
         </Module>
-          <Module>
-            <ModuleHeader>Traders source code</ModuleHeader>
-            <ModuleBody>
-                <SourceCodeContainer />
-            </ModuleBody>
-          </Module>
-      </PanelLeft>
-      <PanelRight>
         <Module>
-          <ModuleHeader>Media Impact Simulation</ModuleHeader>
+          <ModuleHeader>Exchange Simulation</ModuleHeader>
           <ModuleBody>
-            <DemandContainer />
+            <ExchangeContainer />
           </ModuleBody>
         </Module>
         <Module>
@@ -87,7 +89,7 @@ const App = () => (
         </Module>
       </PanelRight>
     </Wrap>
-    <Status />
+    <Status/>
   </Fragment>
 );
 
