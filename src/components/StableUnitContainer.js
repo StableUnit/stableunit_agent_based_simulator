@@ -1,9 +1,9 @@
 // @flow
 
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 
-import { Button, NumberInput } from 'carbon-components-react';
+import { Button, NumberInput, Tooltip } from 'carbon-components-react';
 import MultiHistory from "./MultiHistory"
 import withSimulation from "../util/simulationUpdateHOC"
 import type {StableUnitSystemHistory} from "../models/es6_simulation"
@@ -23,6 +23,7 @@ type Props = {
   reserve_ratio: number,
   REPO_circulation: number,
   SU_DAO_TOKEN_circulation: number,
+  PARKING_ratio: number,
   D1: number,
   D2: number,
   D3: number,
@@ -35,6 +36,22 @@ const STEP = 0.01;
 
 const FlexDiv = styled.div`
   display: flex;
+`;
+
+const SUCirculationParagraph = styled.p`
+  color: #FF8800;
+`;
+
+const ReservemEthParagraph = styled.p`
+  color: #ff0011;
+`;
+
+const ReserveRatioParagraph = styled.p`
+  color: #003dfc;
+`;
+
+const REPOCirculationParagraph = styled.p`
+  color: #660000;
 `;
 
 class StableUnitContainer extends Component<Props, State> {
@@ -76,8 +93,52 @@ class StableUnitContainer extends Component<Props, State> {
       onChange={this.updateValue(name)}
     />
 
+  renderTextHelpers() {
+    const {SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation, PARKING_ratio} = this.props;
+    return (
+      <Fragment>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<SUCirculationParagraph>SU in circulation = {(SU_circulation).toFixed(2)}</SUCirculationParagraph>}
+        >
+          This value represents SU in circulation
+        </Tooltip>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<ReservemEthParagraph>Reserve (eth) = {(reserve_mETH / 1000).toFixed(2)}</ReservemEthParagraph>}
+        >
+          This value represents Reserve (eth)
+        </Tooltip>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<ReserveRatioParagraph>Reserve ratio = {(reserve_ratio).toFixed(2)}</ReserveRatioParagraph>}
+        >
+          This value represents Reserve ratio
+        </Tooltip>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<REPOCirculationParagraph>REPOs in circulation = {(REPO_circulation).toFixed(2)}</REPOCirculationParagraph>}
+        >
+          This value represents REPOs in circulation
+        </Tooltip>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<p>SU_DAO_Tokens in circulation = {(SU_DAO_TOKEN_circulation).toFixed(2)}</p>}
+        >
+          This value represents SU_DAO_Tokens in circulation
+        </Tooltip>
+        <Tooltip
+          clickToOpen={false}
+          triggerText={<p>Parking ratio = {(PARKING_ratio).toFixed(2)}</p>}
+        >
+          This value represents Parking ratio
+        </Tooltip>
+      </Fragment>
+    )
+  }
+
   render() {
-    const {history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation} = this.props;
+    const {history} = this.props;
 
     return (
       <div>
@@ -99,22 +160,16 @@ class StableUnitContainer extends Component<Props, State> {
             historyData={history}
         />
 
-        <div>
-            <p>SU in circulation = {(SU_circulation).toFixed(2)}</p>
-            <p>Reserve (eth) = {(reserve_mETH/1000).toFixed(2)}</p>
-            <p>Reserve ratio = {(reserve_ratio).toFixed(2)}</p>
-            <p>REPOs in circulation = {(REPO_circulation).toFixed(2) }</p>
-            <p>SU_DAO_Tokens in circulation = {(SU_DAO_TOKEN_circulation).toFixed(2)}</p>
-        </div>
+        {this.renderTextHelpers()}
       </div>
     );
   }
 }
 
 const mapPlayerToProps = player => {
-  const { su: { history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation, D1, D2, D3, D4, D5 } } = player.simulation.web4;
+  const { su: { history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation, PARKING_ratio, D1, D2, D3, D4, D5 } } = player.simulation.web4;
 
-  return { history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation, D1, D2, D3, D4, D5 };
+  return { history, SU_circulation, reserve_mETH, reserve_ratio, REPO_circulation, SU_DAO_TOKEN_circulation, PARKING_ratio, D1, D2, D3, D4, D5 };
 };
 
 const mapPlayerMethodToProps = player => ({

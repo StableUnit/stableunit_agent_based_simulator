@@ -50,6 +50,7 @@ class History extends Component<Props, State> {
           position: 'left',
           offset: 60,
           minimum: 0.0,
+          labelFunction: valueText => (valueText / 1000).toFixed(2)
         },
         {
           id: 'reserve_ratio',
@@ -62,7 +63,7 @@ class History extends Component<Props, State> {
           axisColor: '#660000',
           position: 'left',
           offset: 120,
-          minimum: -1,
+          minimum: 0,
           maximum: 1,
         }
       ],
@@ -91,7 +92,7 @@ class History extends Component<Props, State> {
           type: 'line',
           valueField: 'reserve_mETH',
           labelsEnabled: false,
-          balloonText: 'Reserve (eth): <b>[[reserve_mETH]]</b>'
+          balloonFunction: item => `Reserve (eth): <b>${parseFloat(item.values.value / 1000).toFixed(2)}</b>`
         },
         {
           valueAxis: 'reserve_ratio',

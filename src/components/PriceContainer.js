@@ -2,14 +2,15 @@
 
 import React, { Fragment } from 'react';
 import styled from 'styled-components';
-import { Button } from 'carbon-components-react';
+import { Button, Select, SelectItem } from 'carbon-components-react';
 
 import History from './History';
-import withSimulation from "../util/simulationUpdateHOC"
-import type {Market} from "../models/es6_simulation"
+import withSimulation from "../util/simulationUpdateHOC";
+import { Market_mETHUSD } from '../models/es6_simulation';
 
 type Props = {
-  market_ETHUSD: Market
+  market_ETHUSD: Market_mETHUSD,
+  setMovementType: string => void
 };
 
 type State = {
@@ -20,8 +21,17 @@ const ButtonsWrapper = styled.div`
   text-align: center;
 `;
 
+const SelectWrapper = styled.div`
+  width: 150px;
+  display: inline-block;
+`;
+
 class PriceContainer extends React.Component<Props, State> {
   state = { selectedMarketIndex: 0 };
+
+  setMovementType = ({target}) => {
+    this.props.setMovementType.call(this.props.market_ETHUSD, target.value)
+  }
 
   render() {
     const { market_ETHUSD } = this.props;
@@ -51,6 +61,13 @@ class PriceContainer extends React.Component<Props, State> {
           >
             Decrease
           </Button>
+          <SelectWrapper>
+            <Select id="movement-selector" hideLabel inline defaultValue={market_ETHUSD.movement_type} onChange={this.setMovementType}>
+              {Market_mETHUSD.MOVEMENT_TYPES.map(movement_type => (
+                <SelectItem key={movement_type} value={movement_type} text={movement_type} />
+              ))}
+            </Select>
+          </SelectWrapper>
         </ButtonsWrapper>
       </Fragment>
     );
@@ -65,4 +82,8 @@ const mapPlayerToProps = player => {
   };
 }
 
-export default withSimulation(mapPlayerToProps)(PriceContainer);
+const mapPlayerMethodsToProps = player => ({
+  setMovementType: player.simulation.market_ETHUSD.setMovementType
+})
+
+export default withSimulation(mapPlayerToProps, mapPlayerMethodsToProps)(PriceContainer);

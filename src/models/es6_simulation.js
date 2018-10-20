@@ -1,5 +1,6 @@
 // @flow
 import {TraderPool, Trader} from './traders';
+import etheriumData from '../data/etherium.json';
 
 export const Utility = {
     EPS: 1e-6,
@@ -101,6 +102,7 @@ export class Market {
     static TYPE_GBM = "gbm";
     static TYPE_LBM = "lbm";
     static TYPE_HISTORICAL = "historical";
+    static MOVEMENT_TYPES = [Market.TYPE_NONE, Market.TYPE_LINER, Market.TYPE_GBM, Market.TYPE_LBM];
     movement_type: string;
 
     volatility_factor = 0.05;
@@ -120,6 +122,10 @@ export class Market {
 
     getCurrentValue() {
         return this.history[this.history.length - 1].price;
+    }
+
+    setMovementType(movementType: string) {
+        this.movement_type = movementType
     }
 
     update() {
@@ -163,9 +169,7 @@ export class Market {
     }
 
     // TODO: add hostorical data of the price, possible three types: rise, crash and plateu
-    addHistoricalValue() {
-
-    }
+    addHistoricalValue() {}
 }
 
 // Helper data type to store statistics and send it for rendering
@@ -379,9 +383,26 @@ class Web4 {
 }
 export const web4 = new Web4();
 
+export class Market_mETHUSD extends Market {
+  static MOVEMENT_TYPES = [Market.TYPE_NONE, Market.TYPE_LINER, Market.TYPE_GBM, Market.TYPE_LBM, Market.TYPE_HISTORICAL];
+  historical_counter = 0; // counter for historical data
+
+  constructor() {
+    super(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
+  }
+
+  addHistoricalValue() {
+    if (this.historical_counter >= etheriumData.length) {
+      this.historical_counter = 0;
+    }
+
+    this.setNewValue(etheriumData[this.historical_counter++] / 1000);
+  }
+}
+
 // In this simulation we're going to use milliEther 
 // as the more convenient unit of measurement for Ether value in SU/ETH exchange
-export const market_mETHUSD = new Market(0.5 /*USD per mETH */, "mETH/USD", Market.TYPE_LBM);
+export const market_mETHUSD = new Market_mETHUSD();
 
 // TODO: make it in [-1 .. +1]
 // market_demand shows market demand for SU. 
@@ -617,11 +638,6 @@ export class Market_SUmETH extends Market {
     cancelOrder(order: Order) {
         this.removeOrder(order);
     }
-
-    // TODO: legacy
-    update() {
-    }
-
 }
 
 export const market_SUETH = new Market_SUmETH(2 /* mETH per SU */);
