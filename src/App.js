@@ -2,7 +2,7 @@
 
 import React, {Fragment} from 'react';
 import styled from 'styled-components';
-import {Module, ModuleHeader, ModuleBody, Button} from 'carbon-components-react';
+import {Module, ModuleHeader, ModuleBody} from 'carbon-components-react';
 
 import ExchangeContainer from './components/ExchangeContainer';
 import StableUnitChartContainer from './components/StableUnitChartContainer';
@@ -13,6 +13,7 @@ import TradersContainer from './components/TradersContainer';
 import Status from './components/Status';
 import StableUnitContainer from './components/StableUnitContainer';
 import SourceCodeContainer from './components/SourceCode';
+import SimulationControlContainer from './components/SImulationControlContainer';
 import {configurePlayer} from "./util/simulationUpdateHOC";
 import type Player from "./models/player"
 
@@ -65,14 +66,7 @@ const App = () => (
         <Module>
           <ModuleHeader>Simulation control</ModuleHeader>
           <ModuleBody>
-            <div style={{flex: 1}}>
-              <Button small onClick={() => player.start()}>
-                Start simulation
-              </Button>
-              <Button small onClick={() => player.stop()}>
-                Stop simulation
-              </Button>
-            </div>
+            <SimulationControlContainer />
           </ModuleBody>
         </Module>
         <Module>

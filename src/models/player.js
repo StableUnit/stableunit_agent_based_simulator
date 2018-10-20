@@ -114,6 +114,15 @@ class Player {
     su.D5 = Number(deltas.d5)
   }
 
+  changeInterval(interval: number) {
+    this.stop();
+    this.options.interval = interval;
+
+    if (interval) {
+      this.start();
+    }
+  }
+
   start() {
     if (this.playing) {
       return
@@ -123,11 +132,7 @@ class Player {
 
     window.simulation = this.simulation
 
-    this.intervalId = setInterval(() => {
-      this.simulation.update()
-      this.updateSimulation(this.simulation)
-      this.dispatch()
-    }, this.options.interval)
+    this.intervalId = setInterval(() => this.simulate(), this.options.interval)
   }
 
   stop() {
@@ -136,6 +141,12 @@ class Player {
     }
 
     this.playing = false
+  }
+
+  simulate() {
+    this.simulation.update()
+    this.updateSimulation(this.simulation)
+    this.dispatch()
   }
 }
 
