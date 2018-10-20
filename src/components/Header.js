@@ -41,6 +41,11 @@ const TimeContainer = styled.div`
   flex-grow: 1;
 `;
 
+const AlertSpan = styled.span`
+  color: red;
+  font-weight: bold;
+`
+
 
 class Header extends Component<Props> {
   render() {
@@ -51,6 +56,9 @@ class Header extends Component<Props> {
           <LogoType>StableUnit</LogoType>
         </LogoContainer>
         <DescriptionContainer>
+          <AlertSpan>
+            Attention! WIP, in the current stable SU all stabilization all off! Just finite supply coin.
+          </AlertSpan>
           This demo simulates the traders' reaction to major media news and
           shows mechanics that StableUnit uses to keep it's price pegged to US
           dollar in a trustless way
