@@ -6,10 +6,10 @@ import { Button, Select, SelectItem } from 'carbon-components-react';
 
 import History from './History';
 import withSimulation from "../util/simulationUpdateHOC";
-import { Market } from '../models/es6_simulation';
+import { Market_mETHUSD } from '../models/es6_simulation';
 
 type Props = {
-  market_ETHUSD: Market,
+  market_ETHUSD: Market_mETHUSD,
   setMovementType: string => void
 };
 
@@ -63,7 +63,7 @@ class PriceContainer extends React.Component<Props, State> {
           </Button>
           <SelectWrapper>
             <Select id="movement-selector" hideLabel inline defaultValue={market_ETHUSD.movement_type} onChange={this.setMovementType}>
-              {Market.MOVEMENT_TYPES.map(movement_type => (
+              {Market_mETHUSD.MOVEMENT_TYPES.map(movement_type => (
                 <SelectItem key={movement_type} value={movement_type} text={movement_type} />
               ))}
             </Select>

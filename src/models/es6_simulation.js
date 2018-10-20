@@ -102,7 +102,7 @@ export class Market {
     static TYPE_GBM = "gbm";
     static TYPE_LBM = "lbm";
     static TYPE_HISTORICAL = "historical";
-    static MOVEMENT_TYPES = [Market.TYPE_NONE, Market.TYPE_LINER, Market.TYPE_GBM, Market.TYPE_LBM, Market.TYPE_HISTORICAL];
+    static MOVEMENT_TYPES = [Market.TYPE_NONE, Market.TYPE_LINER, Market.TYPE_GBM, Market.TYPE_LBM];
     movement_type: string;
 
     volatility_factor = 0.05;
@@ -384,6 +384,7 @@ class Web4 {
 export const web4 = new Web4();
 
 export class Market_mETHUSD extends Market {
+  static MOVEMENT_TYPES = [Market.TYPE_NONE, Market.TYPE_LINER, Market.TYPE_GBM, Market.TYPE_LBM, Market.TYPE_HISTORICAL];
   historical_counter = 0; // counter for historical data
 
   constructor() {
