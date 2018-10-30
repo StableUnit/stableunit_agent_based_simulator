@@ -96,6 +96,7 @@ class Ethereum {
 export class Market {
     name: string;
     history: Array<{ datetime: number, price: number }> = [];
+    histogram: Array<{ price: string, count: number }> = [];
 
     static TYPE_NONE = "none";
     static TYPE_LINER = "liner";
@@ -116,8 +117,20 @@ export class Market {
         this.random_change = initial_value * this.volatility_factor;
     }
 
+    pushHistogramValue(new_value: number) {
+        const price = new_value.toFixed(2);
+        const foundRange = this.histogram.findIndex(value => value.price === price);
+
+        if (foundRange < 0) {
+            this.histogram.push({ price, count: 1 });
+        } else {
+            this.histogram[foundRange].count++;
+        }
+    }
+
     setNewValue(new_price: number) {
         this.history.push({datetime: Utility.simulation_tick, price: new_price});
+        this.pushHistogramValue(new_price);
     }
 
     getCurrentValue() {
