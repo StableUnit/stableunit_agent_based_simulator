@@ -5,6 +5,8 @@ import AmCharts from '@amcharts/amcharts3-react';
 import TitleWithToggle from './TitleWithToggle';
 import { colors } from '../theme';
 import { Market } from '../models/es6_simulation';
+import Histogram from "./Histogram";
+import styled from "styled-components";
 
 type Props = {
   market: Market,
@@ -26,6 +28,18 @@ type Entry = {
 };
 
 type HistoryData = Array<Entry>;
+
+const PanelLeft = styled.div`
+  width: 60%;
+`;
+
+const PanelRight = styled.div`
+  width: 40%;
+`;
+
+const FlexContainer = styled.div`
+  display: flex;
+`;
 
 class History extends React.Component<Props, State> {
   state = { showAll: false };
@@ -115,7 +129,14 @@ class History extends React.Component<Props, State> {
           toggleShowAll={this.toggleShowAll}
         />
 
-        <AmCharts.React style={style} options={options} />
+        <FlexContainer>
+          <PanelLeft>
+            <AmCharts.React style={style} options={options} />
+          </PanelLeft>
+          <PanelRight>
+            <Histogram market={market} />
+          </PanelRight>
+        </FlexContainer>
       </div>
     );
   }
