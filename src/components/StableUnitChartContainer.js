@@ -5,8 +5,6 @@ import HistoryWithLayers from './HistoryWithLayers';
 import withSimulation from '../util/simulationUpdateHOC';
 
 import type {Market} from '../models/es6_simulation';
-import Histogram from "./Histogram";
-import styled from "styled-components";
 
 type Props = {
   D1: number,
