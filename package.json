@@ -4,13 +4,17 @@
   "private": true,
   "dependencies": {
     "@amcharts/amcharts3-react": "3.1.0",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.14.0",
+    "@types/react": "^17.0.13",
+    "@types/react-dom": "^17.0.8",
     "accounting": "^0.4.1",
     "amstock3": "^3.21.12",
     "babel-plugin-react-css-modules": "^3.3.3",
     "babel-preset-env": "^1.7.0",
-    "carbon-components": "^8.23.1",
-    "carbon-components-react": "^5.52.4",
-    "carbon-icons": "^6.3.2",
+    "carbon-components": "^10.30.0",
+    "carbon-components-react": "7.36.0",
+    "carbon-icons": "^7.0.7",
     "faker": "^4.1.0",
     "immutable": "4.0.0-rc.9",
     "moment": "^2.21.0",
@@ -18,14 +22,17 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-responsive": "^4.0.5",
-    "react-share": "^2.3.1",
-    "react-syntax-highlighter": "^8.0.1",
+    "react-share": "^4.4.0",
+    "react-syntax-highlighter": "^10.1.0",
     "styled-components": "^3.2.0"
   },
   "devDependencies": {
+    "@types/accounting": "^0.4.1",
+    "@types/carbon-components-react": "^7.36.0",
+    "@types/react-syntax-highlighter": "^10.1.0",
     "babel-preset-flow": "^6.23.0",
-    "flow-bin": "^0.66.0",
-    "react-scripts": "^1.1.4"
+    "react-scripts": "^4.0.3",
+    "typescript": "^4.3.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -33,5 +40,17 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "flow": "flow"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
