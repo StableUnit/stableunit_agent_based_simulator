@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import styled from "styled-components";
 import { Button, NumberInput, Tooltip } from "carbon-components-react";
 import MultiHistory from "./MultiHistory";
@@ -72,9 +72,18 @@ class StableUnitContainer extends Component<Props, State> {
   apply = () => {
     this.props.updateStableUnitDeltas(this.state);
   };
-  renderInput = ({ name, label }: { name: StateKeyType, label: string }) => <NumberInput id={name} style={{
-    minWidth: '5em'
-  }} key={name} label={label} value={Number(this.state[name])} step={STEP} onChange={this.updateValue(name)} />;
+  renderInput = ({ name, label }: { name: StateKeyType, label: string }) =>(
+      <NumberInput
+          id={name}
+          style={{ minWidth: '5em' }}
+          key={name}
+          label={label}
+          value={Number(this.state[name])}
+          step={STEP}
+          onChange={this.updateValue(name)}
+          hideSteppers
+      />
+  );
 
   renderTextHelpers() {
     const {
@@ -85,26 +94,40 @@ class StableUnitContainer extends Component<Props, State> {
       SU_DAO_TOKEN_circulation,
       PARKING_ratio
     } = this.props;
-    return <Fragment>
-        <Tooltip triggerText={<SUCirculationParagraph>SU in circulation = {SU_circulation.toFixed(2)}</SUCirculationParagraph>}>
-          This value represents SU in circulation
-        </Tooltip>
-        <Tooltip triggerText={<ReservemEthParagraph>Reserve (eth) = {(reserve_mETH / 1000).toFixed(2)}</ReservemEthParagraph>}>
-          This value represents Reserve (eth)
-        </Tooltip>
-        <Tooltip triggerText={<ReserveRatioParagraph>Reserve ratio = {reserve_ratio.toFixed(2)}</ReserveRatioParagraph>}>
-          This value represents Reserve ratio
-        </Tooltip>
-        <Tooltip triggerText={<REPOCirculationParagraph>REPOs in circulation = {REPO_circulation.toFixed(2)}</REPOCirculationParagraph>}>
-          This value represents REPOs in circulation
-        </Tooltip>
-        <Tooltip triggerText={<p>SU_DAO_Tokens in circulation = {SU_DAO_TOKEN_circulation.toFixed(2)}</p>}>
-          This value represents SU_DAO_Tokens in circulation
-        </Tooltip>
-        <Tooltip triggerText={<p>Parking ratio = {PARKING_ratio.toFixed(2)}</p>}>
-          This value represents Parking ratio
-        </Tooltip>
-      </Fragment>;
+    return (
+        <>
+          <div>
+            <Tooltip triggerText={<SUCirculationParagraph>SU in circulation = {SU_circulation.toFixed(2)}</SUCirculationParagraph>}>
+              This value represents SU in circulation
+            </Tooltip>
+          </div>
+          <div>
+            <Tooltip triggerText={<ReservemEthParagraph>Reserve (eth) = {(reserve_mETH / 1000).toFixed(2)}</ReservemEthParagraph>}>
+              This value represents Reserve (eth)
+            </Tooltip>
+          </div>
+          <div>
+            <Tooltip triggerText={<ReserveRatioParagraph>Reserve ratio = {reserve_ratio.toFixed(2)}</ReserveRatioParagraph>}>
+              This value represents Reserve ratio
+            </Tooltip>
+          </div>
+          <div>
+            <Tooltip triggerText={<REPOCirculationParagraph>REPOs in circulation = {REPO_circulation.toFixed(2)}</REPOCirculationParagraph>}>
+              This value represents REPOs in circulation
+            </Tooltip>
+          </div>
+          <div>
+            <Tooltip triggerText={<p>SU_DAO_Tokens in circulation = {SU_DAO_TOKEN_circulation.toFixed(2)}</p>}>
+              This value represents SU_DAO_Tokens in circulation
+            </Tooltip>
+          </div>
+          <div>
+            <Tooltip triggerText={<p>Parking ratio = {PARKING_ratio.toFixed(2)}</p>}>
+              This value represents Parking ratio
+            </Tooltip>
+          </div>
+      </>
+    );
   }
 
   render() {

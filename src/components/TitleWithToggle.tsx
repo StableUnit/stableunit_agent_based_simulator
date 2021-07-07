@@ -9,11 +9,13 @@ type Props = {
 };
 const ToggleContainer = styled.div`
   position: absolute;
-  right: 10px;
+  right: 40px;
   top: -10px;
 `;
 const RelativeHeading = styled.h3`
   position: relative;
+  font-size: 1.25rem;
+  line-height: 1.25;
 `;
 
 const TitleWithToggle = (props: Props) => {

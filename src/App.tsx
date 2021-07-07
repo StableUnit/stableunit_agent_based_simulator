@@ -1,6 +1,8 @@
 import React, { Fragment } from "react";
 import styled from "styled-components";
 import { ModalHeader, ModalBody } from "carbon-components-react";
+import "carbon-components/css/carbon-components.min.css";
+
 import ExchangeContainer from "./components/ExchangeContainer";
 import StableUnitChartContainer from "./components/StableUnitChartContainer";
 import DemandContainer from "./components/DemandContainer";
@@ -14,6 +16,7 @@ import SimulationControlContainer from "./components/SImulationControlContainer"
 import { configurePlayer } from "./util/simulationUpdateHOC";
 import type Player from "./models/player";
 
+
 const Wrap = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -25,6 +28,29 @@ const PanelLeft = styled.div`
 const PanelRight = styled.div`
   width: 40%;
 `;
+
+const StyledModalBody = styled(ModalBody)`
+  padding: 1rem 1.5rem;
+`;
+
+const StyledModalHeader = styled(ModalHeader)`
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dfe3e6;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: black;
+`;
+
+const StyledContentContainer = styled.div`
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+  background-color: #fff;
+  border: 1px solid transparent;
+  margin: 0.625rem;
+  max-width: 62.5rem;
+`;
+
+
 const player: Player = configurePlayer({
   interval: 100,
   autoStart: true
@@ -34,46 +60,46 @@ const App = () => <Fragment>
     <Header />
     <Wrap>
       <PanelLeft>
-        <div>
-          <ModalHeader>Stable Unit Simulation</ModalHeader>
-          <ModalBody>
+        <StyledContentContainer>
+          <StyledModalHeader>Stable Unit Simulation</StyledModalHeader>
+          <StyledModalBody>
             <StableUnitChartContainer />
             <StableUnitContainer />
-          </ModalBody>
-        </div>
-        <div>
-          <ModalHeader>Traders source code</ModalHeader>
-          <ModalBody>
+          </StyledModalBody>
+        </StyledContentContainer>
+        <StyledContentContainer>
+          <StyledModalHeader>Traders source code</StyledModalHeader>
+          <StyledModalBody>
             <SourceCodeContainer />
-          </ModalBody>
-        </div>
+          </StyledModalBody>
+        </StyledContentContainer>
       </PanelLeft>
       <PanelRight>
-        <div>
-          <ModalHeader>Simulation inputs</ModalHeader>
-          <ModalBody>
+        <StyledContentContainer>
+          <StyledModalHeader>Simulation inputs</StyledModalHeader>
+          <StyledModalBody>
             <DemandContainer />
             <PriceContainer />
-          </ModalBody>
-        </div>
-        <div>
-          <ModalHeader>Simulation control</ModalHeader>
-          <ModalBody>
+          </StyledModalBody>
+        </StyledContentContainer>
+        <StyledContentContainer>
+          <StyledModalHeader>Simulation control</StyledModalHeader>
+          <StyledModalBody>
             <SimulationControlContainer />
-          </ModalBody>
-        </div>
-        <div>
-          <ModalHeader>Exchange Simulation</ModalHeader>
-          <ModalBody>
+          </StyledModalBody>
+        </StyledContentContainer>
+        <StyledContentContainer>
+          <StyledModalHeader>Exchange Simulation</StyledModalHeader>
+          <StyledModalBody>
             <ExchangeContainer />
-          </ModalBody>
-        </div>
-        <div>
-          <ModalHeader>Traders</ModalHeader>
-          <ModalBody>
+          </StyledModalBody>
+        </StyledContentContainer>
+        <StyledContentContainer>
+          <StyledModalHeader>Traders</StyledModalHeader>
+          <StyledModalBody>
             <TradersContainer />
-          </ModalBody>
-        </div>
+          </StyledModalBody>
+        </StyledContentContainer>
       </PanelRight>
     </Wrap>
     <Status />

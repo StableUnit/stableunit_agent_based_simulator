@@ -24,12 +24,13 @@
     "react-responsive": "^4.0.5",
     "react-share": "^4.4.0",
     "react-syntax-highlighter": "^10.1.0",
-    "styled-components": "^3.2.0"
+    "styled-components": "5.3.0"
   },
   "devDependencies": {
     "@types/accounting": "^0.4.1",
     "@types/carbon-components-react": "^7.36.0",
     "@types/react-syntax-highlighter": "^10.1.0",
+    "@types/styled-components": "^5.1.11",
     "babel-preset-flow": "^6.23.0",
     "react-scripts": "^4.0.3",
     "typescript": "^4.3.5"

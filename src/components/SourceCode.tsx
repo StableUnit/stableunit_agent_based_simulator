@@ -31,14 +31,16 @@ class SourceCode extends PureComponent<any, SourceCodeState> {
       return null;
     }
 
-    return <Fragment>
-                <p>Text on the top</p>
-                <img style={imageStyles} src="/misc/sim_schema.png" alt="schema" />
-                <p>Text on the bottom</p>
-                <SyntaxHighlighter showLineNumbers customStyle={highlighterStyles} language="javascript" style={monoBlue}>
-                    {file}
-                </SyntaxHighlighter>
-            </Fragment>;
+    return (
+        <>
+            <p>Text on the top</p>
+            <img style={imageStyles} src="/misc/sim_schema.png" alt="schema" />
+            <p>Text on the bottom</p>
+            <SyntaxHighlighter showLineNumbers customStyle={highlighterStyles} language="javascript" style={monoBlue}>
+                {file}
+            </SyntaxHighlighter>
+        </>
+    );
   }
 
 }
